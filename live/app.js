@@ -3,6 +3,7 @@ let routeData={type:'FeatureCollection',features:[]};
 let endpointEvidenceData={type:'FeatureCollection',features:[]};
 let routesVisible=true;
 let endpointEvidenceVisible=true;
+let satelliteVisible=false;
 
 const map=new maplibregl.Map({
   container:'map',
@@ -201,6 +202,23 @@ map.on('load',async()=>{
   await loadMeta();
   await loadRanks();
 
+  map.addSource('satellite-imagery',{
+    type:'raster',
+    tiles:[
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    ],
+    tileSize:256,
+    attribution:'Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+  });
+
+  map.addLayer({
+    id:'satellite-imagery',
+    type:'raster',
+    source:'satellite-imagery',
+    layout:{visibility:'none'},
+    paint:{'raster-opacity':1}
+  });
+
   map.addSource('routes',{
     type:'geojson',
     data:routeData
@@ -350,6 +368,20 @@ document.querySelector('#fit').addEventListener('click',()=>{
   loadRanks();
 });
 
+
+document.querySelector('#satelliteToggle').addEventListener('click',()=>{
+  satelliteVisible=!satelliteVisible;
+  const button=document.querySelector('#satelliteToggle');
+  button.textContent=satelliteVisible?'Satellite':'Street';
+  button.classList.toggle('active-toggle',satelliteVisible);
+  button.setAttribute('aria-pressed',String(satelliteVisible));
+  if(map.getLayer('satellite-imagery')){
+    map.setLayoutProperty('satellite-imagery','visibility',satelliteVisible?'visible':'none');
+  }
+  document.querySelector('#basemapStatus').textContent=satelliteVisible
+    ? 'Satellite imagery — verify rank marker against visible facility'
+    : 'Street basemap';
+});
 
 document.querySelector('#routeToggle').addEventListener('click',()=>{
   routesVisible=!routesVisible;
