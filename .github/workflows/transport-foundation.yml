@@ -69,3 +69,5 @@ jobs:
           node-version: 22
       - name: Probe Ekurhuleni official GIS
         run: node scripts/probe-source.mjs ekurhuleni-corridor-taxi-ranks
+      - name: Probe Cape Town taxi routes
+        run: node scripts/probe-source.mjs capetown-taxi-routes
