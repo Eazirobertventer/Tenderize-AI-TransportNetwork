@@ -1,0 +1,16 @@
+{
+  "name": "tenderize-transport-network",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preview": "node tools/serve.mjs",
+    "ingest": "node scripts/ingest-arcgis.mjs",
+    "enrich:google": "node scripts/enrich-google-place-ids.mjs",
+    "validate": "node scripts/validate-data.mjs",
+    "test": "node scripts/validate-data.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
