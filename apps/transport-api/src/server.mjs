@@ -55,6 +55,7 @@ async function postgisRanks(url){
        LIMIT 1
      ) sr ON true
      LEFT JOIN source_registry s ON s.id=sr.source_id
+     LEFT JOIN taxi_association a ON a.id=tr.association_id
      WHERE ${where.join(' AND ')}
      ORDER BY r.canonical_name
      LIMIT 10000`,
@@ -112,6 +113,8 @@ async function postgisRoutes(url){
        tr.geometry_status,
        tr.verification_status::text,
        ST_AsGeoJSON(tr.geometry)::json AS geometry,
+       a.canonical_name AS association_name,
+       a.registration_number AS association_registration,
        s.source_key,
        s.source_name
      FROM taxi_route tr
@@ -145,11 +148,56 @@ async function postgisRoutes(url){
         boardRouteCode:row.board_route_code,
         geometryStatus:row.geometry_status,
         verificationStatus:row.verification_status,
+        association:row.association_name,
+        associationRegistration:row.association_registration,
         sourceKey:row.source_key,
         source:row.source_name || 'PostGIS canonical'
       }
     }))
   };
+}
+
+async function postgisAssociations(url){
+  const params=[];
+  const where=['1=1'];
+  const province=url.searchParams.get('province');
+  const q=url.searchParams.get('q');
+
+  if(province){
+    params.push(province);
+    where.push(`a.province = ${params.length}`);
+  }
+
+  if(q){
+    params.push('%' + q + '%');
+    const i=params.length;
+    where.push(`(a.canonical_name ILIKE ${i} OR coalesce(a.registration_number,'') ILIKE ${i} OR coalesce(a.acronym,'') ILIKE ${i})`);
+  }
+
+  const result=await pool.query(
+    `SELECT
+       a.id::text,
+       a.canonical_name,
+       a.acronym,
+       a.registration_number,
+       a.affiliation,
+       a.province,
+       a.municipality,
+       a.address,
+       a.verification_status::text,
+       count(DISTINCT ra.taxi_rank_id)::int AS rank_count,
+       count(DISTINCT tr.id)::int AS route_count
+     FROM taxi_association a
+     LEFT JOIN taxi_rank_association ra ON ra.association_id=a.id
+     LEFT JOIN taxi_route tr ON tr.association_id=a.id
+     WHERE ${where.join(' AND ')}
+     GROUP BY a.id
+     ORDER BY a.canonical_name
+     LIMIT 5000`,
+    params
+  );
+
+  return {items:result.rows};
 }
 
 async function meta(){
@@ -202,7 +250,45 @@ async function rankDetail(id){
     [id]
   );
 
-  return {...rank.rows[0],sources:sources.rows};
+  const associations=await pool.query(
+    `SELECT
+       a.id::text,
+       a.canonical_name AS name,
+       a.acronym,
+       a.registration_number,
+       a.verification_status::text AS "verificationStatus"
+     FROM taxi_rank_association ra
+     JOIN taxi_association a ON a.id=ra.association_id
+     WHERE ra.taxi_rank_id=$1::uuid
+     ORDER BY a.canonical_name`,
+    [id]
+  );
+
+  const routes=await pool.query(
+    `SELECT
+       tr.id::text,
+       tr.origin_label AS origin,
+       tr.destination_label AS destination,
+       tr.route_name AS name,
+       tr.national_route_code AS "nationalRouteCode",
+       tr.board_route_code AS "boardRouteCode",
+       tr.geometry_status AS "geometryStatus",
+       tr.verification_status::text AS "verificationStatus",
+       a.canonical_name AS association
+     FROM taxi_route tr
+     LEFT JOIN taxi_association a ON a.id=tr.association_id
+     WHERE tr.origin_rank_id=$1::uuid OR tr.destination_rank_id=$1::uuid
+     ORDER BY tr.route_name
+     LIMIT 500`,
+    [id]
+  );
+
+  return {
+    ...rank.rows[0],
+    sources:sources.rows,
+    associations:associations.rows,
+    routes:routes.rows
+  };
 }
 
 const server=createServer(async(req,res)=>{
@@ -228,6 +314,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/routes'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisRoutes(url));
+    }
+
+    if(url.pathname==='/api/v1/associations'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisAssociations(url));
     }
 
     if(url.pathname.startsWith('/api/v1/ranks/')){
