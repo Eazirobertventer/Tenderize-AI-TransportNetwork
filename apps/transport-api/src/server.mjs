@@ -243,6 +243,122 @@ async function postgisDataIssues(url){
   return {items:result.rows};
 }
 
+async function postgisRankReconciliation(url){
+  const sourceA=url.searchParams.get('sourceA') || 'ethekwini-bus-taxi-ranks-degraded';
+  const sourceB=url.searchParams.get('sourceB') || 'kzn-taxi-ranks-degraded-tls';
+  const requested=Number(url.searchParams.get('maxDistance') || 100);
+  const maxDistance=Math.min(Math.max(Number.isFinite(requested)?requested:100,1),500);
+
+  const result=await pool.query(
+    `WITH source_a AS (
+       SELECT DISTINCT
+         r.id,
+         r.canonical_name,
+         r.location,
+         sr.external_record_id
+       FROM taxi_rank r
+       JOIN source_record sr
+         ON sr.entity_type='taxi_rank' AND sr.entity_id=r.id
+       JOIN source_registry s ON s.id=sr.source_id
+       WHERE s.source_key=$1
+         AND r.location IS NOT NULL
+     ),
+     source_b AS (
+       SELECT DISTINCT
+         r.id,
+         r.canonical_name,
+         r.location,
+         sr.external_record_id
+       FROM taxi_rank r
+       JOIN source_record sr
+         ON sr.entity_type='taxi_rank' AND sr.entity_id=r.id
+       JOIN source_registry s ON s.id=sr.source_id
+       WHERE s.source_key=$2
+         AND r.location IS NOT NULL
+     ),
+     nearest AS (
+       SELECT
+         a.id AS source_a_rank_id,
+         a.canonical_name AS source_a_name,
+         a.external_record_id AS source_a_external_id,
+         ST_X(a.location) AS source_a_lng,
+         ST_Y(a.location) AS source_a_lat,
+         b.id AS source_b_rank_id,
+         b.canonical_name AS source_b_name,
+         b.external_record_id AS source_b_external_id,
+         ST_X(b.location) AS source_b_lng,
+         ST_Y(b.location) AS source_b_lat,
+         ST_DistanceSphere(a.location,b.location) AS distance_m
+       FROM source_a a
+       CROSS JOIN LATERAL (
+         SELECT b.*
+         FROM source_b b
+         ORDER BY a.location <-> b.location
+         LIMIT 1
+       ) b
+     ),
+     within_100 AS (
+       SELECT
+         a.id AS source_a_rank_id,
+         count(*)::int AS candidates_within_100m
+       FROM source_a a
+       JOIN source_b b
+         ON ST_DWithin(a.location::geography,b.location::geography,100)
+       GROUP BY a.id
+     )
+     SELECT
+       n.*,
+       coalesce(w.candidates_within_100m,0) AS candidates_within_100m
+     FROM nearest n
+     LEFT JOIN within_100 w ON w.source_a_rank_id=n.source_a_rank_id
+     ORDER BY n.distance_m, n.source_a_name`,
+    [sourceA,sourceB]
+  );
+
+  const rows=result.rows.map(row=>({
+    sourceA:{
+      id:row.source_a_rank_id,
+      name:row.source_a_name,
+      externalId:row.source_a_external_id,
+      coordinates:[Number(row.source_a_lng),Number(row.source_a_lat)]
+    },
+    sourceB:{
+      id:row.source_b_rank_id,
+      name:row.source_b_name,
+      externalId:row.source_b_external_id,
+      coordinates:[Number(row.source_b_lng),Number(row.source_b_lat)]
+    },
+    distanceM:Number(Number(row.distance_m).toFixed(2)),
+    candidatesWithin100m:Number(row.candidates_within_100m)
+  }));
+
+  const buckets={
+    lt25:0,
+    m25to50:0,
+    m50to100:0,
+    m100to200:0,
+    gte200:0
+  };
+  for(const row of rows){
+    const d=row.distanceM;
+    if(d<25) buckets.lt25+=1;
+    else if(d<50) buckets.m25to50+=1;
+    else if(d<100) buckets.m50to100+=1;
+    else if(d<200) buckets.m100to200+=1;
+    else buckets.gte200+=1;
+  }
+
+  return {
+    sourceA,
+    sourceB,
+    sourceACount:rows.length,
+    maxDistanceM:maxDistance,
+    nearestDistanceBuckets:buckets,
+    ambiguousWithin100m:rows.filter(row=>row.candidatesWithin100m>1).length,
+    candidates:rows.filter(row=>row.distanceM<=maxDistance)
+  };
+}
+
 async function meta(){
   if (!pool) {
     return {mode:'unconfigured',ranks:0,associations:0,routes:0,sources:0,productionComplete:false};
@@ -368,6 +484,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/data-issues'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisDataIssues(url));
+    }
+
+    if(url.pathname==='/api/v1/reconciliation/rank-candidates'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisRankReconciliation(url));
     }
 
     if(url.pathname.startsWith('/api/v1/ranks/')){
