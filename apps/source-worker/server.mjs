@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 
 const port = Number(process.env.PORT || 3000);
 const sourceUrl = process.env.SOURCE_URL ||
-  'https://gis.ekurhuleni.gov.za/arcgis/rest/services/Ekurhuleni/Ekurhuleni_POI_Map/MapServer/24';
+  'https://gis.ekurhuleni.gov.za/arcgis/rest/services/GMS/Corridor_1/MapServer/52';
 
 let last = {
   ok: false,
@@ -39,7 +39,6 @@ async function probe() {
     outFields: '*',
     returnGeometry: 'true',
     outSR: '4326',
-    resultRecordCount: '1',
     f: 'json'
   });
 
@@ -57,9 +56,12 @@ async function probe() {
       state: Boolean(feature) && recordCount !== null ? 'usable' : 'incomplete',
       checkedAt: new Date().toISOString(),
       recordCount,
+      returnedFeatures: Array.isArray(sample.features) ? sample.features.length : 0,
       sampleFeaturePresent: Boolean(feature),
       sampleGeometryPresent: Boolean(feature && feature.geometry),
+      sampleGeometry: feature?.geometry || null,
       sampleFields: feature?.attributes ? Object.keys(feature.attributes) : [],
+      sampleAttributes: feature?.attributes || null,
       arcgisError: count.error || sample.error || null,
       error: null
     };
