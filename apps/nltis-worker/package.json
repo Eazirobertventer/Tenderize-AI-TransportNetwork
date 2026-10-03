@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "ingest": "node ingest.mjs"
+    "ingest": "node ingest.mjs",
+    "ingest:rank-seeds": "node ingest-rank-seeds.mjs"
   },
   "dependencies": {
     "pg": "^8.13.1"
