@@ -1,0 +1,21 @@
+{
+  "id": "ekurhuleni-corridor-taxi-ranks",
+  "name": "City of Ekurhuleni Corridor Taxi Ranks",
+  "authority": "City of Ekurhuleni",
+  "kind": "taxi_rank",
+  "status": "official",
+  "url": "https://gis.ekurhuleni.gov.za/arcgis/rest/services/GMS/Corridor_1/MapServer/52",
+  "outFields": "OBJECTID,FID,NAME,NEW_REGION,REGION,TOWN,PHYSICAL_A,REF_NUMBER,LATTITUDE_,LONGITUDE_",
+  "mapping": {
+    "external_id": "OBJECTID",
+    "name": "NAME",
+    "province": "Gauteng",
+    "municipality": "City of Ekurhuleni",
+    "region": "NEW_REGION",
+    "town": "TOWN",
+    "address": "PHYSICAL_A",
+    "latitude": "LATTITUDE_",
+    "longitude": "LONGITUDE_",
+    "reference_number": "REF_NUMBER"
+  }
+}
