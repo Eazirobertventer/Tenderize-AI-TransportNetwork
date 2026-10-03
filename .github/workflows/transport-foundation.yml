@@ -19,6 +19,7 @@ jobs:
           node --check scripts/ingest-arcgis.mjs
           node --check scripts/build-rank-import-sql.mjs
           node --check scripts/probe-source.mjs
+          node --check apps/source-worker/ingest.mjs
       - name: Seed validation
         run: node scripts/validate-data.mjs
 
@@ -59,4 +60,4 @@ jobs:
         with:
           node-version: 22
       - name: Probe Ekurhuleni official GIS
-        run: node scripts/probe-source.mjs ekurhuleni-taxi-ranks
+        run: node scripts/probe-source.mjs ekurhuleni-corridor-taxi-ranks
