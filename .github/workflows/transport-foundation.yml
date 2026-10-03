@@ -19,6 +19,7 @@ jobs:
           node --check scripts/ingest-arcgis.mjs
           node --check scripts/build-rank-import-sql.mjs
           node --check scripts/probe-source.mjs
+          node --check scripts/validate-nltis-recovered-evidence.mjs
           node --check apps/source-worker/ingest.mjs
           node --check apps/route-worker/ingest.mjs
           node --check apps/nltis-worker/ingest.mjs
@@ -30,6 +31,8 @@ jobs:
           node --check apps/reconciliation-worker/server.mjs
       - name: Seed validation
         run: node scripts/validate-data.mjs
+      - name: Recovered NLTIS evidence validation
+        run: node scripts/validate-nltis-recovered-evidence.mjs
 
   postgis-migrations:
     runs-on: ubuntu-latest
