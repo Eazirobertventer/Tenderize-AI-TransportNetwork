@@ -25,6 +25,51 @@ function esc(value=''){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[ch]);
 }
+function rankSubtitle(p){
+  return [p.town,p.municipality,p.province].filter(Boolean).join(' • ') || 'Mapped rank';
+}
+
+function focusRank(feature){
+  if(!feature?.geometry?.coordinates) return;
+  map.easeTo({center:feature.geometry.coordinates,zoom:15.8,duration:850});
+  detail(feature.properties);
+}
+
+function renderRankFinder(){
+  const panel=document.querySelector('#rankFinder');
+  const list=document.querySelector('#rankFinderList');
+  const count=document.querySelector('#rankFinderCount');
+  if(!panel || !list || !count) return;
+
+  const features=current.features || [];
+  count.textContent=String(features.length);
+
+  if(!features.length){
+    list.innerHTML='<div class="rank-finder-empty">No mapped ranks match this search.</div>';
+    panel.classList.add('visible');
+    return;
+  }
+
+  const query=document.querySelector('#search').value.trim();
+  const shouldShow=Boolean(query) || map.getZoom()>=9.5;
+  panel.classList.toggle('visible',shouldShow);
+  if(!shouldShow) return;
+
+  list.innerHTML=features.slice(0,12).map((feature,index)=>
+    '<button class="rank-finder-item" data-rank-index="'+index+'">'+
+      '<span class="rank-pin-mini">●</span>'+
+      '<span><strong>'+esc(feature.properties.name)+'</strong><small>'+esc(rankSubtitle(feature.properties))+'</small></span>'+
+      '<b>View</b>'+
+    '</button>'
+  ).join('');
+
+  list.querySelectorAll('[data-rank-index]').forEach(button=>{
+    button.addEventListener('click',()=>{
+      const feature=features[Number(button.dataset.rankIndex)];
+      focusRank(feature);
+    });
+  });
+}
 
 async function loadMeta(){
   try{
@@ -63,6 +108,16 @@ async function loadRanks(){
 
   const source=map.getSource('ranks');
   if(source) source.setData(current);
+
+  renderRankFinder();
+
+  if(q && current.features.length===1){
+    focusRank(current.features[0]);
+  }else if(q && current.features.length>1 && current.features.length<=20){
+    const bounds=new maplibregl.LngLatBounds();
+    current.features.forEach(feature=>bounds.extend(feature.geometry.coordinates));
+    if(!bounds.isEmpty()) map.fitBounds(bounds,{padding:90,maxZoom:14,duration:650});
+  }
 }
 
 async function loadRoutes(){
@@ -296,8 +351,8 @@ map.on('load',async()=>{
     filter:['has','point_count'],
     paint:{
       'circle-color':'#0d5fd7',
-      'circle-radius':['step',['get','point_count'],18,25,24,100,31],
-      'circle-stroke-width':3,
+      'circle-radius':['step',['get','point_count'],21,25,27,100,35],
+      'circle-stroke-width':4,
       'circle-stroke-color':'#fff'
     }
   });
@@ -317,11 +372,47 @@ map.on('load',async()=>{
     source:'ranks',
     filter:['!',['has','point_count']],
     paint:{
-      'circle-radius':7,
+      'circle-radius':['interpolate',['linear'],['zoom'],5,8,10,10,14,13,17,15],
       'circle-color':['match',['get','verificationStatus'],
         'official','#16865b','verified','#16865b','documented','#7356b8','#0d5fd7'],
-      'circle-stroke-width':2,
+      'circle-stroke-width':['interpolate',['linear'],['zoom'],5,3,14,5],
       'circle-stroke-color':'#fff'
+    }
+  });
+
+  map.addLayer({
+    id:'rank-halo',
+    type:'circle',
+    source:'ranks',
+    filter:['!',['has','point_count']],
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],5,13,10,16,14,20,17,23],
+      'circle-color':'rgba(13,95,215,0.10)',
+      'circle-stroke-width':2,
+      'circle-stroke-color':'rgba(13,95,215,0.38)'
+    }
+  },'rank-points');
+
+  map.addLayer({
+    id:'rank-labels',
+    type:'symbol',
+    source:'ranks',
+    minzoom:9.5,
+    filter:['!',['has','point_count']],
+    layout:{
+      'text-field':['get','name'],
+      'text-size':['interpolate',['linear'],['zoom'],9.5,11,15,14],
+      'text-offset':[0,1.65],
+      'text-anchor':'top',
+      'text-max-width':16,
+      'text-allow-overlap':false,
+      'text-padding':4
+    },
+    paint:{
+      'text-color':'#102a3d',
+      'text-halo-color':'rgba(255,255,255,0.96)',
+      'text-halo-width':2,
+      'text-halo-blur':0.5
     }
   });
 
@@ -334,11 +425,12 @@ map.on('load',async()=>{
     map.easeTo({center:feature.geometry.coordinates,zoom});
   });
 
-  map.on('click','rank-points',async event=>{
-    const feature=event.features && event.features[0];
-    if(!feature) return;
-    await detail(feature.properties);
-    map.easeTo({center:feature.geometry.coordinates,zoom:Math.max(map.getZoom(),11.5),duration:650});
+  ['rank-points','rank-labels'].forEach(rankLayer=>{
+    map.on('click',rankLayer,event=>{
+      const feature=event.features && event.features[0];
+      if(!feature) return;
+      focusRank(feature);
+    });
   });
 
   ['official-routes','documented-routes','inferred-routes','nltis-endpoint-connectors'].forEach(routeLayer=>{
@@ -349,12 +441,15 @@ map.on('load',async()=>{
     });
   });
 
-  ['clusters','rank-points','official-routes','documented-routes','inferred-routes','nltis-endpoint-connectors'].forEach(layer=>{
+  ['clusters','rank-points','rank-labels','official-routes','documented-routes','inferred-routes','nltis-endpoint-connectors'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
 
-  map.on('moveend',()=>Promise.all([loadRoutes(),loadEndpointEvidence()]));
+  map.on('moveend',()=>{
+    renderRankFinder();
+    return Promise.all([loadRoutes(),loadEndpointEvidence()]);
+  });
 });
 
 document.querySelector('#province').addEventListener('change',loadRanks);
