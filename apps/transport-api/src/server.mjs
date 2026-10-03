@@ -157,6 +157,96 @@ async function postgisRoutes(url){
   };
 }
 
+async function postgisNltisEndpointEvidence(url){
+  const params=[];
+  const where=[
+    "s.source_class='nltis_olas'",
+    "tr.verification_status='documented'",
+    "tr.origin_rank_id IS NOT NULL",
+    "tr.destination_rank_id IS NOT NULL",
+    "origin.location IS NOT NULL",
+    "destination.location IS NOT NULL"
+  ];
+  const bbox=url.searchParams.get('bbox');
+  const sourceKey=url.searchParams.get('source');
+
+  if(bbox){
+    const parts=bbox.split(',').map(Number);
+    if(parts.length===4 && parts.every(Number.isFinite)){
+      params.push(parts[0],parts[1],parts[2],parts[3]);
+      const n=params.length;
+      where.push(`ST_Intersects(ST_MakeLine(origin.location,destination.location),ST_MakeEnvelope(${n-3},${n-2},${n-1},${n},4326))`);
+    }
+  }
+
+  if(sourceKey){
+    params.push(sourceKey);
+    where.push(`s.source_key = ${params.length}`);
+  }
+
+  const result=await pool.query(
+    `SELECT
+       tr.id::text,
+       tr.origin_label,
+       tr.destination_label,
+       tr.route_name,
+       tr.route_type,
+       tr.national_route_code,
+       tr.board_route_code,
+       tr.verification_status::text,
+       ST_AsGeoJSON(ST_MakeLine(origin.location,destination.location))::json AS geometry,
+       a.canonical_name AS association_name,
+       a.registration_number AS association_registration,
+       s.source_key,
+       s.source_name
+     FROM taxi_route tr
+     JOIN taxi_rank origin ON origin.id=tr.origin_rank_id
+     JOIN taxi_rank destination ON destination.id=tr.destination_rank_id
+     JOIN taxi_association a ON a.id=tr.association_id
+     JOIN LATERAL (
+       SELECT registry.source_key,registry.source_name,registry.source_class
+       FROM source_record sr
+       JOIN source_registry registry ON registry.id=sr.source_id
+       WHERE sr.entity_type='taxi_route' AND sr.entity_id=tr.id
+       ORDER BY sr.source_retrieved_at DESC
+       LIMIT 1
+     ) s ON true
+     WHERE ${where.join(' AND ')}
+     ORDER BY tr.id
+     LIMIT 5000`,
+    params
+  );
+
+  return {
+    type:'FeatureCollection',
+    evidenceType:'nltis_exact_endpoint_connector',
+    notRoutePath:true,
+    features:result.rows.map(row=>({
+      type:'Feature',
+      id:row.id,
+      geometry:row.geometry,
+      properties:{
+        id:row.id,
+        origin:row.origin_label,
+        destination:row.destination_label,
+        name:row.route_name,
+        routeType:row.route_type,
+        nationalRouteCode:row.national_route_code,
+        boardRouteCode:row.board_route_code,
+        geometryStatus:'endpoint_connector_evidence',
+        verificationStatus:row.verification_status,
+        association:row.association_name,
+        associationRegistration:row.association_registration,
+        sourceKey:row.source_key,
+        source:row.source_name || 'NLTIS / OLAS',
+        evidenceOnly:true,
+        exactEndpoints:true,
+        notRoutePath:true
+      }
+    }))
+  };
+}
+
 async function postgisAssociations(url){
   const params=[];
   const where=['1=1'];
@@ -474,6 +564,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/routes'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisRoutes(url));
+    }
+
+    if(url.pathname==='/api/v1/nltis/endpoint-evidence'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisNltisEndpointEvidence(url));
     }
 
     if(url.pathname==='/api/v1/associations'){
