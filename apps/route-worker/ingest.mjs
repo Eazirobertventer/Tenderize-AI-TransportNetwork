@@ -9,23 +9,37 @@ const root=resolve(new URL('.',import.meta.url).pathname);
 const source=JSON.parse(await readFile(resolve(root,'source.json'),'utf8'));
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false});
 
-async function fetchPage(offset){
-  const qs=new URLSearchParams({
-    where:'1=1',
-    outFields:source.outFields,
-    returnGeometry:'true',
-    outSR:'4326',
-    f:'geojson',
-    resultOffset:String(offset),
-    resultRecordCount:String(source.pageSize)
-  });
-  const response=await fetch(source.url + '/query?' + qs,{
+async function fetchJson(url, timeoutMs=60000){
+  const response=await fetch(url,{
     headers:{'user-agent':'TenderizeTransportNetwork/0.4 route-ingest'},
-    signal:AbortSignal.timeout(30000)
+    signal:AbortSignal.timeout(timeoutMs)
   });
   if(!response.ok) throw new Error('ArcGIS HTTP ' + response.status + ' ' + response.statusText);
   const body=await response.json();
   if(body?.error) throw new Error('ArcGIS ' + body.error.code + ': ' + body.error.message);
+  return body;
+}
+
+async function fetchObjectIds(){
+  const qs=new URLSearchParams({
+    where:'1=1',
+    returnIdsOnly:'true',
+    f:'json'
+  });
+  const body=await fetchJson(source.url + '/query?' + qs,30000);
+  if(!Array.isArray(body.objectIds)) throw new Error('ArcGIS did not return objectIds');
+  return body.objectIds.map(Number).filter(Number.isFinite).sort((a,b)=>a-b);
+}
+
+async function fetchObjectBatch(ids){
+  const qs=new URLSearchParams({
+    objectIds:ids.join(','),
+    outFields:source.outFields,
+    returnGeometry:'true',
+    outSR:'4326',
+    f:'geojson'
+  });
+  const body=await fetchJson(source.url + '/query?' + qs,60000);
   if(!Array.isArray(body.features)) throw new Error('ArcGIS response has no features array');
   return body.features;
 }
@@ -40,16 +54,25 @@ try{
     throw new Error('Required transport schema is not present');
   }
 
+  const ids=await fetchObjectIds();
+  if(ids.length===0) throw new Error('Fail closed: source returned zero route IDs');
+
   const features=[];
-  let offset=0;
-  for(;;){
-    const page=await fetchPage(offset);
-    features.push(...page);
-    if(page.length < source.pageSize) break;
-    offset += source.pageSize;
+  const batchSize=50;
+  for(let i=0;i<ids.length;i+=batchSize){
+    const batch=ids.slice(i,i+batchSize);
+    const rows=await fetchObjectBatch(batch);
+    features.push(...rows);
+    console.log(JSON.stringify({
+      event:'route_batch_fetched',
+      start:i,
+      requested:batch.length,
+      returned:rows.length,
+      totalIds:ids.length
+    }));
   }
 
-  if(features.length===0) throw new Error('Fail closed: source returned zero routes');
+  if(features.length===0) throw new Error('Fail closed: source returned zero route features');
 
   await client.query('BEGIN');
 
@@ -146,6 +169,7 @@ try{
   console.log(JSON.stringify({
     event:'route_ingest_complete',
     sourceId:source.id,
+    objectIds:ids.length,
     fetched:features.length,
     created,updated,quarantined,
     database:proof.rows[0]
