@@ -8,6 +8,7 @@ if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 const root=resolve(new URL('.',import.meta.url).pathname);
 const sources=JSON.parse(await readFile(resolve(root,'sources.json'),'utf8'));
 const verifiedSnapshot=JSON.parse(await readFile(resolve(root,'verified-snapshot.json'),'utf8'));
+const verifiedSnapshots=new Map([[verifiedSnapshot.sourceId,verifiedSnapshot]]);
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false});
 
 function decodeHtml(value=''){
@@ -104,14 +105,50 @@ try{
       if(routes.length===0) throw new Error('No NLTIS routes parsed');
     }catch(error){
       upstreamError=String(error?.message || error);
-      if(verifiedSnapshot.sourceId!==source.id ||
-         verifiedSnapshot.association?.registrationNumber!==source.registrationNumber ||
-         !Array.isArray(verifiedSnapshot.routes) ||
-         verifiedSnapshot.routes.length===0){
-        throw error;
+      const snapshot=verifiedSnapshots.get(source.id);
+      if(snapshot &&
+         snapshot.association?.registrationNumber===source.registrationNumber &&
+         Array.isArray(snapshot.routes) &&
+         snapshot.routes.length>0){
+        routes=snapshot.routes;
+        acquisitionMode='verified_snapshot';
+      }else{
+        await client.query(
+          `INSERT INTO data_issue
+            (entity_type,issue_type,severity,summary,detail,status)
+           SELECT 'nltis_source','source_acquisition_failed','warning',$1,$2::jsonb,'open'
+           WHERE NOT EXISTS (
+             SELECT 1 FROM data_issue
+             WHERE issue_type='source_acquisition_failed'
+               AND detail->>'sourceId'=$3
+               AND status IN ('open','reviewing','deferred')
+           )`,
+          [
+            'NLTIS source acquisition failed: ' + source.associationName,
+            JSON.stringify({
+              sourceId:source.id,
+              associationName:source.associationName,
+              registrationNumber:source.registrationNumber,
+              url:source.url,
+              error:upstreamError
+            }),
+            source.id
+          ]
+        );
+        summary.push({
+          sourceId:source.id,
+          association:source.associationName,
+          registrationNumber:source.registrationNumber,
+          parsedRoutes:0,
+          acquisitionMode:'unavailable',
+          upstreamError,
+          created:0,
+          updated:0,
+          exactRankLinks:0,
+          skipped:true
+        });
+        continue;
       }
-      routes=verifiedSnapshot.routes;
-      acquisitionMode='verified_snapshot';
     }
 
     await client.query('BEGIN');
@@ -176,7 +213,7 @@ try{
         ...source,
         acquisitionMode,
         upstreamError,
-        snapshotReportPrintedAt: acquisitionMode==='verified_snapshot' ? verifiedSnapshot.reportPrintedAt : null
+        snapshotReportPrintedAt: acquisitionMode==='verified_snapshot' ? verifiedSnapshots.get(source.id)?.reportPrintedAt || null : null
       })]
     );
 
@@ -247,7 +284,7 @@ try{
           ...route,
           acquisitionMode,
           upstreamError,
-          snapshotReportPrintedAt: acquisitionMode==='verified_snapshot' ? verifiedSnapshot.reportPrintedAt : null
+          snapshotReportPrintedAt: acquisitionMode==='verified_snapshot' ? verifiedSnapshots.get(source.id)?.reportPrintedAt || null : null
         })]
       );
 
