@@ -17,6 +17,8 @@ jobs:
       - name: Prove visible rank discovery
         run: |
           grep -q 'id="rankFinder"' live/index.html
+          grep -q '<aside class="detail">' live/index.html
+          grep -q 'class="detail-content"' live/index.html
           grep -q "rank-labels" live/app.js
           grep -q "rank-halo" live/app.js
           grep -q "zoom:15.8" live/app.js
