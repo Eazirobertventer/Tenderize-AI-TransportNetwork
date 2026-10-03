@@ -196,5 +196,7 @@
       "nationalRouteCode": "1001TZ1001QJ00345597",
       "boardRouteCode": "GPTSH(PPTA)2819.A3"
     }
-  ]
+  ],
+  "reportRouteRowCount": 23,
+  "quarantinedRows": []
 }
