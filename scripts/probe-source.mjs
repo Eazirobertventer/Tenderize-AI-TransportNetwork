@@ -11,13 +11,6 @@ if (!source) {
   process.exit(2);
 }
 
-const metadataUrl = source.url + '?f=pjson';
-const countUrl = source.url + '/query?' + new URLSearchParams({
-  where:'1=1',
-  returnCountOnly:'true',
-  f:'json'
-}).toString();
-
 async function getJson(url) {
   const response = await fetch(url, {
     headers:{'user-agent':'TenderizeTransportNetwork/0.2 source-contract-probe'},
@@ -27,24 +20,45 @@ async function getJson(url) {
   return response.json();
 }
 
+const expectedFields = (source.outFields || '').split(',').filter(Boolean);
+const sampleUrl = source.url + '/query?' + new URLSearchParams({
+  where:'1=1',
+  outFields:expectedFields.join(','),
+  returnGeometry:'true',
+  outSR:'4326',
+  resultRecordCount:'1',
+  f:'json'
+}).toString();
+
+const countUrl = source.url + '/query?' + new URLSearchParams({
+  where:'1=1',
+  returnCountOnly:'true',
+  f:'json'
+}).toString();
+
 try {
-  const [metadata,count] = await Promise.all([getJson(metadataUrl),getJson(countUrl)]);
-  const fields = Array.isArray(metadata.fields) ? metadata.fields.map(f => f.name) : [];
+  const [sample,count] = await Promise.all([getJson(sampleUrl),getJson(countUrl)]);
+  const feature = Array.isArray(sample.features) ? sample.features[0] : null;
+  const attributes = feature && feature.attributes ? Object.keys(feature.attributes) : [];
+  const missingExpectedFields = expectedFields.filter(name => !attributes.includes(name));
+  const recordCount = Number.isFinite(count.count) ? count.count : null;
+  const hasGeometry = Boolean(feature && feature.geometry);
+
   const result = {
-    ok:true,
+    ok:Boolean(feature) && recordCount !== null && missingExpectedFields.length === 0,
     sourceId:source.id,
     authority:source.authority,
     status:source.status,
-    layerName:metadata.name || null,
-    geometryType:metadata.geometryType || null,
-    recordCount:Number.isFinite(count.count) ? count.count : null,
-    maxRecordCount:metadata.maxRecordCount || null,
-    expectedFields:(source.outFields || '').split(',').filter(Boolean),
-    missingExpectedFields:(source.outFields || '').split(',').filter(Boolean).filter(name => !fields.includes(name)),
+    recordCount,
+    sampleFeaturePresent:Boolean(feature),
+    sampleGeometryPresent:hasGeometry,
+    expectedFields,
+    missingExpectedFields,
     checkedAt:new Date().toISOString()
   };
+
   console.log(JSON.stringify(result,null,2));
-  if (!result.recordCount || result.missingExpectedFields.length) process.exit(3);
+  if (!result.ok) process.exit(3);
 } catch (error) {
   console.error(JSON.stringify({
     ok:false,
