@@ -20,6 +20,7 @@ jobs:
           node --check scripts/build-rank-import-sql.mjs
           node --check scripts/probe-source.mjs
           node --check scripts/validate-nltis-recovered-evidence.mjs
+          node --check scripts/validate-nltis-full-snapshots.mjs
           node --check apps/source-worker/ingest.mjs
           node --check apps/route-worker/ingest.mjs
           node --check apps/nltis-worker/ingest.mjs
@@ -33,6 +34,8 @@ jobs:
         run: node scripts/validate-data.mjs
       - name: Recovered NLTIS evidence validation
         run: node scripts/validate-nltis-recovered-evidence.mjs
+      - name: Full NLTIS snapshot validation
+        run: node scripts/validate-nltis-full-snapshots.mjs
 
   postgis-migrations:
     runs-on: ubuntu-latest
