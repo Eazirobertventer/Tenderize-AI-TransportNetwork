@@ -1,0 +1,30 @@
+{
+  "sourceId": "nltis-birchleigh-oakmoor",
+  "acquisitionMode": "verified_snapshot",
+  "upstream": "NLTIS RAS Association Routes",
+  "reportPrintedAt": "2026-08-10T14:14:25+02:00",
+  "association": {
+    "name": "BIRCHLEIGH OAKMOOR TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0134385"
+  },
+  "routes": [
+    {
+      "sequence": "11",
+      "origin": "OAKMOOR EAST TAXI RANK",
+      "destination": "KEMPTON PARK MAIN TAXI RANK",
+      "routeName": "OAKMOOR EAST TAXI RANK - KEMPTON PARK MAIN TAXI RANK",
+      "nationalRouteCode": "1000J01001K600051800",
+      "boardRouteCode": "GPEMMOCTS1801",
+      "streetDescription": null
+    },
+    {
+      "sequence": "12",
+      "origin": "OAKMOOR EAST TAXI RANK",
+      "destination": "KEMPTON PARK MAIN TAXI RANK",
+      "routeName": "OAKMOOR EAST TAXI RANK - KEMPTON PARK MAIN TAXI RANK",
+      "nationalRouteCode": "1000J01001K600051801",
+      "boardRouteCode": "GPEMMOCTS1801A1",
+      "streetDescription": null
+    }
+  ]
+}
