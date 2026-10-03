@@ -28,14 +28,14 @@
           <span>⌕</span>
           <input id="search" placeholder="Search taxi rank, town or province…" />
         </div>
-        <div class="status"><span></span><b id="mode">Loading</b></div>
+        <div class="status"><span></span><b id="mode">Seed dataset</b></div>
       </header>
 
       <section class="kpis">
         <div><span>Mapped ranks</span><strong id="rankCount">—</strong><small>current dataset</small></div>
         <div><span>Associations</span><strong id="associationCount">—</strong><small>documented</small></div>
         <div><span>Routes</span><strong id="routeCount">—</strong><small>evidence classified</small></div>
-        <div><span>Data state</span><strong id="dataState">—</strong><small>provenance retained</small></div>
+        <div><span>Data state</span><strong>SEED</strong><small>provenance retained</small></div>
       </section>
 
       <section class="layout">
@@ -73,6 +73,7 @@
   </div>
 
   <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
-  <script type="module" src="./app.js"></script>
+  <script src="../prototype/data/seed-data.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
