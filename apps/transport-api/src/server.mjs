@@ -55,7 +55,6 @@ async function postgisRanks(url){
        LIMIT 1
      ) sr ON true
      LEFT JOIN source_registry s ON s.id=sr.source_id
-     LEFT JOIN taxi_association a ON a.id=tr.association_id
      WHERE ${where.join(' AND ')}
      ORDER BY r.canonical_name
      LIMIT 10000`,
@@ -126,6 +125,7 @@ async function postgisRoutes(url){
        LIMIT 1
      ) sr ON true
      LEFT JOIN source_registry s ON s.id=sr.source_id
+     LEFT JOIN taxi_association a ON a.id=tr.association_id
      WHERE ${where.join(' AND ')}
      ORDER BY tr.id
      LIMIT 5000`,
