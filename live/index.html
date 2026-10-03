@@ -49,14 +49,20 @@
               <option>North West</option><option>Free State</option>
               <option>Northern Cape</option>
             </select>
-            <button id="fit">Fit national view</button>
+            <button id="routeToggle" class="active-toggle" aria-pressed="true">Routes on</button>
+            <button id="capeTownRoutes">Cape Town routes</button>
+            <button id="fit">National view</button>
             <span id="resultStatus">Loading taxi ranks…</span>
+            <span id="routeStatus">Routes loading…</span>
           </div>
           <div id="map"></div>
           <div class="legend">
             <b>Evidence</b>
-            <span><i class="official"></i>Official / verified</span>
-            <span><i class="candidate"></i>Candidate</span>
+            <span><i class="official"></i>Official / verified rank</span>
+            <span><i class="candidate"></i>Candidate rank</span>
+            <span><i class="route-swatch official-route"></i>Official route geometry</span>
+            <span><i class="route-swatch documented-route"></i>Documented geometry</span>
+            <span><i class="route-swatch inferred-route"></i>Inferred geometry</span>
             <small>Basemap: OpenFreeMap / OpenStreetMap. Transport data: Tenderize source registry.</small>
           </div>
         </section>
@@ -64,8 +70,8 @@
         <aside class="detail" id="detail">
           <div class="empty">
             <div class="target">⌖</div>
-            <h2>Select a taxi rank</h2>
-            <p>Click a marker to inspect location, evidence classification and source provenance.</p>
+            <h2>Select a taxi rank or route</h2>
+            <p>Click a rank marker or route geometry to inspect its evidence classification and source provenance.</p>
           </div>
         </aside>
       </section>
