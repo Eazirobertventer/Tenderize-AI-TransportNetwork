@@ -1,0 +1,94 @@
+name: TN5-H2 Ivory Park Rank Coverage Expansion
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-ivory-park-rank-coverage:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+      NLTIS_FORCE_SNAPSHOT: "true"
+      NLTIS_SOURCE_IDS: nltis-ivory-park
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Install workers
+        run: |
+          npm --prefix apps/nltis-worker install --no-audit --no-fund
+          npm --prefix apps/reconciliation-worker install --no-audit --no-fund
+
+      - name: Import verified Ivory Park routes
+        working-directory: apps/nltis-worker
+        run: npm run ingest
+
+      - name: Apply prior H1 rank coverage
+        working-directory: apps/nltis-worker
+        env:
+          NLTIS_RANK_SEED_FILES: apps/nltis-worker/verified-rank-seeds/armsta-h1.json
+        run: npm run ingest:rank-seeds
+
+      - name: Reconcile before H2
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+
+      - name: Capture pre-H2 linked endpoints
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select coalesce(sum((origin_rank_id is not null)::int + (destination_rank_id is not null)::int),0) from taxi_route" > /tmp/pre_h2
+
+      - name: Import H2 Ivory Park rank seed
+        working-directory: apps/nltis-worker
+        env:
+          NLTIS_RANK_SEED_FILES: apps/nltis-worker/verified-rank-seeds/ivory-park-h2.json
+        run: npm run ingest:rank-seeds
+
+      - name: Prove H2 seed safety
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record sr join source_registry s on s.id=sr.source_id where s.source_key='nltis-ivory-park-rank-seed' and sr.entity_type='taxi_rank'")" = "6"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank r join source_record sr on sr.entity_type='taxi_rank' and sr.entity_id=r.id join source_registry s on s.id=sr.source_id where s.source_key='nltis-ivory-park-rank-seed' and r.location is not null")" = "0"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_rank_seed_conflict'")" = "0"
+
+      - name: Reconcile after H2
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+
+      - name: Prove H2 incremental coverage gain
+        run: |
+          before=$(cat /tmp/pre_h2)
+          after=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select coalesce(sum((origin_rank_id is not null)::int + (destination_rank_id is not null)::int),0) from taxi_route")
+          gain=$((after-before))
+          test "$gain" = "41"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where geometry is not null")" = "0"
+
+      - name: Prove H2 idempotency
+        working-directory: apps/nltis-worker
+        env:
+          NLTIS_RANK_SEED_FILES: apps/nltis-worker/verified-rank-seeds/ivory-park-h2.json
+        run: |
+          npm run ingest:rank-seeds
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record sr join source_registry s on s.id=sr.source_id where s.source_key='nltis-ivory-park-rank-seed' and sr.entity_type='taxi_rank'")" = "6"
