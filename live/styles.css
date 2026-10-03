@@ -5,3 +5,5 @@
 .route-swatch.official-route{border-top:3px solid #193b70}
 .route-swatch.documented-route{border-top:3px dashed #7356b8}
 .route-swatch.inferred-route{border-top:3px dotted #b77a20}
+
+.route-swatch.endpoint-evidence{border-top:3px dashed #c13c66}
