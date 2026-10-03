@@ -1,8 +1,6 @@
-const seed = window.__SEED_DATA;
-let current = {type:'FeatureCollection',features:[]};
-let mode = 'loading';
+let current={type:'FeatureCollection',features:[]};
 
-const map = new maplibregl.Map({
+const map=new maplibregl.Map({
   container:'map',
   style:'https://tiles.openfreemap.org/styles/liberty',
   center:[24.4,-29.1],
@@ -12,47 +10,25 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
 
 async function getJson(url){
-  const response = await fetch(url,{cache:'no-store'});
+  const response=await fetch(url,{cache:'no-store'});
   if(!response.ok) throw new Error(String(response.status));
   return response.json();
-}
-
-function seedCollection(){
-  return {
-    type:'FeatureCollection',
-    features:seed.ranks.map(rank=>({
-      type:'Feature',
-      id:rank.id,
-      geometry:{type:'Point',coordinates:[rank.lng,rank.lat]},
-      properties:{
-        id:rank.id,
-        name:rank.name,
-        town:rank.town || null,
-        municipality:null,
-        province:rank.province || null,
-        verificationStatus:rank.status || 'unverified',
-        source:rank.source || 'Seed dataset'
-      }
-    }))
-  };
 }
 
 async function loadMeta(){
   try{
     const meta=await getJson('/api/v1/meta');
-    mode=meta.mode;
     document.querySelector('#rankCount').textContent=meta.ranks;
     document.querySelector('#associationCount').textContent=meta.associations;
     document.querySelector('#routeCount').textContent=meta.routes;
     document.querySelector('#dataState').textContent=meta.mode.toUpperCase();
-    document.querySelector('#mode').textContent=meta.mode==='postgis'?'PostGIS live':'Seed fallback';
+    document.querySelector('#mode').textContent=meta.mode==='postgis'?'PostGIS live':meta.mode;
   }catch{
-    mode='seed';
-    document.querySelector('#rankCount').textContent=seed.ranks.length;
-    document.querySelector('#associationCount').textContent=seed.associations.length;
-    document.querySelector('#routeCount').textContent=seed.routes.length;
-    document.querySelector('#dataState').textContent='SEED';
-    document.querySelector('#mode').textContent='Seed fallback';
+    document.querySelector('#rankCount').textContent='0';
+    document.querySelector('#associationCount').textContent='0';
+    document.querySelector('#routeCount').textContent='0';
+    document.querySelector('#dataState').textContent='OFFLINE';
+    document.querySelector('#mode').textContent='API unavailable';
   }
 }
 
@@ -65,17 +41,8 @@ async function loadRanks(){
 
   try{
     current=await getJson('/api/v1/ranks?' + params.toString());
-    mode='postgis';
   }catch{
-    const all=seedCollection();
-    current={
-      type:'FeatureCollection',
-      features:all.features.filter(feature =>
-        (!province || feature.properties.province===province) &&
-        (!q || [feature.properties.name,feature.properties.town,feature.properties.province]
-          .some(v => (v || '').toLowerCase().includes(q.toLowerCase())))
-      )
-    };
+    current={type:'FeatureCollection',features:[]};
   }
 
   document.querySelector('#resultStatus').textContent =
