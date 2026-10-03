@@ -1,0 +1,1041 @@
+{
+  "sourceId": "nltis-armsta",
+  "acquisitionMode": "verified_snapshot",
+  "upstream": "NLTIS RAS Association Routes",
+  "reportPrintedAt": "2026-08-10T14:10:34+02:00",
+  "reportPageCount": 23,
+  "association": {
+    "name": "ALEXANDRA RANDBURG MIDRAND SANDTON LOCAL AND LONG DISTANCE TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0134237",
+    "province": "Gauteng"
+  },
+  "completeness": "full_report",
+  "reportRouteRowCount": 118,
+  "routeCount": 110,
+  "routes": [
+    {
+      "sequence": "1",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Sunnnghill",
+      "routeName": null,
+      "nationalRouteCode": "1205IE1205J700138574",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "2",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Sunnnghill",
+      "routeName": null,
+      "nationalRouteCode": "1205IE1205J700138584",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 1 A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "3",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Sunnnghill",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1205J700138575",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 1A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "4",
+      "origin": "Pan Africa (Third & Second)",
+      "destination": "Sunnnghill",
+      "routeName": null,
+      "nationalRouteCode": "1000HL1205J700138583",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 1A3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "5",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Wynberg",
+      "routeName": null,
+      "nationalRouteCode": "1205IE1205IB00138586",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "6",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Wynberg",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1205IB00138587",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 2A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "7",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001KN00138590",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "8",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1001KN00138596",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 3A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "9",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "SOUTH (Bruma Lake)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI136ARA00138598",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 4",
+      "streetDescription": null
+    },
+    {
+      "sequence": "10",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "SOUTH (Bruma Lake)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM136ARA00138602",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 4A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "11",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "SOUTH (Bruma Lake)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM136ARA00138606",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 4A2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "12",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "LOMBARDY (Fourways)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1363FY00138614",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 4A3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "13",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "FOURWAYS TEMPORARY ALLOCATED TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001NS00138617",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "14",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Fourways (Diepsloot)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1205HS00138610",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "15",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Fourways Mall (Witkoppen Road)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1000GI00138612",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 6A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "16",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Morningside",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1205X700138616",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 7",
+      "streetDescription": null
+    },
+    {
+      "sequence": "17",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Morningside",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1205X700138618",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 7A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "18",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Leeukop Prison",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000GL00138619",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 8",
+      "streetDescription": null
+    },
+    {
+      "sequence": "19",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Leeukop Prison",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1000GL00138620",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 8A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "20",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Leeukop Prison",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000GL00138621",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 9",
+      "streetDescription": null
+    },
+    {
+      "sequence": "21",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "HELEN (Buccleugh)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI136IIH00138623",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "22",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "HELEN (Buccleugh)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM136IIH00138622",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 2A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "23",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Midrand (Diepsloot)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1205HV00138820",
+      "boardRouteCode": "GPCOJARMSTA)0213",
+      "streetDescription": null
+    },
+    {
+      "sequence": "24",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Midrand (Diepsloot)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1205HV00138816",
+      "boardRouteCode": "GPCOJARMSTA)0213 A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "25",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "WOODMEAD (R55) (Midrand)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI136J4200138624",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 4",
+      "streetDescription": null
+    },
+    {
+      "sequence": "26",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "WOODMEAD (R55) (Midrand)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM135NIL00138625",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 4A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "27",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Centurion",
+      "routeName": null,
+      "nationalRouteCode": "1001KI11002Z10138626",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 5",
+      "streetDescription": null
+    },
+    {
+      "sequence": "28",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Centurion",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1205MG10138627",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 5A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "30",
+      "origin": "Olivedale (Roodepoort)",
+      "destination": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "routeName": null,
+      "nationalRouteCode": "12060N1001KN00140637",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "31",
+      "origin": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "destination": "Vorna Valley",
+      "routeName": null,
+      "nationalRouteCode": "1001KN1000IA00138628",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 7",
+      "streetDescription": null
+    },
+    {
+      "sequence": "32",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "KYALAMI TEMPORARY ALLOCATED TAXI RANNK",
+      "routeName": null,
+      "nationalRouteCode": "1001KO1001NT00138629",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 8",
+      "streetDescription": null
+    },
+    {
+      "sequence": "33",
+      "origin": "Midrand (Diepsloot)",
+      "destination": "SANDTON TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1205HV1001NO00138631",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 0",
+      "streetDescription": null
+    },
+    {
+      "sequence": "34",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "RANDBURG MALL TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000HM00138632",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "35",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "RANDBURG MALL TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1000HM00138633",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 1A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "36",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Parkmore",
+      "routeName": null,
+      "nationalRouteCode": "1001KI12060C00138634",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "37",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Parkmore",
+      "routeName": null,
+      "nationalRouteCode": "1001NM12060C00138635",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 2A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "38",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Sandton (West & Revonia)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000HK00138636",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "39",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Sandton (West & Revonia)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1000HK00138637",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 3A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "40",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001YI00138657",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 5",
+      "streetDescription": null
+    },
+    {
+      "sequence": "41",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1001YI00138661",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 5A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "42",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Rosebank (Oxford)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000FZ00138664",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "43",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Rosebank (Oxford)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1000FZ00138665",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 6A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "44",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "SLOANE (Bryanston)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI13647Z00138670",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 8",
+      "streetDescription": null
+    },
+    {
+      "sequence": "45",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "SLOANE (Bryanston)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM13647Z00138673",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 8A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "46",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "FOURWAYS SHOPPING CENTRE MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KO1001LE00138676",
+      "boardRouteCode": "GPCOJ(ARMSTA)022 9",
+      "streetDescription": null
+    },
+    {
+      "sequence": "47",
+      "origin": "R55 (Olievenhoutbosch)",
+      "destination": "RANDBURG MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "136WN01001RB10138681",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 0",
+      "streetDescription": null
+    },
+    {
+      "sequence": "48",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "RANDBURG MAIN TAXI RANK @ HOMESTEAD/HENDRICK VERWOERD",
+      "routeName": null,
+      "nationalRouteCode": "1001KO1001LA00138685",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "49",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "SANDTON TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KO1001NO00138687",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "50",
+      "origin": "KYALAMI TEMPORARY ALLOCATED TAXI RANK",
+      "destination": "TEMBISA THITENG",
+      "routeName": null,
+      "nationalRouteCode": "1001NT1001MK10138729",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "51",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "LIMBRO PARK TEMPORARY ALLOCATED TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001NR00138733",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 4",
+      "streetDescription": null
+    },
+    {
+      "sequence": "52",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "LIMBRO PARK TEMPORARY ALLOCATED TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1001NR00138736",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 4A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "53",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Marlboro",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1367UV00138742",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "54",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Marlboro",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1367UV00138743",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 6A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "55",
+      "origin": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "destination": "Ranjiespark",
+      "routeName": null,
+      "nationalRouteCode": "1001YI12061O00138745",
+      "boardRouteCode": "GPCOJ(ARMSTA)023 7",
+      "streetDescription": null
+    },
+    {
+      "sequence": "56",
+      "origin": "SUNNINGHILL MAIN TAXI RANK (EDISON STREET)",
+      "destination": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1000I61001YI00138748",
+      "boardRouteCode": "GPCOJ(ARMSTA)024 0",
+      "streetDescription": null
+    },
+    {
+      "sequence": "57",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "ATTERIDGEVILLE MPHALANE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001QV10138754",
+      "boardRouteCode": "GPCOJ(ARMSTA)024 1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "58",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "ATTERIDGEVILLE MPHALANE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1001QV10138759",
+      "boardRouteCode": "GPCOJ(ARMSTA)024 1A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "60",
+      "origin": "RANDBURG TAXI RANK",
+      "destination": "ATTERIDGEVILLE MPHALANE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1000ZB1001QV10138784",
+      "boardRouteCode": "GPCOJ(ARMSTA)024 3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "61",
+      "origin": "KYALAMI TEMPORARY ALLOCATED TAXI RANK",
+      "destination": "ATTERIDGEVILLE MPHALANE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NT1001QV10138785",
+      "boardRouteCode": "GPCOJ(ARMSTA)024 4",
+      "streetDescription": null
+    },
+    {
+      "sequence": "62",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "Atteridgeville",
+      "routeName": null,
+      "nationalRouteCode": "1001KO1205TT10199573",
+      "boardRouteCode": "GPCOJ(ARMSTA)024 5",
+      "streetDescription": null
+    },
+    {
+      "sequence": "63",
+      "origin": "Olievenhoutsbosch",
+      "destination": "ATTERIDGEVILLE MPHALANE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "10024U1001QV10199578",
+      "boardRouteCode": "GPCOJ(ARMSTA)024 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "70",
+      "origin": "Olievenhoutsbosch",
+      "destination": "ENNERDALE MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "10024U10002T00199575",
+      "boardRouteCode": "GPCOJ(ARMSTA)025 2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "71",
+      "origin": "RANDBURG MAIN TAXI RANK",
+      "destination": "Ennerdale & Lawley",
+      "routeName": null,
+      "nationalRouteCode": "1001RB10017M00199574",
+      "boardRouteCode": "GPCOJ(ARMSTA)025 3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "72",
+      "origin": "FOURWAYS SHOPPING CENTRE MAIN TAXI RANK",
+      "destination": "Ennerale Internal",
+      "routeName": null,
+      "nationalRouteCode": "1001LE10020O00199572",
+      "boardRouteCode": "GPCOJ(ARMSTA)025 4",
+      "streetDescription": null
+    },
+    {
+      "sequence": "73",
+      "origin": "WOODMEAD (R55) (Midrand)",
+      "destination": "FOURWAYS TEMPORARY ALLOCATED TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "136IJF1001NS00138828",
+      "boardRouteCode": "GPCOJ(ARMSTA)025 5",
+      "streetDescription": null
+    },
+    {
+      "sequence": "74",
+      "origin": "WOODMEAD (R55) (Midrand)",
+      "destination": "SANDTON TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "136IJF1001NO00138826",
+      "boardRouteCode": "GPCOJ(ARMSTA)025 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "75",
+      "origin": "WEST (Houghton Estate)",
+      "destination": "FOURWAYS SHOPPING CENTRE MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "135LYW1001LE00140635",
+      "boardRouteCode": "GPCOJ(ARMSTA)025 8",
+      "streetDescription": null
+    },
+    {
+      "sequence": "76",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "SUNNINGHILL MAIN TAXI RANK (EDISON STREET)",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1000I600140639",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 1A2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "77",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Rivonia",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1205XB00140640",
+      "boardRouteCode": "GPCOJ(ARMSTA)020 5A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "78",
+      "origin": "OLIEVENHOUTBOSCH TEMPORARY ALLOCATED TAXI RANK",
+      "destination": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "10024C1001YI00176646",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 9A",
+      "streetDescription": null
+    },
+    {
+      "sequence": "79",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "DAVEYTON SQUARE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001TP10192788",
+      "boardRouteCode": "GPCOJ(ARMTA)BTA 1201JV",
+      "streetDescription": null
+    },
+    {
+      "sequence": "80",
+      "origin": "SANDTON TAXI RANK",
+      "destination": "DAVEYTON SQUARE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NO1001TP10192790",
+      "boardRouteCode": "GPCOJ(ARMTA) BTA 1202JV",
+      "streetDescription": null
+    },
+    {
+      "sequence": "81",
+      "origin": "WOODMEAD SHOPPING CENTRE",
+      "destination": "DAVEYTON SQUARE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1000I71001TP10192793",
+      "boardRouteCode": "GPCOJ(ARMTA) BTA 1203JV",
+      "streetDescription": null
+    },
+    {
+      "sequence": "82",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "DAVEYTON SQUARE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KO1001TP10192791",
+      "boardRouteCode": "GPCOJ(ARMTA) BTA 1204JV",
+      "streetDescription": null
+    },
+    {
+      "sequence": "83",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "DAVEYTON SQUARE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001TP10192789",
+      "boardRouteCode": "GPCOJ(ARMTA) BTA 1205JV",
+      "streetDescription": null
+    },
+    {
+      "sequence": "84",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "DUNSWART NORTH JUNCTION",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000J210192792",
+      "boardRouteCode": "GPCOJ(ARMTA) BTA 1206JV",
+      "streetDescription": null
+    },
+    {
+      "sequence": "85",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "1001NM5209HL10199491",
+      "boardRouteCode": "GPCOJ(ARMSLDTA)0 26INT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "86",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "1001KI5209HL10196580",
+      "boardRouteCode": "GPCOJ(ARMSTA) 0261A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "87",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "1001NM5209HL10196581",
+      "boardRouteCode": "GPCOJ(ARMSTA) 0262A2 INT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "88",
+      "origin": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "1001KN5209HL10196584",
+      "boardRouteCode": "GPCOJ(ARMSTA) 0263INT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "89",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "1001KO5209HL10199493",
+      "boardRouteCode": "GPCOJ(ARMSLDTA)0 264A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "90",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "1001KO5209HL10199494",
+      "boardRouteCode": "GPCOJ(ARMSLDTA) 0265A2 INT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "91",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "Thohoyandou/Venda",
+      "routeName": null,
+      "nationalRouteCode": "1001KO5209HL10199577",
+      "boardRouteCode": "GPCOJ(ARMSTA) 0266A3 INT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "92",
+      "origin": "OLIEVENHOUTBOSCH TEMPORARY ALLOCATED TAXI RANK",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "10024C5209HL10196582",
+      "boardRouteCode": "GPCOJ(ARMSTA) 0271INT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "93",
+      "origin": "Rabie Ridge",
+      "destination": "Thohoyandou",
+      "routeName": null,
+      "nationalRouteCode": "1000ID5209HL10196586",
+      "boardRouteCode": "GPCOJ(ARMSTA) 0267INT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "94",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1001RE00199571",
+      "boardRouteCode": "GPCOJ(ARMSLTA)20 78",
+      "streetDescription": null
+    },
+    {
+      "sequence": "95",
+      "origin": "Tsutsumani",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "10024V1001RE00199579",
+      "boardRouteCode": "GPCOJ(ARMSTA)207 8A3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "96",
+      "origin": "SANDTON TAXI RANK",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NO1001RE00199576",
+      "boardRouteCode": "GPCOJ(ARMSTA)207 8A1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "97",
+      "origin": "WOODMEAD",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1205J61001RE00199580",
+      "boardRouteCode": "GPCOJ(ARMSTA)207 8A4",
+      "streetDescription": null
+    },
+    {
+      "sequence": "98",
+      "origin": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "destination": "LONE CREEK STREET TEMPORARY TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001YI10024R00199140",
+      "boardRouteCode": "GPCOJ(ARMSTA)027 1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "99",
+      "origin": "OLIEVENHOUTBOSCH TEMPORARY ALLOCATED TAXI RANK",
+      "destination": "ROSEBANK KILLARNEY MALL",
+      "routeName": null,
+      "nationalRouteCode": "10024C10024S00199141",
+      "boardRouteCode": "GPCOJ(ARMSTA)027 2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "100",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Diepsloot(1)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000GT00199231",
+      "boardRouteCode": "GPCOJ(ARMSTA)027 3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "101",
+      "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "destination": "Diepsloot(1)",
+      "routeName": null,
+      "nationalRouteCode": "1001KI1000GT00199232",
+      "boardRouteCode": "GPCOJ(ARMSTA)207 6",
+      "streetDescription": null
+    },
+    {
+      "sequence": "102",
+      "origin": "EAST BANK (Alexandra)",
+      "destination": "DIEPSLOOT INFORMAL TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "136AN91205I100199233",
+      "boardRouteCode": "GPCOJ(ARMSTA)207 7",
+      "streetDescription": null
+    },
+    {
+      "sequence": "103",
+      "origin": "SANDTON TAXI RANK",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NO1001RE00199235",
+      "boardRouteCode": "GPCOJ(ARMSTA)207 9",
+      "streetDescription": null
+    },
+    {
+      "sequence": "104",
+      "origin": "SANDTON TAXI RANK",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NO1001RE00199236",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "105",
+      "origin": "WOODMEAD",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1205J61001RE00199237",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 0",
+      "streetDescription": null
+    },
+    {
+      "sequence": "106",
+      "origin": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "destination": "WATERFALL CBD TAXI RANK MIDRAND",
+      "routeName": null,
+      "nationalRouteCode": "1001YI10024T00199486",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 4A",
+      "streetDescription": null
+    },
+    {
+      "sequence": "107",
+      "origin": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "destination": "JUKSKEI DRIVE/RIVERCLUB",
+      "routeName": null,
+      "nationalRouteCode": "1001YI135L9P00199484",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 4",
+      "streetDescription": null
+    },
+    {
+      "sequence": "108",
+      "origin": "Olievenhoutsbosch",
+      "destination": "WATERFALL CBD TAXI RANK MIDRAND",
+      "routeName": null,
+      "nationalRouteCode": "10024U10024T00199489",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 7",
+      "streetDescription": null
+    },
+    {
+      "sequence": "109",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "JUKSKEI DRIVE/RIVERCLUB",
+      "routeName": null,
+      "nationalRouteCode": "1001NM135L9P00199468",
+      "boardRouteCode": "GPCOJ(ARMSTA)028 2",
+      "streetDescription": null
+    },
+    {
+      "sequence": "110",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "WATERFALL CBD TAXI RANK MIDRAND",
+      "routeName": null,
+      "nationalRouteCode": "1001KO10024T00199487",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 5",
+      "streetDescription": null
+    },
+    {
+      "sequence": "111",
+      "origin": "WOODMEAD SHOPPING CENTRE",
+      "destination": "RANDBURG TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1000I71000ZB00199492",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 8",
+      "streetDescription": null
+    },
+    {
+      "sequence": "112",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "Gallo Manor",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1205XA00199483",
+      "boardRouteCode": "GPCOJ(ARMSTA)208 3",
+      "streetDescription": null
+    },
+    {
+      "sequence": "113",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1001RE00199504",
+      "boardRouteCode": "GPCOJ(ARMSTA)2078",
+      "streetDescription": null
+    },
+    {
+      "sequence": "114",
+      "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "destination": "DIEPSLOOT MAIN TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1001NM1001RE00199558",
+      "boardRouteCode": "GPCOJ(ARMSTA)207 8A",
+      "streetDescription": null
+    },
+    {
+      "sequence": "115",
+      "origin": "Diepsloot west (Roodepoort)",
+      "destination": "Johannesburg Other (Johannesburg South)",
+      "routeName": null,
+      "nationalRouteCode": "120A0Z12059J00220827",
+      "boardRouteCode": "GPCOJ(ARMSTA)021 9.",
+      "streetDescription": null
+    },
+    {
+      "sequence": "116",
+      "origin": "Pan Africa (Third & Second)",
+      "destination": "FICKSBURG BRIDGE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1000HL7000RB10422113",
+      "boardRouteCode": "GPCOJ(ARMSTA)209 0",
+      "streetDescription": null
+    },
+    {
+      "sequence": "117",
+      "origin": "Pan Africa (Third & Second)",
+      "destination": "FICKSBURG BRIDGE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1000HL7000RB10422117",
+      "boardRouteCode": "GPCOJ(ARMSTA)209 0A.1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "118",
+      "origin": "Pan Africa (Third & Second)",
+      "destination": "FICKSBURG BRIDGE TAXI RANK",
+      "routeName": null,
+      "nationalRouteCode": "1000HL7000RB10422118",
+      "boardRouteCode": "GPCOJ(ARMSTA)209 0A.2",
+      "streetDescription": null
+    }
+  ],
+  "quarantinedRows": [
+    {
+      "sequence": "29",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "59",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "64",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "65",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "66",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "67",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "68",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "69",
+      "reason": "route_definition_not_captured_in_report"
+    }
+  ]
+}
