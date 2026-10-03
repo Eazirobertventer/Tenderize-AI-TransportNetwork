@@ -89,7 +89,7 @@ try{
      JOIN source_registry s ON s.id=sr.source_id
      WHERE s.source_class='nltis_olas'
        AND tr.verification_status='documented'
-     ORDER BY a.registration_number,tr.id`
+     ORDER BY registration_number,id`
   );
 
   await client.query('BEGIN');
