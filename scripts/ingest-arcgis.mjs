@@ -11,22 +11,53 @@ await mkdir(outputDir, { recursive: true });
 const clean = value => typeof value === 'string' ? value.trim() || null : value ?? null;
 const unique = values => [...new Set(values.map(clean).filter(Boolean))];
 
-async function fetchPage(source, offset) {
-  const qs = new URLSearchParams({
-    where: '1=1',
-    outFields: source.outFields || '*',
-    returnGeometry: 'true',
-    outSR: '4326',
-    f: 'geojson',
-    resultOffset: String(offset),
-    resultRecordCount: String(source.pageSize || 1000)
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: { 'user-agent': 'TenderizeTransportNetwork/0.2' },
+    signal: AbortSignal.timeout(30000)
   });
-  const url = `${source.url}/query?${qs}`;
-  const response = await fetch(url, { headers: { 'user-agent': 'TenderizeTransportNetwork/0.1' } });
-  if (!response.ok) throw new Error(`${source.id}: ${response.status} ${response.statusText}`);
+  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
   const json = await response.json();
-  if (!json || !Array.isArray(json.features)) throw new Error(`${source.id}: invalid GeoJSON response`);
+  if (json?.error) throw new Error(`ArcGIS ${json.error.code}: ${json.error.message}`);
   return json;
+}
+
+async function fetchFeatures(source) {
+  if (source.pagination === false) {
+    const qs = new URLSearchParams({
+      where: '1=1',
+      outFields: source.outFields || '*',
+      returnGeometry: 'true',
+      outSR: '4326',
+      f: 'geojson'
+    });
+    const json = await fetchJson(`${source.url}/query?${qs}`);
+    if (!Array.isArray(json.features)) throw new Error(`${source.id}: invalid GeoJSON response`);
+    return json.features;
+  }
+
+  const pageSize = source.pageSize || 1000;
+  const features = [];
+  let offset = 0;
+
+  for (;;) {
+    const qs = new URLSearchParams({
+      where: '1=1',
+      outFields: source.outFields || '*',
+      returnGeometry: 'true',
+      outSR: '4326',
+      f: 'geojson',
+      resultOffset: String(offset),
+      resultRecordCount: String(pageSize)
+    });
+    const json = await fetchJson(`${source.url}/query?${qs}`);
+    if (!Array.isArray(json.features)) throw new Error(`${source.id}: invalid GeoJSON response`);
+    features.push(...json.features);
+    if (json.features.length < pageSize) break;
+    offset += pageSize;
+  }
+
+  return features;
 }
 
 function normalizeRank(source, feature) {
@@ -35,6 +66,7 @@ function normalizeRank(source, feature) {
   const coord = feature.geometry?.type === 'Point' ? feature.geometry.coordinates : null;
   const associations = unique((source.associationFields || []).map(k => a[k]));
   const destinations = unique((source.destinationFields || []).map(k => a[k]));
+
   return {
     entityType: 'taxi_rank',
     externalId: String(a[m.external_id] ?? feature.id ?? ''),
@@ -44,6 +76,8 @@ function normalizeRank(source, feature) {
     region: clean(a[m.region]),
     suburb: clean(a[m.suburb]),
     town: clean(a[m.town]),
+    address: clean(a[m.address]),
+    referenceNumber: clean(a[m.reference_number]),
     latitude: Number(a[m.latitude] ?? coord?.[1] ?? null),
     longitude: Number(a[m.longitude] ?? coord?.[0] ?? null),
     rankType: clean(a[m.rank_type]),
@@ -51,7 +85,7 @@ function normalizeRank(source, feature) {
     associations,
     destinations,
     geometry: feature.geometry || null,
-    verificationStatus: 'official',
+    verificationStatus: source.status === 'official_degraded' ? 'documented' : 'official',
     sourceId: source.id
   };
 }
@@ -76,16 +110,7 @@ function normalizeRoute(source, feature) {
 
 for (const source of selected) {
   console.log(`Ingesting ${source.id}...`);
-  let offset = 0;
-  const rawFeatures = [];
-  const pageSize = source.pageSize || 1000;
-  for (;;) {
-    const page = await fetchPage(source, offset);
-    rawFeatures.push(...page.features);
-    if (page.features.length < pageSize) break;
-    offset += pageSize;
-  }
-
+  const rawFeatures = await fetchFeatures(source);
   const normalized = rawFeatures.map(feature => source.kind === 'taxi_rank'
     ? normalizeRank(source, feature)
     : normalizeRoute(source, feature));
@@ -102,6 +127,7 @@ for (const source of selected) {
     recordCount: normalized.length,
     records: normalized
   };
+
   await writeFile(resolve(outputDir, `${source.id}.json`), JSON.stringify(envelope, null, 2));
   console.log(`  ${normalized.length} records -> data/ingested/${source.id}.json`);
 }
