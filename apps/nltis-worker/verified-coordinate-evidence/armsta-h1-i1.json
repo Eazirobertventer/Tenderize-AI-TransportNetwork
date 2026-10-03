@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "phase": "TN5-I1",
+  "purpose": "H1 coordinate evidence for satellite QA",
+  "ranks": [
+    {
+      "canonicalName": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "province": "Gauteng",
+      "coordinates": {
+        "lat": -26.10563,
+        "lng": 28.10143
+      },
+      "coordinateStatus": "documented_candidate",
+      "satelliteReviewStatus": "pending",
+      "verificationStatus": "documented",
+      "evidence": [
+        {
+          "type": "operator_location_description",
+          "source": "Alexandra Taxi Association",
+          "detail": "15th Avenue corner Selborne next to the Police station"
+        },
+        {
+          "type": "openstreetmap_taxi_feature",
+          "source": "OpenStreetMap via Mapcarta",
+          "osmId": "way/1233250529",
+          "detail": "Alexandra Taxi Rank (Selborne Street), amenity=taxi, near Alexandra Police Station"
+        }
+      ],
+      "policy": {
+        "inferred": false,
+        "satelliteRequiredBeforeVerified": true
+      }
+    }
+  ]
+}
