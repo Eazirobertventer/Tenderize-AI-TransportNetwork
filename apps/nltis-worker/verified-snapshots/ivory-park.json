@@ -1,0 +1,369 @@
+{
+  "sourceId": "nltis-ivory-park",
+  "acquisitionMode": "verified_snapshot",
+  "upstream": "NLTIS RAS Association Routes",
+  "reportPrintedAt": "2026-08-10T14:10:35+02:00",
+  "reportPageCount": 11,
+  "association": {
+    "name": "IVORY PARK TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0333747",
+    "province": "Gauteng"
+  },
+  "completeness": "full_report",
+  "reportRouteRowCount": 44,
+  "routeCount": 42,
+  "routes": [
+    {
+      "sequence": "1",
+      "origin": "OLIFANTSFONTEIN (Pretoria-Midrand)",
+      "destination": "OLIFANTSFONTEIN (Erand)",
+      "routeName": "OLIFANTSFONTEIN SHOPPING MALL TAXI RANK - STERKFONTEIN TEMPORARY ALLOCATED TAXI RANK",
+      "nationalRouteCode": "1001KO136V3W10120215",
+      "boardRouteCode": "GPCOJ(IPTA)2501"
+    },
+    {
+      "sequence": "2",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "OLIFANTSFONTEIN (R562) (Pretoria-Midrand)",
+      "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - OLIFANTSFONTEIN TAXI RANK",
+      "nationalRouteCode": "1001MV135MCE00120789",
+      "boardRouteCode": "GPCOJ(IPTA)2502"
+    },
+    {
+      "sequence": "3",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "MIDRAND MAIN TAXI RANK",
+      "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - MIDRAND MAIN TAXI RANK",
+      "nationalRouteCode": "1001MV1001KO00120790",
+      "boardRouteCode": "GPCOJ(IPTA)2503"
+    },
+    {
+      "sequence": "4",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "Pan Africa (Third & Second)",
+      "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - PAN AFRICA TAXI RANK (ALEXANDRA)",
+      "nationalRouteCode": "1001MV1000HL00120791",
+      "boardRouteCode": "GPCOJ(IPTA)2504"
+    },
+    {
+      "sequence": "5",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "HANCOCK (Johannesburg CBD)",
+      "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - JOHANNESBURG HANCOCK STREET TEMPORARY ALLOCATED TAXI RANK",
+      "nationalRouteCode": "1001MV135KFS00120802",
+      "boardRouteCode": "GPCOJ(IPTA)2505"
+    },
+    {
+      "sequence": "6",
+      "origin": "Ebony Park (Midrand / Ivory Park)",
+      "destination": "RANDBURG MALL TAXI RANK @ JAN SMUTS & HENDRICK VERWOERD DRIVE",
+      "routeName": "EBONY PARK TEMPORARY ALLOCATED TAXI RANK - RANDBURG MALL TAXI RANK @ JAN SMUTS & HENDRICK VERWOERD DRIVE",
+      "nationalRouteCode": "1205JP1001L800120803",
+      "boardRouteCode": "GPCOJ(IPTA)2506"
+    },
+    {
+      "sequence": "7",
+      "origin": "Ebony Park (Midrand / Ivory Park)",
+      "destination": "SANDTON TAXI RANK",
+      "routeName": "EBONY PARK TEMPORARY ALLOCATED TAXI RANK - SANDTON TAXI RANK",
+      "nationalRouteCode": "1205JP1001NO00120804",
+      "boardRouteCode": "GPCOJ(IPTA)2507"
+    },
+    {
+      "sequence": "8",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "KEMPTON PARK MAIN TAXI RANK",
+      "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - KEMPTON PARK MAIN TAXI RANK",
+      "nationalRouteCode": "1001MV1001KR00120805",
+      "boardRouteCode": "GPCOJ(IPTA)2508"
+    },
+    {
+      "sequence": "9",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "WINNIE MANDELA TAXI RANK",
+      "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - WINNIE MANDELA TAXI RANK",
+      "nationalRouteCode": "1001MV1001SO10120806",
+      "boardRouteCode": "GPCOJ(IPTA)2509"
+    },
+    {
+      "sequence": "10",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "KEMPTON PARK MAIN TAXI RANK",
+      "routeName": "WINNIE MANDELA TAXI RANK - KEMPTON PARK MAIN TAXI RANK",
+      "nationalRouteCode": "1001SO1001N700120807",
+      "boardRouteCode": "GPCOJ(IPTA)2510"
+    },
+    {
+      "sequence": "11",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "EDENVALE EASTLEIGH COMMUTERS TAXI RANK",
+      "routeName": "KOPANONG TAXI RANK - EDENVALE EASTLEIGH COMMUTERS TAXI RANK",
+      "nationalRouteCode": "1001MV1001MD10120808",
+      "boardRouteCode": "GPCOJ(IPTA)2511"
+    },
+    {
+      "sequence": "12",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "MIDRAND MAIN TAXI RANK",
+      "routeName": "WINNIE MANDELA TAXI RANK - MIDRAND MAIN TAXI RANK",
+      "nationalRouteCode": "1001SO1001KO10120809",
+      "boardRouteCode": "GPCOJ(IPTA)2512"
+    },
+    {
+      "sequence": "13",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "KEMPTON PARK MAIN TAXI RANK",
+      "routeName": "MIDRAND MAIN TAXI RANK - KEMPTON PARK MAIN TAXI RANK",
+      "nationalRouteCode": "1001KO1001N710120810",
+      "boardRouteCode": "GPCOJ(IPTA)2513"
+    },
+    {
+      "sequence": "14",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "Clayville (Midrand/Rabie Ridge/Ivory Park)",
+      "routeName": "WINNIE MANDELA TAXI RANK - CLAYVILLE TEMPORARY ALLOCATED TAXI RANK",
+      "nationalRouteCode": "1001SO1205M000120811",
+      "boardRouteCode": "GPCOJ(IPTA)2514"
+    },
+    {
+      "sequence": "15",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "Ivory Park (Midrand / Ivory Park)",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) - KOPANONG TAXI RANK",
+      "nationalRouteCode": "1001MV1001MS10120812",
+      "boardRouteCode": "GPCOJ(IPTA)2515"
+    },
+    {
+      "sequence": "16",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "PHOMOLONG TAXI RANK",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK - PHOMOLONG TAXI RANK",
+      "nationalRouteCode": "1001MV1001MS10120813",
+      "boardRouteCode": "GPCOJ(IPTA)2516"
+    },
+    {
+      "sequence": "17",
+      "origin": "Ivory Park(15) (Ivory 15)",
+      "destination": "WINNIE MANDELA TAXI RANK",
+      "routeName": "TSHENELENG TEMPORARY ALLOCATED TAXI RANK - WINNIE MANDELA TAXI RANK",
+      "nationalRouteCode": "1000JK1001SO10120828",
+      "boardRouteCode": "GPCOJ(IPTA)2517"
+    },
+    {
+      "sequence": "18",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "Clayville (Midrand/Rabie Ridge/Ivory Park)",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) TAXI RANK - CLAYVILLE TAXI RANK",
+      "nationalRouteCode": "1001MV1205M010120829",
+      "boardRouteCode": "GPCOJ(IPTA)2518"
+    },
+    {
+      "sequence": "19",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "MIDRAND MAIN TAXI RANK",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) TAXI RANK - MIDRAND MAIN TAXI RANK",
+      "nationalRouteCode": "1001MV1001KO00120830",
+      "boardRouteCode": "GPCOJ(IPTA)2519"
+    },
+    {
+      "sequence": "20",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) TAXI RANK - ALEXANDRA PAN AFRICA TAXI RANK",
+      "nationalRouteCode": "1001MV1001NM00120831",
+      "boardRouteCode": "GPCOJ(IPTA)2520"
+    },
+    {
+      "sequence": "21",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "Johannesburg CBD (Central Region)",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) TAXI RANK - JOHANNESBURG HANCOCK STREET TEMPORARY ALLOCATED TAXI RANK",
+      "nationalRouteCode": "1001MV1205GJ00120832",
+      "boardRouteCode": "GPCOJ(IPTA)2521"
+    },
+    {
+      "sequence": "22",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "KEMPTON PARK MAIN TAXI RANK",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) TAXI RANK - KEMPTON PARK MAIN TAXI RANK",
+      "nationalRouteCode": "1001MV1001N710120833",
+      "boardRouteCode": "GPCOJ(IPTA)2523"
+    },
+    {
+      "sequence": "23",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "EDENVALE EASTLEIGH COMMUTERS TAXI RANK",
+      "routeName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) TAXI RANK - EDENVALE EASTLEIGH COMMUTERS TAXI RANK",
+      "nationalRouteCode": "1001MV1001MD10120834",
+      "boardRouteCode": "GPCOJ(IPTA)2524"
+    },
+    {
+      "sequence": "24",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "RANDBURG MAIN TAXI RANK",
+      "routeName": "KOPANONG TAXI RANK - RANDBURG MAIN TAXI RANK",
+      "nationalRouteCode": "1001MV1001RB00120838",
+      "boardRouteCode": "GPCOJ(IPTA)2527"
+    },
+    {
+      "sequence": "25",
+      "origin": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "destination": "GERMISTON STATION MAIN TAXI RANK",
+      "routeName": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE - GERMISTON STATION MAIN TAXI RANK",
+      "nationalRouteCode": "1001KN1001N310120840",
+      "boardRouteCode": "GPCOJ(IPTA)2528"
+    },
+    {
+      "sequence": "26",
+      "origin": "Kanana Ext 5(Rabie Ridge) (Ext 5)",
+      "destination": "MIDRAND MAIN TAXI RANK",
+      "routeName": "KANANA TAXI RANK - MIDRAND MAIN TAXI RANK",
+      "nationalRouteCode": "1000J71001KO00120841",
+      "boardRouteCode": "GPCOJ(IPTA)2525"
+    },
+    {
+      "sequence": "27",
+      "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "destination": "SANDTON TAXI RANK",
+      "routeName": "KOPANONG TAXI RANK - SANDTON TAXI RANK",
+      "nationalRouteCode": "1001MV1001NO00120844",
+      "boardRouteCode": "GPCOJ(IPTA)2526"
+    },
+    {
+      "sequence": "30",
+      "origin": "Ivory Park(Swazi Inn) (Ivory Park)",
+      "destination": "Polokwane Indian Centre Taxi rank",
+      "routeName": "Ivory Park(Swazi Inn) (Ivory Park) - Polokwane Indian Centre Taxi rank",
+      "nationalRouteCode": "1000JI50023G10180364",
+      "boardRouteCode": "GPCOJ(IPTA)2029AINT"
+    },
+    {
+      "sequence": "31",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "routeName": "MIDRAND MAIN TAXI RANK - MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "nationalRouteCode": "1001KO1001KN00194119",
+      "boardRouteCode": "GPCOJ(IPTA)2501A2"
+    },
+    {
+      "sequence": "32",
+      "origin": "IVORY PARK KOPANONG TAXI RANK",
+      "destination": "Marabastad (Northern Pretoria)",
+      "routeName": "IVORY PARK KOPANONG TAXI RANK - Marabastad",
+      "nationalRouteCode": "1000DR1209ZP10194121",
+      "boardRouteCode": "GPCOJ(IPTA)2501A3"
+    },
+    {
+      "sequence": "33",
+      "origin": "IVORY PARK KOPANONG TAXI RANK",
+      "destination": "Emthonjeni (Umthonjeni)",
+      "routeName": "IVORY PARK KOPANONG TAXI RANK - Emthonjeni (Umthonjeni)",
+      "nationalRouteCode": "1000DR1000JF00194120",
+      "boardRouteCode": "GPCOJ(IPTA)2501A4"
+    },
+    {
+      "sequence": "34",
+      "origin": "MIDRAND MAIN TAXI RANK",
+      "destination": "MIDRAND MAIN TAXI RANK",
+      "routeName": "MIDRAND MAIN TAXI RANK - MIDRAND MAIN TAXI RANK",
+      "nationalRouteCode": "1001KO1001KO00194118",
+      "boardRouteCode": "GPCOJ(IPTA)2501A5"
+    },
+    {
+      "sequence": "35",
+      "origin": "IVORY PARK KOPANONG TAXI RANK",
+      "destination": "ACCONHOEK TAXI RANK (MPUMALANGA)",
+      "routeName": "IVORY PARK KOPANONG TAXI RANK - ACCONHOEK TAXI RANK (MPUMALANGA)",
+      "nationalRouteCode": "1000DR1000PY10194079",
+      "boardRouteCode": "GPCOJ(IPTA)2030-INT"
+    },
+    {
+      "sequence": "36",
+      "origin": "IVORY PARK KOPANONG TAXI RANK",
+      "destination": "CENTURION TAXI RANK",
+      "routeName": "IVORY PARK KOPANONG TAXI RANK - CENTURION TAXI RANK",
+      "nationalRouteCode": "1000DR1001KT10194117",
+      "boardRouteCode": "GPCOJ(IPTA)2033"
+    },
+    {
+      "sequence": "37",
+      "origin": "IVORY PARK KOPANONG TAXI RANK",
+      "destination": "MARABASTAD MAIN TAXI RANK",
+      "routeName": "IVORY PARK KOPANONG TAXI RANK - MARABASTAD MAIN TAXI RANK",
+      "nationalRouteCode": "1000DR1001IF10194115",
+      "boardRouteCode": "GPCOJ(IPTA)2031"
+    },
+    {
+      "sequence": "38",
+      "origin": "IVORY PARK KOPANONG TAXI RANK",
+      "destination": "Kyalami (Midrand / Ivory Park)",
+      "routeName": "IVORY PARK KOPANONG TAXI RANK - Kyalami",
+      "nationalRouteCode": "1000DR1205JC00194116",
+      "boardRouteCode": "GPCOJ(IPTA)2032"
+    },
+    {
+      "sequence": "39",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "Pan Africa (Third & Second)",
+      "routeName": "WINNIE MANDELA TAXI RANK - PAN-AFRIKA MALL TAXI RANK (ALEXANDRA)",
+      "nationalRouteCode": "1001SO1000HL10369362",
+      "boardRouteCode": "GPCOJ(IPTA)2038"
+    },
+    {
+      "sequence": "40",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "RANDBURG MAIN TAXI RANK",
+      "routeName": "WINNIE MANDELA TAXI RANK - RANDBURG MAIN TAXI RANK",
+      "nationalRouteCode": "1001SO1001RB10369354",
+      "boardRouteCode": "GPCOJ(IPTA)2035"
+    },
+    {
+      "sequence": "41",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "HANCOCK (Johannesburg CBD)",
+      "routeName": "WINNIE MANDELA TAXI RANK - HANCOCK STREET (JOHANNESBURG CBD)",
+      "nationalRouteCode": "1001SO135KFS10369359",
+      "boardRouteCode": "GPCOJ(IPTA)2037"
+    },
+    {
+      "sequence": "42",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "SANDTON MAIN TAXI RANK @ 5TH STREET",
+      "routeName": "WINNIE MANDELA TAXI RANK - SANDTON MAIN TAXI RANK",
+      "nationalRouteCode": "1001SO1001KU10369372",
+      "boardRouteCode": "GPCOJ(IPTA)2039"
+    },
+    {
+      "sequence": "43",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "Kyalami (Midrand / Ivory Park)",
+      "routeName": "WINNIE MANDELA TAXI RANK - KYALAMI",
+      "nationalRouteCode": "1001SO1205JC10369383",
+      "boardRouteCode": "GPCOJ(IPTA)2041"
+    },
+    {
+      "sequence": "44",
+      "origin": "WINNIE MANDELA TAXI RANK",
+      "destination": "FOURWAYS SHOPPING CENTRE MAIN TAXI RANK",
+      "routeName": "WINNIE MANDELA TAXI RANK - FOURWAYS SHOPPING CENTRE MAIN TAXI RANK",
+      "nationalRouteCode": "1001SO1001LE10369391",
+      "boardRouteCode": "GPCOJ(IPTA)2042"
+    }
+  ],
+  "quarantinedRows": [
+    {
+      "sequence": "28",
+      "reason": "route_nodes_not_captured_in_report",
+      "routeName": "IVORY PARK-KOPANONG TAXI RANK-PICK ‘N PAY SHOPPING CENTER– POLOKWANE",
+      "nationalRouteCode": "1100HN1205N900179644",
+      "boardRouteCodeRaw": "GPCOJ(IPTA)2029INT est2"
+    },
+    {
+      "sequence": "29",
+      "reason": "route_definition_not_captured_in_report",
+      "routeName": "IVORY PARK TAXI RANK (KOPANONG) PICK ‘N PAY SHOPPING CENTER– POLOKWANE (TMP ALLOCATION)",
+      "nationalRouteCode": null,
+      "boardRouteCode": null
+    }
+  ]
+}
