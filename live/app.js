@@ -16,6 +16,12 @@ async function getJson(url){
   return response.json();
 }
 
+function esc(value=''){
+  return String(value).replace(/[&<>"']/g,ch=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[ch]);
+}
+
 async function loadMeta(){
   try{
     const meta=await getJson('/api/v1/meta');
@@ -77,29 +83,69 @@ async function loadRoutes(){
   source.setData(routeData);
 }
 
-function detail(p){
-  const status=p.verificationStatus || 'unverified';
+async function detail(p){
+  let full=null;
+  try{
+    full=await getJson('/api/v1/ranks/' + encodeURIComponent(p.id));
+  }catch{
+    full=null;
+  }
+
+  const status=full?.verificationStatus || p.verificationStatus || 'unverified';
+  const associations=full?.associations || [];
+  const routes=full?.routes || [];
+
+  const associationHtml=associations.length
+    ? associations.map(a=>`
+        <div class="route-row">
+          <div>
+            <strong>${esc(a.name)}</strong>
+            <span>${esc(a.registration_number || a.acronym || 'Registration pending')}</span>
+          </div>
+          <span class="route-type">${esc(a.verificationStatus || 'documented')}</span>
+        </div>`).join('')
+    : '<div class="journey-result">No association link has been verified for this rank yet.</div>';
+
+  const routeHtml=routes.length
+    ? routes.slice(0,20).map(r=>`
+        <div class="route-row">
+          <div>
+            <strong>${esc(r.origin)} → ${esc(r.destination)}</strong>
+            <span>${esc(r.association || 'Association pending')} • ${esc(r.boardRouteCode || r.nationalRouteCode || 'Code pending')}</span>
+          </div>
+          <span class="route-type">${esc(r.verificationStatus)}</span>
+        </div>`).join('')
+    : '<div class="journey-result">No source-backed route is linked to this rank yet.</div>';
+
   document.querySelector('#detail').innerHTML=`
     <div class="rank">
-      <span class="badge ${status}">${status.replaceAll('_',' ')}</span>
-      <h2>${p.name}</h2>
-      <p>${p.town || p.municipality || 'Location pending'} • ${p.province || 'Province pending'}</p>
+      <span class="badge ${esc(status)}">${esc(status.replaceAll('_',' '))}</span>
+      <h2>${esc(full?.name || p.name)}</h2>
+      <p>${esc(full?.town || p.town || full?.municipality || p.municipality || 'Location pending')} • ${esc(full?.province || p.province || 'Province pending')}</p>
       <div class="source">
-        <b>${p.source || 'Tenderize source registry'}</b>
+        <b>${esc(p.source || 'Tenderize source registry')}</b>
         <span>Evidence classification is retained. Candidate and inferred data are never represented as official.</span>
+      </div>
+      <div class="section-block">
+        <div class="section-title">Associations</div>
+        <div class="route-list">${associationHtml}</div>
+      </div>
+      <div class="section-block">
+        <div class="section-title">Linked routes</div>
+        <div class="route-list">${routeHtml}</div>
       </div>
     </div>`;
 }
-
 function routeDetail(p){
   const status=p.verificationStatus || 'unverified';
   document.querySelector('#detail').innerHTML=`
     <div class="rank">
       <span class="badge ${status}">${status.replaceAll('_',' ')}</span>
-      <h2>${p.origin || 'Origin pending'} → ${p.destination || 'Destination pending'}</h2>
-      <p>${p.routeType || 'Taxi route'} • ${p.geometryStatus || 'Geometry pending'}</p>
+      <h2>${esc(p.origin || 'Origin pending')} → ${esc(p.destination || 'Destination pending')}</h2>
+      <p>${esc(p.routeType || 'Taxi route')} • ${esc(p.geometryStatus || 'Geometry pending')}</p>
+      ${p.association ? `<div class="source"><b>${esc(p.association)}</b><span>${esc(p.associationRegistration || 'Association registration pending')}</span></div>` : ''}
       <div class="source">
-        <b>${p.source || 'Tenderize source registry'}</b>
+        <b>${esc(p.source || 'Tenderize source registry')}</b>
         <span>This line is rendered from source-backed route geometry. It is not inferred from road routing.</span>
       </div>
     </div>`;
@@ -178,10 +224,10 @@ map.on('load',async()=>{
     map.easeTo({center:feature.geometry.coordinates,zoom});
   });
 
-  map.on('click','rank-points',event=>{
+  map.on('click','rank-points',async event=>{
     const feature=event.features && event.features[0];
     if(!feature) return;
-    detail(feature.properties);
+    await detail(feature.properties);
     map.easeTo({center:feature.geometry.coordinates,zoom:Math.max(map.getZoom(),11.5),duration:650});
   });
 
