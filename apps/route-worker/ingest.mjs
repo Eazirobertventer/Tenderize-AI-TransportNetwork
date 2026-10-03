@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
 import pg from 'pg';
 
 const { Pool } = pg;
@@ -11,7 +12,7 @@ const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false})
 
 async function fetchJson(url, timeoutMs=60000){
   const response=await fetch(url,{
-    headers:{'user-agent':'TenderizeTransportNetwork/0.4 route-ingest'},
+    headers:{'user-agent':'TenderizeTransportNetwork/0.5 route-ingest'},
     signal:AbortSignal.timeout(timeoutMs)
   });
   if(!response.ok) throw new Error('ArcGIS HTTP ' + response.status + ' ' + response.statusText);
@@ -46,11 +47,62 @@ async function fetchObjectBatch(ids){
 
 function clean(v){ return typeof v==='string' ? v.trim() || null : v ?? null; }
 
+function quarantineReasons({externalId,origin,destination,geometry}){
+  const reasons=[];
+  if(!externalId) reasons.push('missing_external_id');
+  if(!origin) reasons.push('missing_origin');
+  if(!destination) reasons.push('missing_destination');
+  if(!geometry) reasons.push('missing_geometry');
+  else if(!['LineString','MultiLineString'].includes(geometry.type)){
+    reasons.push('unsupported_geometry_type');
+  }
+  return reasons;
+}
+
+function issueKey(feature,externalId){
+  if(externalId) return 'objectid:' + externalId;
+  return 'hash:' + createHash('sha256')
+    .update(JSON.stringify(feature))
+    .digest('hex')
+    .slice(0,24);
+}
+
+async function persistQuarantine(client,{feature,externalId,origin,destination,geometry,reasons}){
+  const key=issueKey(feature,externalId);
+  const detail={
+    sourceKey:source.id,
+    issueKey:key,
+    externalRecordId:externalId || null,
+    origin:origin || null,
+    destination:destination || null,
+    geometryType:geometry?.type || null,
+    reasons
+  };
+  const summary=`Cape Town route source record quarantined: ${reasons.join(', ')}`;
+
+  await client.query(
+    `INSERT INTO data_issue
+      (entity_type,issue_type,severity,summary,detail,status)
+     SELECT 'taxi_route_source','source_route_quarantine','warning',$1,$2::jsonb,'open'
+     WHERE NOT EXISTS (
+       SELECT 1
+       FROM data_issue
+       WHERE issue_type='source_route_quarantine'
+         AND detail->>'sourceKey'=$3
+         AND detail->>'issueKey'=$4
+         AND status IN ('open','reviewing','deferred')
+     )`,
+    [summary,JSON.stringify(detail),source.id,key]
+  );
+}
+
 const client=await pool.connect();
 
 try{
-  const schema=await client.query("select to_regclass('public.taxi_route') as route_table, to_regclass('public.source_record') as source_table");
-  if(!schema.rows[0].route_table || !schema.rows[0].source_table){
+  const schema=await client.query(
+    "select to_regclass('public.taxi_route') as route_table, to_regclass('public.source_record') as source_table, to_regclass('public.data_issue') as issue_table"
+  );
+  if(!schema.rows[0].route_table || !schema.rows[0].source_table || !schema.rows[0].issue_table){
     throw new Error('Required transport schema is not present');
   }
 
@@ -97,9 +149,11 @@ try{
     const origin=clean(p.ORGN);
     const destination=clean(p.DSTN);
     const geometry=feature.geometry;
+    const reasons=quarantineReasons({externalId,origin,destination,geometry});
 
-    if(!externalId || !origin || !destination || !geometry || !['LineString','MultiLineString'].includes(geometry.type)){
+    if(reasons.length){
       quarantined+=1;
+      await persistQuarantine(client,{feature,externalId,origin,destination,geometry,reasons});
       continue;
     }
 
@@ -161,9 +215,13 @@ try{
 
   const proof=await client.query(
     `SELECT
-       count(*)::int AS routes,
-       count(*) FILTER (WHERE geometry_status='official_geometry')::int AS official_geometry_routes
-     FROM taxi_route`
+       (SELECT count(*)::int FROM taxi_route) AS routes,
+       (SELECT count(*)::int FROM taxi_route WHERE geometry_status='official_geometry') AS official_geometry_routes,
+       (SELECT count(*)::int FROM data_issue
+        WHERE issue_type='source_route_quarantine'
+          AND detail->>'sourceKey'=$1
+          AND status IN ('open','reviewing','deferred')) AS open_quarantine_issues`,
+    [source.id]
   );
 
   console.log(JSON.stringify({
