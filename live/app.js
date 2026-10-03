@@ -4,6 +4,7 @@ let endpointEvidenceData={type:'FeatureCollection',features:[]};
 let routesVisible=true;
 let endpointEvidenceVisible=true;
 let satelliteVisible=false;
+let rankPopup=null;
 
 const map=new maplibregl.Map({
   container:'map',
@@ -19,6 +20,33 @@ async function getJson(url){
   if(!response.ok) throw new Error(String(response.status));
   return response.json();
 }
+async function loadRankFilters(){
+  const province=document.querySelector('#province').value;
+  const params=new URLSearchParams();
+  if(province) params.set('province',province);
+
+  try{
+    const filters=await getJson('/api/v1/rank-filters?' + params.toString());
+    const provinceSelect=document.querySelector('#province');
+    const citySelect=document.querySelector('#city');
+
+    if(!provinceSelect.dataset.loaded){
+      const currentProvince=provinceSelect.value;
+      provinceSelect.innerHTML='<option value="">All provinces</option>' +
+        filters.provinces.map(value=>'<option>'+esc(value)+'</option>').join('');
+      provinceSelect.value=currentProvince;
+      provinceSelect.dataset.loaded='true';
+    }
+
+    const currentCity=citySelect.value;
+    citySelect.innerHTML='<option value="">All cities</option>' +
+      filters.cities.map(value=>'<option>'+esc(value)+'</option>').join('');
+    citySelect.value=filters.cities.includes(currentCity) ? currentCity : '';
+  }catch{
+    document.querySelector('#city').innerHTML='<option value="">All cities</option>';
+  }
+}
+
 
 function esc(value=''){
   return String(value).replace(/[&<>"']/g,ch=>({
@@ -31,8 +59,18 @@ function rankSubtitle(p){
 
 function focusRank(feature){
   if(!feature?.geometry?.coordinates) return;
-  map.easeTo({center:feature.geometry.coordinates,zoom:15.8,duration:850});
+  const coordinates=feature.geometry.coordinates;
+  map.easeTo({center:coordinates,zoom:15.8,duration:850});
   detail(feature.properties);
+
+  if(rankPopup) rankPopup.remove();
+  rankPopup=new maplibregl.Popup({offset:18,closeButton:true,closeOnClick:false})
+    .setLngLat(coordinates)
+    .setHTML(
+      '<div class="rank-popup"><strong>'+esc(feature.properties.name)+'</strong>'+
+      '<span>'+esc(rankSubtitle(feature.properties))+'</span></div>'
+    )
+    .addTo(map);
 }
 
 function renderRankFinder(){
@@ -50,12 +88,9 @@ function renderRankFinder(){
     return;
   }
 
-  const query=document.querySelector('#search').value.trim();
-  const shouldShow=Boolean(query) || map.getZoom()>=9.5;
-  panel.classList.toggle('visible',shouldShow);
-  if(!shouldShow) return;
+  panel.classList.add('visible');
 
-  list.innerHTML=features.slice(0,12).map((feature,index)=>
+  list.innerHTML=features.map((feature,index)=>
     '<button class="rank-finder-item" data-rank-index="'+index+'">'+
       '<span class="rank-pin-mini">●</span>'+
       '<span><strong>'+esc(feature.properties.name)+'</strong><small>'+esc(rankSubtitle(feature.properties))+'</small></span>'+
@@ -92,9 +127,11 @@ async function loadMeta(){
 
 async function loadRanks(){
   const province=document.querySelector('#province').value;
+  const city=document.querySelector('#city').value;
   const q=document.querySelector('#search').value.trim();
   const params=new URLSearchParams();
   if(province) params.set('province',province);
+  if(city) params.set('city',city);
   if(q) params.set('q',q);
 
   try{
@@ -257,6 +294,7 @@ function routeDetail(p){
 
 map.on('load',async()=>{
   await loadMeta();
+  await loadRankFilters();
   await loadRanks();
 
   map.addSource('satellite-imagery',{
@@ -452,7 +490,12 @@ map.on('load',async()=>{
   });
 });
 
-document.querySelector('#province').addEventListener('change',loadRanks);
+document.querySelector('#province').addEventListener('change',async()=>{
+  document.querySelector('#city').value='';
+  await loadRankFilters();
+  await loadRanks();
+});
+document.querySelector('#city').addEventListener('change',loadRanks);
 let timer;
 document.querySelector('#search').addEventListener('input',()=>{
   clearTimeout(timer);
@@ -460,6 +503,7 @@ document.querySelector('#search').addEventListener('input',()=>{
 });
 document.querySelector('#fit').addEventListener('click',()=>{
   document.querySelector('#province').value='';
+  document.querySelector('#city').value='';
   document.querySelector('#search').value='';
   map.easeTo({center:[24.4,-29.1],zoom:4.35});
   loadRanks();
