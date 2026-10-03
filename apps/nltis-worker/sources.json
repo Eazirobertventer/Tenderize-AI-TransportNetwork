@@ -6,5 +6,37 @@
     "registrationNumber": "RASGPA0134385",
     "province": "Gauteng",
     "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34385&sAssocName=BIRCHLEIGH+OAKMOOR+TAXI+ASSOCIATION&sAssocRegNum=RASGPA0134385"
+  },
+  {
+    "id": "nltis-armsta",
+    "associationId": 34237,
+    "associationName": "ALEXANDRA RANDBURG MIDRAND SANDTON LOCAL AND LONG DISTANCE TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0134237",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34237&sAssocName=ALEXANDRA+RANDBURG+MIDRAND+SANDTON+LOCAL+AND+LONG+DISTANCE+TAXI+ASSOCIATION&sAssocRegNum=RASGPA0134237"
+  },
+  {
+    "id": "nltis-ivory-park",
+    "associationId": 33747,
+    "associationName": "IVORY PARK TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0333747",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33747&sAssocName=Ivory+Park+Taxi+Association&sAssocRegNum=RASGPA0333747"
+  },
+  {
+    "id": "nltis-pretoria-plaza",
+    "associationId": 33774,
+    "associationName": "PRETORIA PLAZA TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0333774",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33774&sAssocName=Pretoria+Plaza+Taxi+Association&sAssocRegNum=RASGPA0333774"
+  },
+  {
+    "id": "nltis-greater-bloemfontein",
+    "associationId": 34187,
+    "associationName": "GREATER BLOEMFONTEIN TAXI ASSOCIATION",
+    "registrationNumber": "RASFSA0134187",
+    "province": "Free State",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34187&sAssocName=greater+bloemfontein+taxi+association&sAssocRegNum=rasfsa0134187"
   }
 ]
