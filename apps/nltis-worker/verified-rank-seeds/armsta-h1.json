@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "phase": "TN5-H1",
+  "sourceId": "nltis-armsta",
+  "authority": "National Land Transport Information System / OLAS",
+  "reportUrl": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34237&sAssocName=ALEXANDRA+RANDBURG+MIDRAND+SANDTON+LOCAL+AND+LONG+DISTANCE+TAXI+ASSOCIATION&sAssocRegNum=RASGPA0134237",
+  "associationRegistration": "RASGPA0134237",
+  "scope": "ARMSTA northern Johannesburg / Midrand / Sandton / Fourways / Randburg rank-like endpoints only",
+  "policy": {
+    "canonicalLabelsFromOfficialRouteNodes": true,
+    "fuzzyMerge": false,
+    "coordinatesInvented": false,
+    "verificationStatus": "documented"
+  },
+  "ranks": [
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-01",
+      "canonicalName": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-02",
+      "canonicalName": "ALEXANDRA PAN AFRICA TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-03",
+      "canonicalName": "MIDRAND MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-04",
+      "canonicalName": "DIEPSLOOT MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-05",
+      "canonicalName": "JOHANNESBURG JACK MINCER TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-06",
+      "canonicalName": "SANDTON TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-07",
+      "canonicalName": "MIDRAND MAIN TAXI RANK @ HALFWAY HOUSE",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-08",
+      "canonicalName": "FOURWAYS SHOPPING CENTRE MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-09",
+      "canonicalName": "OLIEVENHOUTBOSCH TEMPORARY ALLOCATED TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-10",
+      "canonicalName": "WATERFALL CBD TAXI RANK MIDRAND",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-11",
+      "canonicalName": "FOURWAYS TEMPORARY ALLOCATED TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-12",
+      "canonicalName": "RANDBURG MALL TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-13",
+      "canonicalName": "RANDBURG MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-14",
+      "canonicalName": "KYALAMI TEMPORARY ALLOCATED TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-15",
+      "canonicalName": "LIMBRO PARK TEMPORARY ALLOCATED TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-16",
+      "canonicalName": "SUNNINGHILL MAIN TAXI RANK (EDISON STREET)",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-17",
+      "canonicalName": "RANDBURG TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-18",
+      "canonicalName": "RANDBURG MAIN TAXI RANK @ HOMESTEAD/HENDRICK VERWOERD",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-19",
+      "canonicalName": "LONE CREEK STREET TEMPORARY TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h1-armsta-rank-20",
+      "canonicalName": "DIEPSLOOT INFORMAL TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    }
+  ]
+}
