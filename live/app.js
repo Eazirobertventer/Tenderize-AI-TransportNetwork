@@ -29,13 +29,15 @@ function esc(value=''){
 async function loadMeta(){
   try{
     const meta=await getJson('/api/v1/meta');
-    document.querySelector('#rankCount').textContent=meta.ranks;
+    document.querySelector('#rankCount').textContent=meta.mapped_ranks ?? meta.ranks;
+    document.querySelector('#locationPendingCount').textContent=meta.location_pending_ranks ?? '—';
     document.querySelector('#associationCount').textContent=meta.associations;
     document.querySelector('#routeCount').textContent=meta.routes;
     document.querySelector('#dataState').textContent=meta.mode.toUpperCase();
     document.querySelector('#mode').textContent=meta.mode==='postgis'?'PostGIS live':meta.mode;
   }catch{
     document.querySelector('#rankCount').textContent='0';
+    document.querySelector('#locationPendingCount').textContent='0';
     document.querySelector('#associationCount').textContent='0';
     document.querySelector('#routeCount').textContent='0';
     document.querySelector('#dataState').textContent='OFFLINE';
