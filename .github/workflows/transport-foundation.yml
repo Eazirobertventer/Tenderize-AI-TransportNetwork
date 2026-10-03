@@ -20,6 +20,10 @@ jobs:
           node --check scripts/build-rank-import-sql.mjs
           node --check scripts/probe-source.mjs
           node --check apps/source-worker/ingest.mjs
+          node --check apps/route-worker/ingest.mjs
+          node --check apps/nltis-worker/ingest.mjs
+          node --check apps/kzn-rank-worker/ingest.mjs
+          node --check apps/kzn-rank-worker/server.mjs
       - name: Seed validation
         run: node scripts/validate-data.mjs
 
