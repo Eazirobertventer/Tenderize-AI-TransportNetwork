@@ -51,9 +51,9 @@ jobs:
           WITH a AS (SELECT id FROM taxi_association WHERE registration_number='RASP000001')
           INSERT INTO taxi_route
             (association_id,origin_label,destination_label,route_name,route_type,geometry_status,verification_status)
-          SELECT id,'EXACT ORIGIN','MISSING DESTINATION','EXACT TO MISSING','minibus_taxi','pending','documented' FROM a
+          SELECT id,'EXACT ORIGIN','MISSING DESTINATION','EXACT TO MISSING','minibus_taxi','pending','documented'::verification_status FROM a
           UNION ALL
-          SELECT id,'AMBIGUOUS RANK','EXACT DESTINATION','AMBIGUOUS TO EXACT','minibus_taxi','pending','documented' FROM a;
+          SELECT id,'AMBIGUOUS RANK','EXACT DESTINATION','AMBIGUOUS TO EXACT','minibus_taxi','pending','documented'::verification_status FROM a;
 
           WITH s AS (SELECT id FROM source_registry WHERE source_key='nltis-proof')
           INSERT INTO source_record (source_id,entity_type,entity_id,external_record_id,source_payload)
