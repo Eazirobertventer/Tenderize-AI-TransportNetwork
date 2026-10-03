@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tenderize Transport Network</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <div class="logo">TN</div>
+      <button class="active" title="Map">⌖</button>
+      <button title="Ranks">▦</button>
+      <button title="Routes">⇄</button>
+      <button title="Associations">◯</button>
+      <button title="Data quality">!</button>
+    </aside>
+
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">TENDERIZE • TRANSPORT INTELLIGENCE</div>
+          <h1>South Africa Taxi Network</h1>
+        </div>
+        <div class="search">
+          <span>⌕</span>
+          <input id="search" placeholder="Search taxi rank, town or province…" />
+        </div>
+        <div class="status"><span></span><b id="mode">Loading</b></div>
+      </header>
+
+      <section class="kpis">
+        <div><span>Mapped ranks</span><strong id="rankCount">—</strong><small>current dataset</small></div>
+        <div><span>Associations</span><strong id="associationCount">—</strong><small>documented</small></div>
+        <div><span>Routes</span><strong id="routeCount">—</strong><small>evidence classified</small></div>
+        <div><span>Data state</span><strong id="dataState">—</strong><small>provenance retained</small></div>
+      </section>
+
+      <section class="layout">
+        <section class="mapCard">
+          <div class="toolbar">
+            <select id="province">
+              <option value="">All South Africa</option>
+              <option>Gauteng</option><option>Western Cape</option>
+              <option>KwaZulu-Natal</option><option>Eastern Cape</option>
+              <option>Limpopo</option><option>Mpumalanga</option>
+              <option>North West</option><option>Free State</option>
+              <option>Northern Cape</option>
+            </select>
+            <button id="fit">Fit national view</button>
+            <span id="resultStatus">Loading taxi ranks…</span>
+          </div>
+          <div id="map"></div>
+          <div class="legend">
+            <b>Evidence</b>
+            <span><i class="official"></i>Official / verified</span>
+            <span><i class="candidate"></i>Candidate</span>
+            <small>Basemap: OpenFreeMap / OpenStreetMap. Transport data: Tenderize source registry.</small>
+          </div>
+        </section>
+
+        <aside class="detail" id="detail">
+          <div class="empty">
+            <div class="target">⌖</div>
+            <h2>Select a taxi rank</h2>
+            <p>Click a marker to inspect location, evidence classification and source provenance.</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
