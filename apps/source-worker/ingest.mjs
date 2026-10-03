@@ -35,13 +35,13 @@ const pool = new Pool({
 async function ensureSchema(client){
   const initial=await client.query("select to_regclass('public.taxi_rank') as table_name");
   if(!initial.rows[0].table_name){
-    const sql=await readFile(resolve(root,'db/001_initial.sql'),'utf8');
+    const sql=await readFile(resolve(root,'schema/001_initial.sql'),'utf8');
     await client.query(sql);
   }
 
   const candidates=await client.query("select to_regclass('public.rank_association_candidate') as table_name");
   if(!candidates.rows[0].table_name){
-    const sql=await readFile(resolve(root,'db/002_relation_candidates.sql'),'utf8');
+    const sql=await readFile(resolve(root,'schema/002_relation_candidates.sql'),'utf8');
     await client.query(sql);
   }
 }
