@@ -1,5 +1,6 @@
 let current={type:'FeatureCollection',features:[]};
 let routeData={type:'FeatureCollection',features:[]};
+let routesVisible=true;
 
 const map=new maplibregl.Map({
   container:'map',
@@ -63,6 +64,13 @@ async function loadRoutes(){
   const source=map.getSource('routes');
   if(!source) return;
 
+  if(!routesVisible){
+    routeData={type:'FeatureCollection',features:[]};
+    source.setData(routeData);
+    document.querySelector('#routeStatus').textContent='Routes hidden';
+    return;
+  }
+
   if(map.getZoom()<7){
     routeData={type:'FeatureCollection',features:[]};
     source.setData(routeData);
@@ -81,6 +89,7 @@ async function loadRoutes(){
   }
 
   source.setData(routeData);
+  document.querySelector('#routeStatus').textContent=`${routeData.features.length} route${routeData.features.length===1?'':'s'} in viewport`;
 }
 
 async function detail(p){
@@ -164,10 +173,37 @@ map.on('load',async()=>{
     id:'official-routes',
     type:'line',
     source:'routes',
+    filter:['==',['get','verificationStatus'],'official'],
     paint:{
-      'line-width':['interpolate',['linear'],['zoom'],7,1.5,12,4],
+      'line-width':['interpolate',['linear'],['zoom'],7,1.6,12,4],
       'line-color':'#193b70',
-      'line-opacity':0.72
+      'line-opacity':0.78
+    }
+  });
+
+  map.addLayer({
+    id:'documented-routes',
+    type:'line',
+    source:'routes',
+    filter:['==',['get','verificationStatus'],'documented'],
+    paint:{
+      'line-width':['interpolate',['linear'],['zoom'],7,1.4,12,3.4],
+      'line-color':'#7356b8',
+      'line-opacity':0.72,
+      'line-dasharray':[2,2]
+    }
+  });
+
+  map.addLayer({
+    id:'inferred-routes',
+    type:'line',
+    source:'routes',
+    filter:['==',['get','verificationStatus'],'inferred'],
+    paint:{
+      'line-width':['interpolate',['linear'],['zoom'],7,1.2,12,3],
+      'line-color':'#b77a20',
+      'line-opacity':0.68,
+      'line-dasharray':[1,2]
     }
   });
 
@@ -231,13 +267,15 @@ map.on('load',async()=>{
     map.easeTo({center:feature.geometry.coordinates,zoom:Math.max(map.getZoom(),11.5),duration:650});
   });
 
-  map.on('click','official-routes',event=>{
-    const feature=event.features && event.features[0];
-    if(!feature) return;
-    routeDetail(feature.properties);
+  ['official-routes','documented-routes','inferred-routes'].forEach(routeLayer=>{
+    map.on('click',routeLayer,event=>{
+      const feature=event.features && event.features[0];
+      if(!feature) return;
+      routeDetail(feature.properties);
+    });
   });
 
-  ['clusters','rank-points','official-routes'].forEach(layer=>{
+  ['clusters','rank-points','official-routes','documented-routes','inferred-routes'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
@@ -256,4 +294,21 @@ document.querySelector('#fit').addEventListener('click',()=>{
   document.querySelector('#search').value='';
   map.easeTo({center:[24.4,-29.1],zoom:4.35});
   loadRanks();
+});
+
+
+document.querySelector('#routeToggle').addEventListener('click',()=>{
+  routesVisible=!routesVisible;
+  const button=document.querySelector('#routeToggle');
+  button.textContent=routesVisible?'Routes on':'Routes off';
+  button.classList.toggle('active-toggle',routesVisible);
+  button.setAttribute('aria-pressed',String(routesVisible));
+  loadRoutes();
+});
+
+document.querySelector('#capeTownRoutes').addEventListener('click',()=>{
+  document.querySelector('#province').value='Western Cape';
+  map.fitBounds([[18.28,-34.18],[18.98,-33.72]],{padding:40,duration:800});
+  loadRanks();
+  setTimeout(loadRoutes,850);
 });
