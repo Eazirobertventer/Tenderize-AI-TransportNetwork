@@ -26,6 +26,8 @@ jobs:
           node --check apps/kzn-rank-worker/server.mjs
           node --check apps/ethekwini-rank-worker/ingest.mjs
           node --check apps/ethekwini-rank-worker/server.mjs
+          node --check apps/reconciliation-worker/reconcile.mjs
+          node --check apps/reconciliation-worker/server.mjs
       - name: Seed validation
         run: node scripts/validate-data.mjs
 
