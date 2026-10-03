@@ -1,0 +1,78 @@
+name: NLTIS Association Ingest Proof
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-nltis-association-ingest:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+      NLTIS_SOURCE_IDS: nltis-birchleigh-oakmoor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+      - name: Seed exact ranks and near-match decoy
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO taxi_rank (canonical_name,province,verification_status)
+          VALUES
+            ('OAKMOOR EAST TAXI RANK','Gauteng','official'),
+            ('KEMPTON PARK MAIN TAXI RANK','Gauteng','official'),
+            ('OAKMOOR EAST TAXI RANK EXTENSION','Gauteng','candidate');
+          SQL
+      - name: Install NLTIS worker
+        working-directory: apps/nltis-worker
+        run: npm install --no-audit --no-fund
+      - name: First NLTIS import
+        working-directory: apps/nltis-worker
+        run: npm run ingest
+      - name: Save first counts
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association" > /tmp/a1
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where verification_status='documented'" > /tmp/r1
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association" > /tmp/l1
+      - name: Second NLTIS import
+        working-directory: apps/nltis-worker
+        run: npm run ingest
+      - name: Prove registration-keyed idempotency and no fuzzy rank merge
+        run: |
+          first_assoc=$(cat /tmp/a1)
+          first_routes=$(cat /tmp/r1)
+          first_links=$(cat /tmp/l1)
+          second_assoc=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association")
+          second_routes=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where verification_status='documented'")
+          second_links=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association")
+          exact_links=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association ra join taxi_rank r on r.id=ra.taxi_rank_id where r.canonical_name in ('OAKMOOR EAST TAXI RANK','KEMPTON PARK MAIN TAXI RANK')")
+          decoy_links=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association ra join taxi_rank r on r.id=ra.taxi_rank_id where r.canonical_name='OAKMOOR EAST TAXI RANK EXTENSION'")
+          registration_count=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association where registration_number='RASGPA0134385'")
+          test "$first_assoc" = "1"
+          test "$second_assoc" = "1"
+          test "$registration_count" = "1"
+          test "$first_routes" = "2"
+          test "$second_routes" = "2"
+          test "$first_links" = "$second_links"
+          test "$exact_links" = "2"
+          test "$decoy_links" = "0"
