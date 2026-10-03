@@ -6,7 +6,19 @@ const { Pool } = pg;
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 
 const root=resolve(new URL('.',import.meta.url).pathname);
-const sources=JSON.parse(await readFile(resolve(root,'sources.json'),'utf8'));
+const allSources=JSON.parse(await readFile(resolve(root,'sources.json'),'utf8'));
+const requestedSourceIds=(process.env.NLTIS_SOURCE_IDS || '')
+  .split(',')
+  .map(value=>value.trim())
+  .filter(Boolean);
+const sources=requestedSourceIds.length
+  ? allSources.filter(source=>requestedSourceIds.includes(source.id))
+  : allSources;
+if(requestedSourceIds.length && sources.length!==requestedSourceIds.length){
+  const found=new Set(sources.map(source=>source.id));
+  const missing=requestedSourceIds.filter(id=>!found.has(id));
+  throw new Error('Unknown NLTIS source IDs: ' + missing.join(','));
+}
 const verifiedSnapshot=JSON.parse(await readFile(resolve(root,'verified-snapshot.json'),'utf8'));
 const verifiedSnapshots=new Map([[verifiedSnapshot.sourceId,verifiedSnapshot]]);
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false});
