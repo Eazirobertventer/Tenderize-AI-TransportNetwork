@@ -80,6 +80,78 @@ async function postgisRanks(url){
   };
 }
 
+async function postgisRoutes(url){
+  const params=[];
+  const where=['tr.geometry IS NOT NULL'];
+  const bbox=url.searchParams.get('bbox');
+  const sourceKey=url.searchParams.get('source');
+
+  if (bbox) {
+    const parts=bbox.split(',').map(Number);
+    if(parts.length===4 && parts.every(Number.isFinite)){
+      params.push(parts[0],parts[1],parts[2],parts[3]);
+      const n=params.length;
+      where.push(`ST_Intersects(tr.geometry,ST_MakeEnvelope($${n-3},$${n-2},$${n-1},$${n},4326))`);
+    }
+  }
+
+  if(sourceKey){
+    params.push(sourceKey);
+    where.push(`s.source_key = $${params.length}`);
+  }
+
+  const result=await pool.query(
+    `SELECT
+       tr.id::text,
+       tr.origin_label,
+       tr.destination_label,
+       tr.route_name,
+       tr.route_type,
+       tr.national_route_code,
+       tr.board_route_code,
+       tr.geometry_status,
+       tr.verification_status::text,
+       ST_AsGeoJSON(tr.geometry)::json AS geometry,
+       s.source_key,
+       s.source_name
+     FROM taxi_route tr
+     LEFT JOIN LATERAL (
+       SELECT source_id
+       FROM source_record
+       WHERE entity_type='taxi_route' AND entity_id=tr.id
+       ORDER BY source_retrieved_at DESC
+       LIMIT 1
+     ) sr ON true
+     LEFT JOIN source_registry s ON s.id=sr.source_id
+     WHERE ${where.join(' AND ')}
+     ORDER BY tr.id
+     LIMIT 5000`,
+    params
+  );
+
+  return {
+    type:'FeatureCollection',
+    features:result.rows.map(row => ({
+      type:'Feature',
+      id:row.id,
+      geometry:row.geometry,
+      properties:{
+        id:row.id,
+        origin:row.origin_label,
+        destination:row.destination_label,
+        name:row.route_name,
+        routeType:row.route_type,
+        nationalRouteCode:row.national_route_code,
+        boardRouteCode:row.board_route_code,
+        geometryStatus:row.geometry_status,
+        verificationStatus:row.verification_status,
+        sourceKey:row.source_key,
+        source:row.source_name || 'PostGIS canonical'
+      }
+    }))
+  };
+}
+
 async function meta(){
   if (!pool) {
     return {mode:'unconfigured',ranks:0,associations:0,routes:0,sources:0,productionComplete:false};
@@ -151,6 +223,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/ranks'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisRanks(url));
+    }
+
+    if(url.pathname==='/api/v1/routes'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisRoutes(url));
     }
 
     if(url.pathname.startsWith('/api/v1/ranks/')){
