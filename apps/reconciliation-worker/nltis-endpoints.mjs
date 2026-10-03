@@ -51,9 +51,9 @@ async function exactAlias(normalized,province){
        CASE WHEN r.location IS NULL THEN NULL ELSE ST_X(r.location) END AS lng,
        CASE WHEN r.location IS NULL THEN NULL ELSE ST_Y(r.location) END AS lat
      FROM taxi_rank r
-     CROSS JOIN LATERAL unnest(r.aliases) alias
+     CROSS JOIN LATERAL unnest(r.aliases) AS a(alias_value)
      WHERE regexp_replace(
-             regexp_replace(lower(trim(alias)),'&',' and ','g'),
+             regexp_replace(lower(trim(alias_value)),'&',' and ','g'),
              '[^a-z0-9]+',' ','g'
            ) = $1
        AND ($2::text IS NULL OR r.province IS NULL OR lower(r.province)=lower($2))
@@ -87,12 +87,12 @@ async function similarityCandidates(normalized,province){
            coalesce((
              SELECT max(similarity(
                regexp_replace(
-                 regexp_replace(lower(trim(alias)),'&',' and ','g'),
+                 regexp_replace(lower(trim(alias_value)),'&',' and ','g'),
                  '[^a-z0-9]+',' ','g'
                ),
                $1
              ))
-             FROM unnest(r.aliases) alias
+             FROM unnest(r.aliases) AS a(alias_value)
            ),0)
          ) AS score
        FROM taxi_rank r
