@@ -7,6 +7,7 @@ if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 
 const root=resolve(new URL('.',import.meta.url).pathname);
 const sources=JSON.parse(await readFile(resolve(root,'sources.json'),'utf8'));
+const verifiedSnapshot=JSON.parse(await readFile(resolve(root,'verified-snapshot.json'),'utf8'));
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false});
 
 function decodeHtml(value=''){
@@ -93,9 +94,25 @@ try{
   const summary=[];
 
   for(const source of sources){
-    const html=await fetchText(source.url);
-    const routes=parseRoutes(html);
-    if(routes.length===0) throw new Error('Fail closed: no NLTIS routes parsed for ' + source.id);
+    let routes=[];
+    let acquisitionMode='live';
+    let upstreamError=null;
+
+    try{
+      const html=await fetchText(source.url);
+      routes=parseRoutes(html);
+      if(routes.length===0) throw new Error('No NLTIS routes parsed');
+    }catch(error){
+      upstreamError=String(error?.message || error);
+      if(verifiedSnapshot.sourceId!==source.id ||
+         verifiedSnapshot.association?.registrationNumber!==source.registrationNumber ||
+         !Array.isArray(verifiedSnapshot.routes) ||
+         verifiedSnapshot.routes.length===0){
+        throw error;
+      }
+      routes=verifiedSnapshot.routes;
+      acquisitionMode='verified_snapshot';
+    }
 
     await client.query('BEGIN');
 
@@ -155,7 +172,12 @@ try{
          source_payload=excluded.source_payload,
          source_last_checked_at=now(),
          source_retrieved_at=now()`,
-      [sourceId,associationId,'association:' + source.registrationNumber,JSON.stringify(source)]
+      [sourceId,associationId,'association:' + source.registrationNumber,JSON.stringify({
+        ...source,
+        acquisitionMode,
+        upstreamError,
+        snapshotReportPrintedAt: acquisitionMode==='verified_snapshot' ? verifiedSnapshot.reportPrintedAt : null
+      })]
     );
 
     let created=0;
@@ -221,7 +243,12 @@ try{
            source_payload=excluded.source_payload,
            source_last_checked_at=now(),
            source_retrieved_at=now()`,
-        [sourceId,routeId,externalId,JSON.stringify(route)]
+        [sourceId,routeId,externalId,JSON.stringify({
+          ...route,
+          acquisitionMode,
+          upstreamError,
+          snapshotReportPrintedAt: acquisitionMode==='verified_snapshot' ? verifiedSnapshot.reportPrintedAt : null
+        })]
       );
 
       for(const rankId of [originRankId,destinationRankId].filter(Boolean)){
@@ -244,6 +271,8 @@ try{
       association:source.associationName,
       registrationNumber:source.registrationNumber,
       parsedRoutes:routes.length,
+      acquisitionMode,
+      upstreamError,
       created,
       updated,
       exactRankLinks:rankLinks
