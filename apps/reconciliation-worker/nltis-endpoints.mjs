@@ -220,21 +220,27 @@ async function upsertIssue({route,side,label,result,currentRankId}){
   await client.query(
     `INSERT INTO data_issue
       (entity_type,entity_id,issue_type,severity,summary,detail,status)
-     VALUES
-      ('nltis_route_endpoint',$1::uuid,'nltis_endpoint_reconciliation',$2,$3,$4::jsonb,'open')
-     ON CONFLICT DO NOTHING`,
-    [route.id,severity,summary,JSON.stringify(detail)]
+     SELECT
+      'nltis_route_endpoint',$1::uuid,'nltis_endpoint_reconciliation',$2,$3,$4::jsonb,'open'
+     WHERE NOT EXISTS (
+       SELECT 1
+       FROM data_issue
+       WHERE issue_type='nltis_endpoint_reconciliation'
+         AND detail->>'issueKey'=$5
+         AND status IN ('open','reviewing','deferred')
+     )`,
+    [route.id,severity,summary,JSON.stringify(detail),issueKey]
   );
 
   await client.query(
     `UPDATE data_issue
-     SET severity=$2,
-         summary=$3,
-         detail=$4::jsonb
+     SET severity=$1,
+         summary=$2,
+         detail=$3::jsonb
      WHERE issue_type='nltis_endpoint_reconciliation'
-       AND detail->>'issueKey'=$5
+       AND detail->>'issueKey'=$4
        AND status IN ('open','reviewing','deferred')`,
-    [route.id,severity,summary,JSON.stringify(detail),issueKey]
+    [severity,summary,JSON.stringify(detail),issueKey]
   );
 }
 
