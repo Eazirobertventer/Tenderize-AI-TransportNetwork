@@ -1,0 +1,30 @@
+name: Map Satellite QA Proof
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-satellite-map-mode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: node --check live/app.js
+      - name: Prove satellite QA control
+        run: |
+          grep -q 'id="satelliteToggle"' live/index.html
+          grep -q "satellite-imagery" live/app.js
+          grep -q "World_Imagery/MapServer/tile/{z}/{y}/{x}" live/app.js
+          grep -q "Esri, Maxar, Earthstar Geographics, and the GIS User Community" live/app.js
+          grep -q "verify rank marker against visible facility" live/app.js
+          grep -q "physical taxi-rank facility" live/index.html
+      - name: Prove transport overlays remain independent
+        run: |
+          grep -q "id:'rank-points'" live/app.js
+          grep -q "id:'nltis-endpoint-connectors'" live/app.js
+          grep -q "id:'official-routes'" live/app.js
+          grep -q "id:'documented-routes'" live/app.js
