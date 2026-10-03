@@ -20,7 +20,7 @@ const client=await pool.connect();
 
 try{
   const result=await client.query(
-    \`WITH source_a AS (
+    `WITH source_a AS (
        SELECT DISTINCT
          r.id,
          r.canonical_name,
@@ -73,7 +73,7 @@ try{
          AND distance_m <= $4
      )
      SELECT * FROM unique_candidates
-     ORDER BY distance_m,a_name\`,
+     ORDER BY distance_m,a_name`,
     [sourceA,sourceB,ambiguityRadiusM,candidateThresholdM]
   );
 
@@ -109,7 +109,7 @@ try{
     };
 
     const inserted=await client.query(
-      \`INSERT INTO data_issue
+      `INSERT INTO data_issue
         (entity_type,entity_id,issue_type,severity,summary,detail,status)
        SELECT
         'taxi_rank_reconciliation',$1::uuid,'duplicate_rank_candidate','warning',$2,$3::jsonb,'open'
@@ -119,7 +119,7 @@ try{
            AND detail->>'issueKey'=$4
            AND status IN ('open','reviewing','deferred')
        )
-       RETURNING id\`,
+       RETURNING id`,
       [
         row.a_id,
         'Possible duplicate taxi rank: ' + row.a_name + ' ↔ ' + row.b_name + ' (' + Number(row.distance_m).toFixed(1) + 'm)',
@@ -135,11 +135,11 @@ try{
   await client.query('COMMIT');
 
   const proof=await client.query(
-    \`SELECT
+    `SELECT
        count(*)::int AS open_duplicate_candidates
      FROM data_issue
      WHERE issue_type='duplicate_rank_candidate'
-       AND status IN ('open','reviewing','deferred')\`
+       AND status IN ('open','reviewing','deferred')`
   );
 
   console.log(JSON.stringify({
