@@ -46,17 +46,20 @@ async function exactCanonical(label,province){
 async function exactAlias(normalized,province){
   if(!normalized) return [];
   const result=await client.query(
-    `SELECT DISTINCT
+    `SELECT
        r.id::text,r.canonical_name,r.aliases,r.province,r.municipality,r.town,
        CASE WHEN r.location IS NULL THEN NULL ELSE ST_X(r.location) END AS lng,
        CASE WHEN r.location IS NULL THEN NULL ELSE ST_Y(r.location) END AS lat
      FROM taxi_rank r
-     CROSS JOIN LATERAL unnest(r.aliases) AS a(alias_value)
-     WHERE regexp_replace(
-             regexp_replace(lower(trim(alias_value)),'&',' and ','g'),
-             '[^a-z0-9]+',' ','g'
-           ) = $1
-       AND ($2::text IS NULL OR r.province IS NULL OR lower(r.province)=lower($2))
+     WHERE EXISTS (
+       SELECT 1
+       FROM unnest(r.aliases) AS u(alias_value)
+       WHERE regexp_replace(
+               regexp_replace(lower(trim(alias_value)),'&',' and ','g'),
+               '[^a-z0-9]+',' ','g'
+             ) = $1::text
+     )
+       AND ($2::text IS NULL OR r.province IS NULL OR lower(r.province)=lower($2::text))
      ORDER BY r.id`,
     [normalized,province || null]
   );
@@ -100,7 +103,7 @@ async function similarityCandidates(normalized,province){
      )
      SELECT *
      FROM ranked
-     WHERE score >= $3
+     WHERE score >= $3::real
      ORDER BY score DESC,canonical_name,id
      LIMIT 8`,
     [normalized,province || null,candidateThreshold]
