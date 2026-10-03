@@ -1,6 +1,8 @@
 let current={type:'FeatureCollection',features:[]};
 let routeData={type:'FeatureCollection',features:[]};
+let endpointEvidenceData={type:'FeatureCollection',features:[]};
 let routesVisible=true;
+let endpointEvidenceVisible=true;
 
 const map=new maplibregl.Map({
   container:'map',
@@ -89,7 +91,40 @@ async function loadRoutes(){
   }
 
   source.setData(routeData);
-  document.querySelector('#routeStatus').textContent=`${routeData.features.length} route${routeData.features.length===1?'':'s'} in viewport`;
+  updateRouteStatus();
+}
+
+function updateRouteStatus(){
+  const routeCount=routesVisible ? routeData.features.length : 0;
+  const evidenceCount=endpointEvidenceVisible ? endpointEvidenceData.features.length : 0;
+  document.querySelector('#routeStatus').textContent =
+    `${routeCount} route geometr${routeCount===1?'y':'ies'} • ${evidenceCount} NLTIS endpoint link${evidenceCount===1?'':'s'}`;
+}
+
+async function loadEndpointEvidence(){
+  const source=map.getSource('nltis-endpoint-evidence');
+  if(!source) return;
+
+  if(!endpointEvidenceVisible || map.getZoom()<6){
+    endpointEvidenceData={type:'FeatureCollection',features:[]};
+    source.setData(endpointEvidenceData);
+    updateRouteStatus();
+    return;
+  }
+
+  const b=map.getBounds();
+  const params=new URLSearchParams({
+    bbox:[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',')
+  });
+
+  try{
+    endpointEvidenceData=await getJson('/api/v1/nltis/endpoint-evidence?' + params.toString());
+  }catch{
+    endpointEvidenceData={type:'FeatureCollection',features:[]};
+  }
+
+  source.setData(endpointEvidenceData);
+  updateRouteStatus();
 }
 
 async function detail(p){
@@ -155,7 +190,9 @@ function routeDetail(p){
       ${p.association ? `<div class="source"><b>${esc(p.association)}</b><span>${esc(p.associationRegistration || 'Association registration pending')}</span></div>` : ''}
       <div class="source">
         <b>${esc(p.source || 'Tenderize source registry')}</b>
-        <span>This line is rendered from source-backed route geometry. It is not inferred from road routing.</span>
+        <span>${p.notRoutePath
+          ? 'This connector only joins two exactly reconciled NLTIS rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
+          : 'This line is rendered from source-backed route geometry. It is not inferred from road routing.'}</span>
       </div>
     </div>`;
 }
@@ -207,6 +244,23 @@ map.on('load',async()=>{
     }
   });
 
+  map.addSource('nltis-endpoint-evidence',{
+    type:'geojson',
+    data:endpointEvidenceData
+  });
+
+  map.addLayer({
+    id:'nltis-endpoint-connectors',
+    type:'line',
+    source:'nltis-endpoint-evidence',
+    paint:{
+      'line-width':['interpolate',['linear'],['zoom'],6,1.2,12,3.2],
+      'line-color':'#c13c66',
+      'line-opacity':0.72,
+      'line-dasharray':[1,3]
+    }
+  });
+
   map.addSource('ranks',{
     type:'geojson',
     data:current,
@@ -251,7 +305,7 @@ map.on('load',async()=>{
     }
   });
 
-  await loadRoutes();
+  await Promise.all([loadRoutes(),loadEndpointEvidence()]);
 
   map.on('click','clusters',async event=>{
     const feature=map.queryRenderedFeatures(event.point,{layers:['clusters']})[0];
@@ -267,7 +321,7 @@ map.on('load',async()=>{
     map.easeTo({center:feature.geometry.coordinates,zoom:Math.max(map.getZoom(),11.5),duration:650});
   });
 
-  ['official-routes','documented-routes','inferred-routes'].forEach(routeLayer=>{
+  ['official-routes','documented-routes','inferred-routes','nltis-endpoint-connectors'].forEach(routeLayer=>{
     map.on('click',routeLayer,event=>{
       const feature=event.features && event.features[0];
       if(!feature) return;
@@ -275,12 +329,12 @@ map.on('load',async()=>{
     });
   });
 
-  ['clusters','rank-points','official-routes','documented-routes','inferred-routes'].forEach(layer=>{
+  ['clusters','rank-points','official-routes','documented-routes','inferred-routes','nltis-endpoint-connectors'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
 
-  map.on('moveend',loadRoutes);
+  map.on('moveend',()=>Promise.all([loadRoutes(),loadEndpointEvidence()]));
 });
 
 document.querySelector('#province').addEventListener('change',loadRanks);
@@ -306,9 +360,18 @@ document.querySelector('#routeToggle').addEventListener('click',()=>{
   loadRoutes();
 });
 
+document.querySelector('#nltisEvidenceToggle').addEventListener('click',()=>{
+  endpointEvidenceVisible=!endpointEvidenceVisible;
+  const button=document.querySelector('#nltisEvidenceToggle');
+  button.textContent=endpointEvidenceVisible?'NLTIS evidence on':'NLTIS evidence off';
+  button.classList.toggle('active-toggle',endpointEvidenceVisible);
+  button.setAttribute('aria-pressed',String(endpointEvidenceVisible));
+  loadEndpointEvidence();
+});
+
 document.querySelector('#capeTownRoutes').addEventListener('click',()=>{
   document.querySelector('#province').value='Western Cape';
   map.fitBounds([[18.28,-34.18],[18.98,-33.72]],{padding:40,duration:800});
   loadRanks();
-  setTimeout(loadRoutes,850);
+  setTimeout(()=>Promise.all([loadRoutes(),loadEndpointEvidence()]),850);
 });
