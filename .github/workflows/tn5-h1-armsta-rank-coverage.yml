@@ -1,0 +1,109 @@
+name: TN5-H1 ARMSTA Rank Coverage Expansion
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-armsta-rank-coverage:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+      NLTIS_FORCE_SNAPSHOT: "true"
+      NLTIS_SOURCE_IDS: nltis-armsta
+      NLTIS_RANK_SEED_FILES: apps/nltis-worker/verified-rank-seeds/armsta-h1.json
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Syntax
+        run: |
+          node --check apps/nltis-worker/ingest-rank-seeds.mjs
+          node --check apps/reconciliation-worker/nltis-endpoints.mjs
+
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Install workers
+        run: |
+          npm --prefix apps/nltis-worker install --no-audit --no-fund
+          npm --prefix apps/reconciliation-worker install --no-audit --no-fund
+
+      - name: Import verified ARMSTA routes first
+        working-directory: apps/nltis-worker
+        run: npm run ingest
+
+      - name: Prove pre-seed ARMSTA state
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where verification_status='documented'")" = "110"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank")" = "0"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select coalesce(sum((origin_rank_id is not null)::int + (destination_rank_id is not null)::int),0) from taxi_route")" = "0"
+
+      - name: First H1 rank seed import
+        working-directory: apps/nltis-worker
+        run: npm run ingest:rank-seeds
+
+      - name: Prove H1 rank seed safety
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank")" = "20"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank where verification_status='documented'")" = "20"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank where location is not null")" = "0"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record sr join source_registry s on s.id=sr.source_id where s.source_key='nltis-armsta-rank-seed' and sr.entity_type='taxi_rank'")" = "20"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_rank_seed_conflict'")" = "0"
+
+      - name: Second H1 rank seed import
+        working-directory: apps/nltis-worker
+        run: npm run ingest:rank-seeds
+
+      - name: Prove H1 seed idempotency
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank")" = "20"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record sr join source_registry s on s.id=sr.source_id where s.source_key='nltis-armsta-rank-seed' and sr.entity_type='taxi_rank'")" = "20"
+
+      - name: Reconcile ARMSTA endpoints
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+
+      - name: Prove H1 endpoint coverage gain
+        run: |
+          linked=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select coalesce(sum((origin_rank_id is not null)::int + (destination_rank_id is not null)::int),0) from taxi_route where verification_status='documented'")
+          test "$linked" = "125"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where geometry is not null")" = "0"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where origin_rank_id is not null or destination_rank_id is not null")" -gt "0"
+
+      - name: Report H1 evidence
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "
+            select json_build_object(
+              'event','tn5_h1_armsta_rank_coverage_pass',
+              'routes',(select count(*) from taxi_route),
+              'rankSeeds',(select count(*) from taxi_rank),
+              'linkedEndpoints',(select coalesce(sum((origin_rank_id is not null)::int + (destination_rank_id is not null)::int),0) from taxi_route),
+              'totalEndpoints',(select count(*)*2 from taxi_route),
+              'coveragePct',round(
+                100.0*(select coalesce(sum((origin_rank_id is not null)::int + (destination_rank_id is not null)::int),0) from taxi_route)
+                / nullif((select count(*)*2 from taxi_route),0),1
+              ),
+              'inventedCoordinates',false,
+              'fuzzyMerge',false
+            );"
