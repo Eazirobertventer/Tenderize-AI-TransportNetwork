@@ -1,0 +1,62 @@
+name: Transport Foundation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check live/app.js
+          node --check apps/transport-api/src/server.mjs
+          node --check scripts/ingest-arcgis.mjs
+          node --check scripts/build-rank-import-sql.mjs
+          node --check scripts/probe-source.mjs
+      - name: Seed validation
+        run: node scripts/validate-data.mjs
+
+  postgis-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply migrations
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+      - name: Verify schema
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from information_schema.tables where table_schema='public' and table_name in ('taxi_rank','taxi_route','source_record','rank_association_candidate','rank_destination_candidate')")" = "5"
+
+  source-contract:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Probe Ekurhuleni official GIS
+        run: node scripts/probe-source.mjs ekurhuleni-taxi-ranks
