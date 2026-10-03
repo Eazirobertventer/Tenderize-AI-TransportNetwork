@@ -165,13 +165,13 @@ async function postgisAssociations(url){
 
   if(province){
     params.push(province);
-    where.push(`a.province = ${params.length}`);
+    where.push(`a.province = $${params.length}`);
   }
 
   if(q){
     params.push('%' + q + '%');
     const i=params.length;
-    where.push(`(a.canonical_name ILIKE ${i} OR coalesce(a.registration_number,'') ILIKE ${i} OR coalesce(a.acronym,'') ILIKE ${i})`);
+    where.push(`(a.canonical_name ILIKE $${i} OR coalesce(a.registration_number,'') ILIKE $${i} OR coalesce(a.acronym,'') ILIKE $${i})`);
   }
 
   const result=await pool.query(
@@ -209,12 +209,12 @@ async function postgisDataIssues(url){
 
   if(issueType){
     params.push(issueType);
-    where.push(`issue_type = ${params.length}`);
+    where.push(`issue_type = $${params.length}`);
   }
 
   if(sourceKey){
     params.push(sourceKey);
-    where.push(`detail->>'sourceKey' = ${params.length}`);
+    where.push(`detail->>'sourceKey' = $${params.length}`);
   }
 
   params.push(limit);
@@ -236,7 +236,7 @@ async function postgisDataIssues(url){
      ORDER BY
        CASE severity WHEN 'blocking' THEN 1 WHEN 'error' THEN 2 WHEN 'warning' THEN 3 ELSE 4 END,
        created_at DESC
-     LIMIT ${params.length}`,
+     LIMIT $${params.length}`,
     params
   );
 
