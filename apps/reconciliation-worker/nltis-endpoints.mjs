@@ -21,7 +21,6 @@ function normalizeLabel(value){
     .toLowerCase()
     .replace(/&/g,' and ')
     .replace(/[^a-z0-9]+/g,' ')
-    .replace(/\b(taxi rank|main taxi rank|temporary allocated taxi rank|informal taxi rank)\b/g,' ')
     .replace(/\s+/g,' ')
     .trim();
 }
