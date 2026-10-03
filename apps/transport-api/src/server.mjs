@@ -22,6 +22,7 @@ async function postgisRanks(url){
   const params=[];
   const where=['r.location IS NOT NULL'];
   const province=url.searchParams.get('province');
+  const city=url.searchParams.get('city');
   const q=url.searchParams.get('q');
 
   if (province) {
@@ -29,10 +30,16 @@ async function postgisRanks(url){
     where.push(`r.province = $${params.length}`);
   }
 
+  if (city) {
+    params.push(city);
+    const i=params.length;
+    where.push(`coalesce(nullif(trim(r.town),''),nullif(trim(r.municipality),'')) = ${i}`);
+  }
+
   if (q) {
     params.push('%' + q + '%');
     const i=params.length;
-    where.push(`(r.canonical_name ILIKE $${i} OR coalesce(r.town,'') ILIKE $${i} OR coalesce(r.municipality,'') ILIKE $${i})`);
+    where.push(`(r.canonical_name ILIKE ${i} OR coalesce(r.town,'') ILIKE ${i} OR coalesce(r.municipality,'') ILIKE ${i})`);
   }
 
   const result=await pool.query(
@@ -77,6 +84,43 @@ async function postgisRanks(url){
         source:row.source_name || 'PostGIS canonical'
       }
     }))
+  };
+}
+
+async function postgisRankFilters(url){
+  const province=url.searchParams.get('province');
+
+  const provinces=await pool.query(
+    `SELECT DISTINCT province
+     FROM taxi_rank
+     WHERE location IS NOT NULL
+       AND province IS NOT NULL
+       AND trim(province)<>''
+     ORDER BY province`
+  );
+
+  const params=[];
+  const where=[
+    'location IS NOT NULL',
+    "coalesce(nullif(trim(town),''),nullif(trim(municipality),'')) IS NOT NULL"
+  ];
+
+  if(province){
+    params.push(province);
+    where.push(`province = ${params.length}`);
+  }
+
+  const cities=await pool.query(
+    `SELECT DISTINCT coalesce(nullif(trim(town),''),nullif(trim(municipality),'')) AS city
+     FROM taxi_rank
+     WHERE ${where.join(' AND ')}
+     ORDER BY city`,
+    params
+  );
+
+  return {
+    provinces:provinces.rows.map(row=>row.province),
+    cities:cities.rows.map(row=>row.city)
   };
 }
 
@@ -561,6 +605,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/ranks'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisRanks(url));
+    }
+
+    if(url.pathname==='/api/v1/rank-filters'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisRankFilters(url));
     }
 
     if(url.pathname==='/api/v1/routes'){
