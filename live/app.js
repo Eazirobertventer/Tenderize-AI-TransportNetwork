@@ -1,4 +1,5 @@
 let current={type:'FeatureCollection',features:[]};
+let routeData={type:'FeatureCollection',features:[]};
 
 const map=new maplibregl.Map({
   container:'map',
@@ -52,6 +53,30 @@ async function loadRanks(){
   if(source) source.setData(current);
 }
 
+async function loadRoutes(){
+  const source=map.getSource('routes');
+  if(!source) return;
+
+  if(map.getZoom()<7){
+    routeData={type:'FeatureCollection',features:[]};
+    source.setData(routeData);
+    return;
+  }
+
+  const b=map.getBounds();
+  const params=new URLSearchParams({
+    bbox:[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',')
+  });
+
+  try{
+    routeData=await getJson('/api/v1/routes?' + params.toString());
+  }catch{
+    routeData={type:'FeatureCollection',features:[]};
+  }
+
+  source.setData(routeData);
+}
+
 function detail(p){
   const status=p.verificationStatus || 'unverified';
   document.querySelector('#detail').innerHTML=`
@@ -66,9 +91,39 @@ function detail(p){
     </div>`;
 }
 
+function routeDetail(p){
+  const status=p.verificationStatus || 'unverified';
+  document.querySelector('#detail').innerHTML=`
+    <div class="rank">
+      <span class="badge ${status}">${status.replaceAll('_',' ')}</span>
+      <h2>${p.origin || 'Origin pending'} → ${p.destination || 'Destination pending'}</h2>
+      <p>${p.routeType || 'Taxi route'} • ${p.geometryStatus || 'Geometry pending'}</p>
+      <div class="source">
+        <b>${p.source || 'Tenderize source registry'}</b>
+        <span>This line is rendered from source-backed route geometry. It is not inferred from road routing.</span>
+      </div>
+    </div>`;
+}
+
 map.on('load',async()=>{
   await loadMeta();
   await loadRanks();
+
+  map.addSource('routes',{
+    type:'geojson',
+    data:routeData
+  });
+
+  map.addLayer({
+    id:'official-routes',
+    type:'line',
+    source:'routes',
+    paint:{
+      'line-width':['interpolate',['linear'],['zoom'],7,1.5,12,4],
+      'line-color':'#193b70',
+      'line-opacity':0.72
+    }
+  });
 
   map.addSource('ranks',{
     type:'geojson',
@@ -114,6 +169,8 @@ map.on('load',async()=>{
     }
   });
 
+  await loadRoutes();
+
   map.on('click','clusters',async event=>{
     const feature=map.queryRenderedFeatures(event.point,{layers:['clusters']})[0];
     if(!feature) return;
@@ -128,10 +185,18 @@ map.on('load',async()=>{
     map.easeTo({center:feature.geometry.coordinates,zoom:Math.max(map.getZoom(),11.5),duration:650});
   });
 
-  ['clusters','rank-points'].forEach(layer=>{
+  map.on('click','official-routes',event=>{
+    const feature=event.features && event.features[0];
+    if(!feature) return;
+    routeDetail(feature.properties);
+  });
+
+  ['clusters','rank-points','official-routes'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
+
+  map.on('moveend',loadRoutes);
 });
 
 document.querySelector('#province').addEventListener('change',loadRanks);
