@@ -42,13 +42,11 @@
       <section class="layout">
         <section class="mapCard">
           <div class="toolbar">
-            <select id="province">
-              <option value="">All South Africa</option>
-              <option>Gauteng</option><option>Western Cape</option>
-              <option>KwaZulu-Natal</option><option>Eastern Cape</option>
-              <option>Limpopo</option><option>Mpumalanga</option>
-              <option>North West</option><option>Free State</option>
-              <option>Northern Cape</option>
+            <select id="province" aria-label="Filter taxi ranks by province">
+              <option value="">All provinces</option>
+            </select>
+            <select id="city" aria-label="Filter taxi ranks by city">
+              <option value="">All cities</option>
             </select>
             <button id="satelliteToggle" aria-pressed="false">Street</button>
             <button id="routeToggle" class="active-toggle" aria-pressed="true">Routes on</button>
@@ -76,7 +74,7 @@
           <div id="rankFinder" class="rank-finder">
             <div class="rank-finder-head">
               <div><b>Find a taxi rank</b><span><strong id="rankFinderCount">0</strong> mapped results</span></div>
-              <small>Search above, then tap View to jump straight to the rank.</small>
+              <small>Filter by province and city, search by name, then tap View.</small>
             </div>
             <div id="rankFinderList" class="rank-finder-list"></div>
           </div>
