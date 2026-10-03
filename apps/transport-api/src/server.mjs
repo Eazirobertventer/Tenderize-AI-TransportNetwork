@@ -200,6 +200,49 @@ async function postgisAssociations(url){
   return {items:result.rows};
 }
 
+async function postgisDataIssues(url){
+  const params=[];
+  const where=["status IN ('open','reviewing','deferred')"];
+  const issueType=url.searchParams.get('issueType');
+  const sourceKey=url.searchParams.get('source');
+  const limit=Math.min(Math.max(Number(url.searchParams.get('limit') || 200),1),1000);
+
+  if(issueType){
+    params.push(issueType);
+    where.push(`issue_type = ${params.length}`);
+  }
+
+  if(sourceKey){
+    params.push(sourceKey);
+    where.push(`detail->>'sourceKey' = ${params.length}`);
+  }
+
+  params.push(limit);
+
+  const result=await pool.query(
+    `SELECT
+       id::text,
+       entity_type,
+       entity_id::text,
+       issue_type,
+       severity,
+       summary,
+       detail,
+       status,
+       created_at,
+       resolved_at
+     FROM data_issue
+     WHERE ${where.join(' AND ')}
+     ORDER BY
+       CASE severity WHEN 'blocking' THEN 1 WHEN 'error' THEN 2 WHEN 'warning' THEN 3 ELSE 4 END,
+       created_at DESC
+     LIMIT ${params.length}`,
+    params
+  );
+
+  return {items:result.rows};
+}
+
 async function meta(){
   if (!pool) {
     return {mode:'unconfigured',ranks:0,associations:0,routes:0,sources:0,productionComplete:false};
@@ -210,7 +253,8 @@ async function meta(){
        (SELECT count(*)::int FROM taxi_rank) AS ranks,
        (SELECT count(*)::int FROM taxi_association) AS associations,
        (SELECT count(*)::int FROM taxi_route) AS routes,
-       (SELECT count(*)::int FROM source_registry) AS sources`
+       (SELECT count(*)::int FROM source_registry) AS sources,
+       (SELECT count(*)::int FROM data_issue WHERE status IN ('open','reviewing','deferred')) AS open_issues`
   );
   return {mode:'postgis',...result.rows[0],productionComplete:false};
 }
@@ -319,6 +363,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/associations'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisAssociations(url));
+    }
+
+    if(url.pathname==='/api/v1/data-issues'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisDataIssues(url));
     }
 
     if(url.pathname.startsWith('/api/v1/ranks/')){
