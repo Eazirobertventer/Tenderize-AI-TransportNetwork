@@ -457,6 +457,8 @@ async function meta(){
   const result=await pool.query(
     `SELECT
        (SELECT count(*)::int FROM taxi_rank) AS ranks,
+       (SELECT count(*)::int FROM taxi_rank WHERE location IS NOT NULL) AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank WHERE location IS NULL) AS location_pending_ranks,
        (SELECT count(*)::int FROM taxi_association) AS associations,
        (SELECT count(*)::int FROM taxi_route) AS routes,
        (SELECT count(*)::int FROM source_registry) AS sources,
