@@ -7,3 +7,6 @@
 .route-swatch.inferred-route{border-top:3px dotted #b77a20}
 
 .route-swatch.endpoint-evidence{border-top:3px dashed #c13c66}
+
+#satelliteToggle.active-toggle{background:#102a3d;border-color:#274b63;color:#fff}
+#basemapStatus{margin-left:0!important;font-weight:700}
