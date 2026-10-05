@@ -16,14 +16,14 @@ WITH s AS (
 )
 INSERT INTO rank_association_candidate
   (source_id,source_rank_external_id,taxi_rank_id,association_label,normalized_label,verification_status)
-SELECT s.id,'a',r.id,'Clemont & Kwadabeka Taxi Association','clemont kwadabeka taxi association','documented'
+SELECT s.id,'a',r.id,'Clemont & Kwadabeka Taxi Association','clemont kwadabeka taxi association','documented'::verification_status
 FROM s,taxi_rank r WHERE r.canonical_name='Rank A'
 UNION ALL
-SELECT s.id,'b',r.id,'Kwamashu Taxi Owners Association','kwamashu taxi owners association','documented'
+SELECT s.id,'b',r.id,'Kwamashu Taxi Owners Association','kwamashu taxi owners association','documented'::verification_status
 FROM s,taxi_rank r WHERE r.canonical_name='Rank B'
 UNION ALL
-SELECT s.id,'c',r.id,'Old Dutch & Warwick Taxi Rank Committee','old dutch warwick taxi rank committee','documented'
+SELECT s.id,'c',r.id,'Old Dutch & Warwick Taxi Rank Committee','old dutch warwick taxi rank committee','documented'::verification_status
 FROM s,taxi_rank r WHERE r.canonical_name='Rank C'
 UNION ALL
-SELECT s.id,'d',r.id,'Ningizimu One Region','ningizimu one region','documented'
+SELECT s.id,'d',r.id,'Ningizimu One Region','ningizimu one region','documented'::verification_status
 FROM s,taxi_rank r WHERE r.canonical_name='Rank D';
