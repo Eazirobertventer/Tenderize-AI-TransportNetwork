@@ -36,7 +36,7 @@ try{
        min(rac.association_label) AS association_label,
        array_agg(DISTINCT rac.taxi_rank_id::text ORDER BY rac.taxi_rank_id::text) AS rank_ids,
        array_agg(DISTINCT rac.source_rank_external_id ORDER BY rac.source_rank_external_id) AS source_rank_external_ids,
-       min(s.id)::text AS source_id
+       min(s.id::text) AS source_id
      FROM rank_association_candidate rac
      JOIN source_registry s ON s.id=rac.source_id
      WHERE s.source_key=$1
