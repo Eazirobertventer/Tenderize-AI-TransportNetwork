@@ -9,7 +9,7 @@ const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false})
 const client=await pool.connect();
 
 function normalizedSql(column){
-  return `regexp_replace(regexp_replace(lower(trim(${column})),'&',' and ','g'),'[^a-z0-9]+',' ','g')`;
+  return `trim(regexp_replace(regexp_replace(lower(trim(${column})),'[^a-z0-9]+',' ','g'),'[[:space:]]+',' ','g'))`;
 }
 
 function eligible(label){
