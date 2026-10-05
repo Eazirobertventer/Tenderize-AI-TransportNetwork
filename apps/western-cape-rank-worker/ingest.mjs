@@ -105,7 +105,20 @@ try{
   const records=features.map(normalize);
   const good=records.filter(valid);
   const bad=records.filter(record=>!valid(record));
-  if(good.length===0) throw new Error('Fail closed: Western Cape source returned zero valid taxi ranks');
+  if(good.length===0){
+    console.error(JSON.stringify({
+      event:'western_cape_rank_validation_diagnostic',
+      sample:records.slice(0,5).map(record=>({
+        externalId:record.externalId,
+        name:record.name,
+        geometryType:record.geometry?.type || null,
+        cuid:record.cuid,
+        subType:record.subType,
+        opStatus:record.opStatus
+      }))
+    }));
+    throw new Error('Fail closed: Western Cape source returned zero valid taxi ranks');
+  }
 
   await client.query('BEGIN');
 
