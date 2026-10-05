@@ -1,8 +1,10 @@
 let current={type:'FeatureCollection',features:[]};
 let routeData={type:'FeatureCollection',features:[]};
 let endpointEvidenceData={type:'FeatureCollection',features:[]};
+let sourceRouteGeometryData={type:'FeatureCollection',features:[]};
 let routesVisible=true;
 let endpointEvidenceVisible=true;
+let sourceRouteGeometryVisible=true;
 let satelliteVisible=false;
 let rankPopup=null;
 
@@ -192,8 +194,11 @@ async function loadRoutes(){
 function updateRouteStatus(){
   const routeCount=routesVisible ? routeData.features.length : 0;
   const evidenceCount=endpointEvidenceVisible ? endpointEvidenceData.features.length : 0;
+  const sourceGeometryCount=sourceRouteGeometryVisible ? sourceRouteGeometryData.features.length : 0;
   document.querySelector('#routeStatus').textContent =
-    `${routeCount} route geometr${routeCount===1?'y':'ies'} • ${evidenceCount} NLTIS endpoint link${evidenceCount===1?'':'s'}`;
+    routeCount+' canonical geometr'+(routeCount===1?'y':'ies')+' • '+
+    sourceGeometryCount+' source geometr'+(sourceGeometryCount===1?'y':'ies')+' • '+
+    evidenceCount+' NLTIS endpoint link'+(evidenceCount===1?'':'s');
 }
 
 async function loadEndpointEvidence(){
