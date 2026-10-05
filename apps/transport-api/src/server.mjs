@@ -244,6 +244,102 @@ async function postgisSourceRouteGeometries(url){
   };
 }
 
+async function postgisRouteCandidates(url){
+  const params=[];
+  const where=["rc.reconciliation_status='exact_endpoint_pair'"];
+  const bbox=url.searchParams.get('bbox');
+  const province=url.searchParams.get('province');
+
+  if(bbox){
+    const parts=bbox.split(',').map(Number);
+    if(parts.length===4 && parts.every(Number.isFinite)){
+      params.push(parts[0],parts[1],parts[2],parts[3]);
+      const n=params.length;
+      where.push(`ST_Intersects(srg.geometry,ST_MakeEnvelope(${n-3},${n-2},${n-1},${n},4326))`);
+    }
+  }
+
+  if(province){
+    params.push(province);
+    where.push(`srg.province=${params.length}`);
+  }
+
+  const result=await pool.query(
+    `SELECT
+       rc.id::text,
+       rc.external_record_id,
+       rc.route_code,
+       rc.origin_distance_m,
+       rc.destination_distance_m,
+       rc.reconciliation_status,
+       rc.verification_status::text,
+       rc.confidence,
+       rc.provenance,
+       o.id::text AS origin_rank_id,
+       o.canonical_name AS origin_name,
+       d.id::text AS destination_rank_id,
+       d.canonical_name AS destination_name,
+       a.id::text AS association_id,
+       a.canonical_name AS association_name,
+       srg.province,
+       srg.municipality,
+       srg.district,
+       srg.category,
+       srg.map_title,
+       ST_AsGeoJSON(srg.geometry)::json AS geometry,
+       s.source_key,
+       s.source_name,
+       s.authority
+     FROM route_candidate rc
+     JOIN source_route_geometry srg ON srg.id=rc.source_route_geometry_id
+     JOIN source_registry s ON s.id=rc.source_id
+     JOIN taxi_rank o ON o.id=rc.origin_rank_id
+     JOIN taxi_rank d ON d.id=rc.destination_rank_id
+     LEFT JOIN taxi_association a ON a.id=rc.association_id
+     WHERE ${where.join(' AND ')}
+     ORDER BY rc.id
+     LIMIT 10000`,
+    params
+  );
+
+  return {
+    type:'FeatureCollection',
+    evidenceType:'exact_route_candidate',
+    notCanonicalRoute:true,
+    features:result.rows.map(row=>({
+      type:'Feature',
+      id:row.id,
+      geometry:row.geometry,
+      properties:{
+        id:row.id,
+        externalRecordId:row.external_record_id,
+        routeCode:row.route_code,
+        originRankId:row.origin_rank_id,
+        origin:row.origin_name,
+        destinationRankId:row.destination_rank_id,
+        destination:row.destination_name,
+        originDistanceM:Number(row.origin_distance_m),
+        destinationDistanceM:Number(row.destination_distance_m),
+        reconciliationStatus:row.reconciliation_status,
+        verificationStatus:row.verification_status,
+        confidence:Number(row.confidence),
+        association:row.association_name,
+        associationId:row.association_id,
+        province:row.province,
+        municipality:row.municipality,
+        district:row.district,
+        category:row.category,
+        mapTitle:row.map_title,
+        sourceKey:row.source_key,
+        source:row.source_name,
+        authority:row.authority,
+        candidateRoute:true,
+        notCanonicalRoute:true
+      }
+    }))
+  };
+}
+
 async function postgisRoutes(url){
   const params=[];
   const where=['tr.geometry IS NOT NULL'];
@@ -740,6 +836,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/source-route-geometries'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisSourceRouteGeometries(url));
+    }
+
+    if(url.pathname==='/api/v1/route-candidates'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisRouteCandidates(url));
     }
 
     if(url.pathname==='/api/v1/routes'){
