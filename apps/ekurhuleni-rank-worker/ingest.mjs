@@ -7,7 +7,7 @@ const source={
   id:'ekurhuleni-taxi-ranks-full',
   name:'City of Ekurhuleni Taxi Ranks',
   authority:'City of Ekurhuleni',
-  url:'https://gis.ekurhuleni.gov.za/arcgis/rest/services/Ekurhuleni/Ekurhuleni_POI_Map/MapServer/24',
+  url:'https://gis.ekurhuleni.gov.za/arcgis/rest/services/GMS/GMS/MapServer/128',
   province:'Gauteng',
   municipality:'City of Ekurhuleni'
 };
@@ -37,7 +37,7 @@ async function fetchIds(){
 async function fetchBatch(ids){
   const qs=new URLSearchParams({
     objectIds:ids.join(','),
-    outFields:'OBJECTID,TAXI_FACIL,REGION,LATITUDE,LONGITUDE,TYPE,OWNERSHIP,SUBURB,TOWN,NUMBER_OF,ASSOCIATIO,ASSOCIAT_1,ASSOCIAT_2,ASSOCIAT_3,ASSOCIAT_4,ASSOCIAT_5,ASSOCIAT_6,ASSOCIAT_7,ASSOCIAT_8,ASSOCIAT_9',
+    outFields:'*',
     returnGeometry:'true',
     outSR:'4326',
     f:'json'
@@ -55,21 +55,25 @@ function normalizeLabel(v){
 function normalize(feature){
   const a=feature.attributes || {};
   const geometry=feature.geometry || {};
-  const lng=Number(a.LONGITUDE ?? geometry.x);
-  const lat=Number(a.LATITUDE ?? geometry.y);
-  const associationLabels=[
-    a.ASSOCIATIO,a.ASSOCIAT_1,a.ASSOCIAT_2,a.ASSOCIAT_3,a.ASSOCIAT_4,
-    a.ASSOCIAT_5,a.ASSOCIAT_6,a.ASSOCIAT_7,a.ASSOCIAT_8,a.ASSOCIAT_9
-  ].map(clean).filter(Boolean);
+  const lng=Number(
+    a.LONGITUDE ?? a.longitude ?? a.LONGITUDE_ ?? a.long_ ?? geometry.x
+  );
+  const lat=Number(
+    a.LATITUDE ?? a.latitude ?? a.LATTITUDE_ ?? a.lat ?? geometry.y
+  );
+  const associationLabels=Object.entries(a)
+    .filter(([key,value])=>/^ASSOCIAT/i.test(key) && clean(value))
+    .map(([,value])=>clean(value))
+    .filter(Boolean);
 
   return {
-    externalId:String(a.OBJECTID ?? '').trim(),
-    name:clean(a.TAXI_FACIL),
-    region:clean(a.REGION),
-    suburb:clean(a.SUBURB),
-    town:clean(a.TOWN),
-    type:clean(a.TYPE),
-    ownership:clean(a.OWNERSHIP),
+    externalId:String(a.OBJECTID ?? a.FID ?? feature.id ?? '').trim(),
+    name:clean(a.NAME ?? a.TAXI_FACIL ?? a.NAMEOF_FACILITY ?? a.ENTITY_NAME),
+    region:clean(a.REGION ?? a.NEW_REGION),
+    suburb:clean(a.SUBURB ?? a.A_SUBURB),
+    town:clean(a.TOWN ?? a.A_TOWN),
+    type:clean(a.TYPE ?? a.TYPE_1 ?? a.SANS_FTYPE),
+    ownership:clean(a.OWNERSHIP ?? a.OWNER),
     numberOf:a.NUMBER_OF ?? null,
     longitude:lng,
     latitude:lat,
