@@ -27,7 +27,7 @@ async function fetchJson(url,timeoutMs=60000){
 
 async function fetchIds(){
   const qs=new URLSearchParams({where:'1=1',returnIdsOnly:'true',f:'json'});
-  const body=await fetchJson(source.url+'/query?'+qs,30000);
+  const body=await fetchJson(source.url+'/query?'+qs,120000);
   if(!Array.isArray(body.objectIds) || body.objectIds.length===0){
     throw new Error('Fail closed: Ekurhuleni source returned no object IDs');
   }
@@ -42,7 +42,7 @@ async function fetchBatch(ids){
     outSR:'4326',
     f:'json'
   });
-  const body=await fetchJson(source.url+'/query?'+qs,60000);
+  const body=await fetchJson(source.url+'/query?'+qs,120000);
   if(!Array.isArray(body.features)) throw new Error('Ekurhuleni source returned no features array');
   return body.features;
 }
