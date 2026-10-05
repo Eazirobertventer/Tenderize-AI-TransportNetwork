@@ -1,19 +1,26 @@
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import pg from 'pg';
 
 const { Pool }=pg;
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 
 const sourceKey='kzn-dot-taxi-routes-2026';
+const root=resolve(new URL('.',import.meta.url).pathname);
 const dryRun=process.env.ROUTE_CANDIDATE_DRY_RUN==='true';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:2,ssl:false});
 const client=await pool.connect();
 
 try{
-  const schema=await client.query(
+  const schemaState=await client.query(
     "select to_regclass('public.source_route_geometry') source_geometry, to_regclass('public.route_candidate') route_candidate"
   );
-  if(!schema.rows[0].source_geometry || !schema.rows[0].route_candidate){
-    throw new Error('TN6-J candidate schema is not present');
+  if(!schemaState.rows[0].source_geometry){
+    throw new Error('source_route_geometry schema is not present');
+  }
+  if(!schemaState.rows[0].route_candidate){
+    const schemaSql=await readFile(resolve(root,'route-candidate-schema.sql'),'utf8');
+    await client.query(schemaSql);
   }
 
   const source=await client.query('SELECT id FROM source_registry WHERE source_key=$1',[sourceKey]);
