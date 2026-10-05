@@ -227,6 +227,33 @@ async function loadEndpointEvidence(){
   updateRouteStatus();
 }
 
+async function loadSourceRouteGeometries(){
+  const source=map.getSource('source-route-geometries');
+  if(!source) return;
+
+  if(!sourceRouteGeometryVisible || map.getZoom()<6){
+    sourceRouteGeometryData={type:'FeatureCollection',features:[]};
+    source.setData(sourceRouteGeometryData);
+    updateRouteStatus();
+    return;
+  }
+
+  const b=map.getBounds();
+  const params=new URLSearchParams({
+    bbox:[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',')
+  });
+  const province=document.querySelector('#province').value;
+  if(province) params.set('province',province);
+
+  try{
+    sourceRouteGeometryData=await getJson('/api/v1/source-route-geometries?' + params.toString());
+  }catch{
+    sourceRouteGeometryData={type:'FeatureCollection',features:[]};
+  }
+
+  source.setData(sourceRouteGeometryData);
+  updateRouteStatus();
+}
 async function detail(p){
   let full=null;
   try{
