@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import pg from 'pg';
 
 const { Pool }=pg;
@@ -11,7 +13,17 @@ const source={
   province:'KwaZulu-Natal'
 };
 
+const root=resolve(new URL('.',import.meta.url).pathname);
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false});
+
+async function ensureSchema(client){
+  const current=await client.query("select to_regclass('public.source_route_geometry') table_name, to_regclass('public.source_registry') source_registry");
+  if(!current.rows[0].source_registry) throw new Error('Required transport source registry schema is not present');
+  if(!current.rows[0].table_name){
+    const sql=await readFile(resolve(root,'schema.sql'),'utf8');
+    await client.query(sql);
+  }
+}
 
 async function fetchJson(url,timeoutMs=60000){
   const response=await fetch(url,{
@@ -63,12 +75,7 @@ function normalizeGeometry(g){
 const client=await pool.connect();
 
 try{
-  const schema=await client.query(
-    "select to_regclass('public.source_route_geometry') staging, to_regclass('public.source_registry') source_registry"
-  );
-  if(!schema.rows[0].staging || !schema.rows[0].source_registry){
-    throw new Error('Required TN6 route geometry staging schema is not present');
-  }
+  await ensureSchema(client);
 
   const ids=await fetchIds();
   const features=[];
