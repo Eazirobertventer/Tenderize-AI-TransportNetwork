@@ -13,10 +13,16 @@ jobs:
         with:
           node-version: 22
       - name: Syntax
-        run: node --check apps/kzn-rank-worker/association-field-inventory.mjs
+        run: |
+          node --check apps/kzn-rank-worker/association-field-inventory.mjs
+          node --check apps/kzn-route-worker/association-evidence-readonly.mjs
       - name: Prove read-only
         run: |
           grep -q "BEGIN READ ONLY" apps/kzn-rank-worker/association-field-inventory.mjs
+          grep -q "BEGIN READ ONLY" apps/kzn-route-worker/association-evidence-readonly.mjs
           ! grep -q "INSERT INTO" apps/kzn-rank-worker/association-field-inventory.mjs
           ! grep -q "UPDATE " apps/kzn-rank-worker/association-field-inventory.mjs
           ! grep -q "DELETE FROM" apps/kzn-rank-worker/association-field-inventory.mjs
+          ! grep -q "INSERT INTO" apps/kzn-route-worker/association-evidence-readonly.mjs
+          ! grep -q "UPDATE " apps/kzn-route-worker/association-evidence-readonly.mjs
+          ! grep -q "DELETE FROM" apps/kzn-route-worker/association-evidence-readonly.mjs
