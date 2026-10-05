@@ -61,22 +61,26 @@
           <div id="map"></div>
           <div class="legend">
             <b>Evidence</b>
-            <span><i class="official"></i>Official / verified rank</span>
-            <span><i class="candidate"></i>Candidate rank</span>
+            <span><i class="official"></i>Tenderize official / verified marker</span>
+            <span><i class="candidate"></i>Tenderize documented / candidate marker</span>
             <span><i class="route-swatch official-route"></i>Official route geometry</span>
             <span><i class="route-swatch documented-route"></i>Documented geometry</span>
             <span><i class="route-swatch inferred-route"></i>Inferred geometry</span>
             <span><i class="route-swatch source-geometry"></i>Official source geometry — endpoints pending</span>
             <span><i class="route-swatch endpoint-evidence"></i>NLTIS exact endpoints — not route path</span>
-            <small>Basemap: OpenFreeMap / OpenStreetMap. Satellite: Esri World Imagery. Use satellite view to confirm a coordinate sits on the physical taxi-rank facility before location verification.</small>
+            <small>Grey taxi-rank names can come from the OpenStreetMap basemap and are not automatically in the Tenderize dataset. Only coloured Tenderize markers are synchronized with the rank list.</small>
           </div>
         </section>
 
         <aside class="detail">
           <div id="rankFinder" class="rank-finder">
             <div class="rank-finder-head">
-              <div><b>Find a taxi rank</b><span><strong id="rankFinderCount">0</strong> mapped results</span></div>
-              <small>Filter by province and city, search by name, then tap View.</small>
+              <div><b>Find a taxi rank</b><span><strong id="rankFinderCount">0</strong> <span id="rankFinderScope">visible on map</span></span></div>
+              <small>Only coloured Tenderize pins are in our dataset. Grey map labels are basemap POIs.</small>
+              <div class="rank-finder-tabs">
+                <button id="showVisibleRanks" class="active-toggle" type="button">Visible on map</button>
+                <button id="showAllFilteredRanks" type="button">All filtered</button>
+              </div>
             </div>
             <div id="rankFinderList" class="rank-finder-list"></div>
           </div>
