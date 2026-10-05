@@ -39,13 +39,15 @@ async function postgisRanks(url){
   if (q) {
     params.push('%' + q + '%');
     const i=params.length;
-    where.push(`(r.canonical_name ILIKE ${i} OR coalesce(r.town,'') ILIKE ${i} OR coalesce(r.municipality,'') ILIKE ${i})`);
+    where.push(`(r.canonical_name ILIKE ${i} OR EXISTS (SELECT 1 FROM unnest(coalesce(r.aliases,ARRAY[]::text[])) a WHERE a ILIKE ${i}) OR coalesce(r.town,'') ILIKE ${i} OR coalesce(r.municipality,'') ILIKE ${i})`);
   }
 
   const result=await pool.query(
     `SELECT
        r.id::text,
        r.canonical_name,
+       r.aliases,
+       coalesce(nullif(r.aliases[1],''),r.canonical_name) AS display_name,
        r.town,
        r.municipality,
        r.province,
@@ -76,7 +78,10 @@ async function postgisRanks(url){
       geometry:{type:'Point',coordinates:[Number(row.lng),Number(row.lat)]},
       properties:{
         id:row.id,
-        name:row.canonical_name,
+        name:row.display_name,
+        displayName:row.display_name,
+        sourceCode:row.canonical_name,
+        aliases:row.aliases || [],
         town:row.town,
         municipality:row.municipality,
         province:row.province,
@@ -830,7 +835,9 @@ async function rankDetail(id){
   const rank=await pool.query(
     `SELECT
        r.id::text,
-       r.canonical_name AS name,
+       r.canonical_name AS "sourceCode",
+       r.aliases,
+       coalesce(nullif(r.aliases[1],''),r.canonical_name) AS "displayName",
        r.address,
        r.town,
        r.municipality,
@@ -892,11 +899,23 @@ async function rankDetail(id){
     [id]
   );
 
+  const candidateCounts=await pool.query(
+    `SELECT
+       count(*)::int AS total,
+       count(*) FILTER (WHERE origin_rank_id=$1::uuid)::int AS origin,
+       count(*) FILTER (WHERE destination_rank_id=$1::uuid)::int AS destination
+     FROM route_candidate
+     WHERE origin_rank_id=$1::uuid OR destination_rank_id=$1::uuid`,
+    [id]
+  );
+
   return {
     ...rank.rows[0],
+    name:rank.rows[0].displayName,
     sources:sources.rows,
     associations:associations.rows,
-    routes:routes.rows
+    routes:routes.rows,
+    routeCandidateCounts:candidateCounts.rows[0] || {total:0,origin:0,destination:0}
   };
 }
 
