@@ -124,6 +124,54 @@ async function postgisRankFilters(url){
   };
 }
 
+async function postgisNetworkInventory(){
+  const counts=await pool.query(
+    `SELECT
+       (SELECT count(*)::int FROM taxi_rank) AS ranks,
+       (SELECT count(*)::int FROM taxi_rank WHERE location IS NOT NULL) AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank WHERE location IS NULL) AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_association) AS associations,
+       (SELECT count(*)::int FROM taxi_route) AS routes,
+       (SELECT count(*)::int FROM rank_association_candidate) AS rank_association_candidates,
+       (SELECT count(DISTINCT normalized_label)::int FROM rank_association_candidate) AS unique_candidate_association_labels`
+  );
+
+  const sources=await pool.query(
+    `SELECT
+       s.source_key,
+       s.source_name,
+       s.authority,
+       s.source_class,
+       count(sr.*) FILTER (WHERE sr.entity_type='taxi_rank')::int AS rank_records,
+       count(sr.*) FILTER (WHERE sr.entity_type='taxi_route')::int AS route_records,
+       count(sr.*) FILTER (WHERE sr.entity_type='taxi_association')::int AS association_records
+     FROM source_registry s
+     LEFT JOIN source_record sr ON sr.source_id=s.id
+     GROUP BY s.id,s.source_key,s.source_name,s.authority,s.source_class
+     ORDER BY rank_records DESC,route_records DESC,association_records DESC,s.source_key`
+  );
+
+  const associationCandidates=await pool.query(
+    `SELECT
+       normalized_label,
+       min(association_label) AS label,
+       count(*)::int AS observations,
+       count(DISTINCT taxi_rank_id)::int AS unique_ranks,
+       array_agg(DISTINCT s.source_key ORDER BY s.source_key) AS sources
+     FROM rank_association_candidate rac
+     JOIN source_registry s ON s.id=rac.source_id
+     GROUP BY normalized_label
+     ORDER BY unique_ranks DESC,observations DESC,normalized_label
+     LIMIT 500`
+  );
+
+  return {
+    ...counts.rows[0],
+    sources:sources.rows,
+    associationCandidates:associationCandidates.rows
+  };
+}
+
 async function postgisRoutes(url){
   const params=[];
   const where=['tr.geometry IS NOT NULL'];
@@ -610,6 +658,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/rank-filters'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisRankFilters(url));
+    }
+
+    if(url.pathname==='/api/v1/network-inventory'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisNetworkInventory());
     }
 
     if(url.pathname==='/api/v1/routes'){
