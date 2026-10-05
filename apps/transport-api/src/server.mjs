@@ -33,13 +33,13 @@ async function postgisRanks(url){
   if (city) {
     params.push(city);
     const i=params.length;
-    where.push(`coalesce(nullif(trim(r.town),''),nullif(trim(r.municipality),'')) = ${i}`);
+    where.push(`coalesce(nullif(trim(r.town),''),nullif(trim(r.municipality),'')) = $${i}`);
   }
 
   if (q) {
     params.push('%' + q + '%');
     const i=params.length;
-    where.push(`(r.canonical_name ILIKE ${i} OR EXISTS (SELECT 1 FROM unnest(coalesce(r.aliases,ARRAY[]::text[])) a WHERE a ILIKE ${i}) OR coalesce(r.town,'') ILIKE ${i} OR coalesce(r.municipality,'') ILIKE ${i})`);
+    where.push(`(r.canonical_name ILIKE $${i} OR EXISTS (SELECT 1 FROM unnest(coalesce(r.aliases,ARRAY[]::text[])) a WHERE a ILIKE $${i}) OR coalesce(r.town,'') ILIKE $${i} OR coalesce(r.municipality,'') ILIKE $${i})`);
   }
 
   const result=await pool.query(
