@@ -2,9 +2,11 @@ let current={type:'FeatureCollection',features:[]};
 let routeData={type:'FeatureCollection',features:[]};
 let endpointEvidenceData={type:'FeatureCollection',features:[]};
 let sourceRouteGeometryData={type:'FeatureCollection',features:[]};
+let routeCandidateData={type:'FeatureCollection',features:[]};
 let routesVisible=true;
 let endpointEvidenceVisible=true;
 let sourceRouteGeometryVisible=true;
+let routeCandidatesVisible=true;
 let satelliteVisible=false;
 let rankPopup=null;
 let rankFinderMode='visible';
@@ -267,6 +269,34 @@ async function loadSourceRouteGeometries(){
   source.setData(sourceRouteGeometryData);
   updateRouteStatus();
 }
+async function loadRouteCandidates(){
+  const source=map.getSource('route-candidates');
+  if(!source) return;
+
+  if(!routeCandidatesVisible || map.getZoom()<6){
+    routeCandidateData={type:'FeatureCollection',features:[]};
+    source.setData(routeCandidateData);
+    updateRouteStatus();
+    return;
+  }
+
+  const b=map.getBounds();
+  const params=new URLSearchParams({
+    bbox:[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].join(',')
+  });
+  const province=document.querySelector('#province').value;
+  if(province) params.set('province',province);
+
+  try{
+    routeCandidateData=await getJson('/api/v1/route-candidates?' + params.toString());
+  }catch{
+    routeCandidateData={type:'FeatureCollection',features:[]};
+  }
+
+  source.setData(routeCandidateData);
+  updateRouteStatus();
+}
+
 async function detail(p){
   let full=null;
   try{
@@ -330,9 +360,11 @@ function routeDetail(p){
       ${p.association ? `<div class="source"><b>${esc(p.association)}</b><span>${esc(p.associationRegistration || 'Association registration pending')}</span></div>` : ''}
       <div class="source">
         <b>${esc(p.source || 'Tenderize source registry')}</b>
-        <span>${p.notRoutePath
-          ? 'This connector only joins two exactly reconciled NLTIS rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
-          : 'This line is rendered from source-backed route geometry. It is not inferred from road routing.'}</span>
+        <span>${p.candidateRoute
+          ? 'This is a TN6-J exact-endpoint route candidate using official source geometry. It is not yet a canonical taxi route and association evidence is still pending.'
+          : p.notRoutePath
+            ? 'This connector only joins two exactly reconciled NLTIS rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
+            : 'This line is rendered from source-backed route geometry. It is not inferred from road routing.'}</span>
       </div>
     </div>`;
 }
@@ -416,6 +448,23 @@ map.on('load',async()=>{
       'line-color':'#0d8ca3',
       'line-opacity':0.72,
       'line-dasharray':[3,2]
+    }
+  });
+
+  map.addSource('route-candidates',{
+    type:'geojson',
+    data:routeCandidateData
+  });
+
+  map.addLayer({
+    id:'route-candidates',
+    type:'line',
+    source:'route-candidates',
+    paint:{
+      'line-width':['interpolate',['linear'],['zoom'],6,1.6,12,4],
+      'line-color':'#d97706',
+      'line-opacity':0.82,
+      'line-dasharray':[2,1]
     }
   });
 
@@ -516,7 +565,7 @@ map.on('load',async()=>{
     }
   });
 
-  await Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries()]);
+  await Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]);
 
   map.on('click','clusters',async event=>{
     const feature=map.queryRenderedFeatures(event.point,{layers:['clusters']})[0];
@@ -533,7 +582,7 @@ map.on('load',async()=>{
     });
   });
 
-  ['official-routes','documented-routes','inferred-routes','source-route-geometries','nltis-endpoint-connectors'].forEach(routeLayer=>{
+  ['official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(routeLayer=>{
     map.on('click',routeLayer,event=>{
       const feature=event.features && event.features[0];
       if(!feature) return;
@@ -541,14 +590,14 @@ map.on('load',async()=>{
     });
   });
 
-  ['clusters','rank-points','rank-labels','official-routes','documented-routes','inferred-routes','source-route-geometries','nltis-endpoint-connectors'].forEach(layer=>{
+  ['clusters','rank-points','rank-labels','official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
 
   map.on('moveend',()=>{
     renderRankFinder();
-    return Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries()]);
+    return Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]);
   });
 });
 
@@ -608,6 +657,15 @@ document.querySelector('#routeToggle').addEventListener('click',()=>{
   loadRoutes();
 });
 
+document.querySelector('#routeCandidateToggle').addEventListener('click',()=>{
+  routeCandidatesVisible=!routeCandidatesVisible;
+  const button=document.querySelector('#routeCandidateToggle');
+  button.textContent=routeCandidatesVisible?'Candidate routes on':'Candidate routes off';
+  button.classList.toggle('active-toggle',routeCandidatesVisible);
+  button.setAttribute('aria-pressed',String(routeCandidatesVisible));
+  loadRouteCandidates();
+});
+
 document.querySelector('#sourceGeometryToggle').addEventListener('click',()=>{
   sourceRouteGeometryVisible=!sourceRouteGeometryVisible;
   const button=document.querySelector('#sourceGeometryToggle');
@@ -629,5 +687,5 @@ document.querySelector('#capeTownRoutes').addEventListener('click',()=>{
   document.querySelector('#province').value='Western Cape';
   map.fitBounds([[18.28,-34.18],[18.98,-33.72]],{padding:40,duration:800});
   loadRanks();
-  setTimeout(()=>Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries()]),850);
+  setTimeout(()=>Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]),850);
 });
