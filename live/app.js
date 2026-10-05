@@ -7,6 +7,7 @@ let endpointEvidenceVisible=true;
 let sourceRouteGeometryVisible=true;
 let satelliteVisible=false;
 let rankPopup=null;
+let rankFinderMode='visible';
 
 const map=new maplibregl.Map({
   container:'map',
@@ -75,14 +76,26 @@ function focusRank(feature){
     .addTo(map);
 }
 
+function visibleRankFeatures(){
+  if(!map || !map.getBounds) return current.features || [];
+  const bounds=map.getBounds();
+  return (current.features || []).filter(feature=>{
+    const [lng,lat]=feature.geometry?.coordinates || [];
+    return Number.isFinite(lng) && Number.isFinite(lat) && bounds.contains([lng,lat]);
+  });
+}
+
 function renderRankFinder(){
   const panel=document.querySelector('#rankFinder');
   const list=document.querySelector('#rankFinderList');
   const count=document.querySelector('#rankFinderCount');
+  const scope=document.querySelector('#rankFinderScope');
   if(!panel || !list || !count) return;
 
-  const features=current.features || [];
+  const allFeatures=current.features || [];
+  const features=rankFinderMode==='visible' ? visibleRankFeatures() : allFeatures;
   count.textContent=String(features.length);
+  if(scope) scope.textContent=rankFinderMode==='visible' ? 'visible on map' : 'filtered total';
 
   if(!features.length){
     list.innerHTML='<div class="rank-finder-empty">No mapped ranks match this search.</div>';
@@ -143,7 +156,7 @@ async function loadRanks(){
   }
 
   document.querySelector('#resultStatus').textContent =
-    `${current.features.length} mapped rank${current.features.length===1?'':'s'} in current view`;
+    `${current.features.length} mapped rank${current.features.length===1?'':'s'} after filters`;
 
   const source=map.getSource('ranks');
   if(source) source.setData(current);
@@ -537,6 +550,19 @@ map.on('load',async()=>{
     renderRankFinder();
     return Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries()]);
   });
+});
+
+document.querySelector('#showVisibleRanks').addEventListener('click',()=>{
+  rankFinderMode='visible';
+  document.querySelector('#showVisibleRanks').classList.add('active-toggle');
+  document.querySelector('#showAllFilteredRanks').classList.remove('active-toggle');
+  renderRankFinder();
+});
+document.querySelector('#showAllFilteredRanks').addEventListener('click',()=>{
+  rankFinderMode='all';
+  document.querySelector('#showAllFilteredRanks').classList.add('active-toggle');
+  document.querySelector('#showVisibleRanks').classList.remove('active-toggle');
+  renderRankFinder();
 });
 
 document.querySelector('#province').addEventListener('change',async()=>{
