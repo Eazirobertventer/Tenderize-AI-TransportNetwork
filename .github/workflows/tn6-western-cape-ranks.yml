@@ -1,0 +1,54 @@
+name: TN6 Western Cape NGI Rank Expansion
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-western-cape-ranks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Install worker
+        working-directory: apps/western-cape-rank-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Import Western Cape NGI taxi ranks
+        working-directory: apps/western-cape-rank-worker
+        run: npm run ingest
+
+      - name: Prove official polygon-derived ranks
+        run: |
+          total=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank")
+          wc=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank where province='Western Cape'")
+          source_records=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record sr join source_registry s on s.id=sr.source_id where s.source_key='western-cape-ngi-taxi-ranks' and sr.entity_type='taxi_rank'")
+          test "$total" -gt "0"
+          test "$wc" -gt "0"
+          test "$source_records" -gt "0"
