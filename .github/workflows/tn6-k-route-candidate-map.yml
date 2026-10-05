@@ -1,0 +1,27 @@
+name: TN6-K Route Candidate Map Exposure
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-route-candidate-exposure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check apps/transport-api/src/server.mjs
+          node --check live/app.js
+      - name: Prove API and UI separation
+        run: |
+          grep -q "/api/v1/route-candidates" apps/transport-api/src/server.mjs
+          grep -q "notCanonicalRoute:true" apps/transport-api/src/server.mjs
+          grep -q "routeCandidateToggle" live/index.html
+          grep -q "id:'route-candidates'" live/app.js
+          grep -q "candidateRoute:true" apps/transport-api/src/server.mjs
+          grep -q "not yet a canonical taxi route" live/app.js
+          grep -q "candidate-route" live/styles.css
