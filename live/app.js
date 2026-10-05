@@ -389,6 +389,23 @@ map.on('load',async()=>{
     }
   });
 
+  map.addSource('source-route-geometries',{
+    type:'geojson',
+    data:sourceRouteGeometryData
+  });
+
+  map.addLayer({
+    id:'source-route-geometries',
+    type:'line',
+    source:'source-route-geometries',
+    paint:{
+      'line-width':['interpolate',['linear'],['zoom'],6,1.2,12,3.2],
+      'line-color':'#0d8ca3',
+      'line-opacity':0.72,
+      'line-dasharray':[3,2]
+    }
+  });
+
   map.addSource('nltis-endpoint-evidence',{
     type:'geojson',
     data:endpointEvidenceData
@@ -486,7 +503,7 @@ map.on('load',async()=>{
     }
   });
 
-  await Promise.all([loadRoutes(),loadEndpointEvidence()]);
+  await Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries()]);
 
   map.on('click','clusters',async event=>{
     const feature=map.queryRenderedFeatures(event.point,{layers:['clusters']})[0];
@@ -503,7 +520,7 @@ map.on('load',async()=>{
     });
   });
 
-  ['official-routes','documented-routes','inferred-routes','nltis-endpoint-connectors'].forEach(routeLayer=>{
+  ['official-routes','documented-routes','inferred-routes','source-route-geometries','nltis-endpoint-connectors'].forEach(routeLayer=>{
     map.on('click',routeLayer,event=>{
       const feature=event.features && event.features[0];
       if(!feature) return;
@@ -511,14 +528,14 @@ map.on('load',async()=>{
     });
   });
 
-  ['clusters','rank-points','rank-labels','official-routes','documented-routes','inferred-routes','nltis-endpoint-connectors'].forEach(layer=>{
+  ['clusters','rank-points','rank-labels','official-routes','documented-routes','inferred-routes','source-route-geometries','nltis-endpoint-connectors'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
 
   map.on('moveend',()=>{
     renderRankFinder();
-    return Promise.all([loadRoutes(),loadEndpointEvidence()]);
+    return Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries()]);
   });
 });
 
@@ -565,6 +582,14 @@ document.querySelector('#routeToggle').addEventListener('click',()=>{
   loadRoutes();
 });
 
+document.querySelector('#sourceGeometryToggle').addEventListener('click',()=>{
+  sourceRouteGeometryVisible=!sourceRouteGeometryVisible;
+  const button=document.querySelector('#sourceGeometryToggle');
+  button.textContent=sourceRouteGeometryVisible?'Source geometry on':'Source geometry off';
+  button.classList.toggle('active-toggle',sourceRouteGeometryVisible);
+  button.setAttribute('aria-pressed',String(sourceRouteGeometryVisible));
+  loadSourceRouteGeometries();
+});
 document.querySelector('#nltisEvidenceToggle').addEventListener('click',()=>{
   endpointEvidenceVisible=!endpointEvidenceVisible;
   const button=document.querySelector('#nltisEvidenceToggle');
@@ -578,5 +603,5 @@ document.querySelector('#capeTownRoutes').addEventListener('click',()=>{
   document.querySelector('#province').value='Western Cape';
   map.fitBounds([[18.28,-34.18],[18.98,-33.72]],{padding:40,duration:800});
   loadRanks();
-  setTimeout(()=>Promise.all([loadRoutes(),loadEndpointEvidence()]),850);
+  setTimeout(()=>Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries()]),850);
 });
