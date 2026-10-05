@@ -244,6 +244,103 @@ async function postgisSourceRouteGeometries(url){
   };
 }
 
+
+async function postgisRouteCandidateAssociationEvidence(url){
+  const params=[];
+  const where=["rc.reconciliation_status='exact_endpoint_pair'"];
+  const province=url.searchParams.get('province');
+
+  if(province){
+    params.push(province);
+    where.push(`srg.province=${params.length}`);
+  }
+
+  const result=await pool.query(
+    `SELECT
+       rc.id::text,
+       rc.external_record_id,
+       rc.route_code,
+       o.id::text AS origin_rank_id,
+       o.canonical_name AS origin_name,
+       d.id::text AS destination_rank_id,
+       d.canonical_name AS destination_name,
+       coalesce(
+         jsonb_agg(DISTINCT jsonb_build_object('id',oa.id::text,'name',oa.canonical_name))
+           FILTER (WHERE oa.id IS NOT NULL),
+         '[]'::jsonb
+       ) AS origin_associations,
+       coalesce(
+         jsonb_agg(DISTINCT jsonb_build_object('id',da.id::text,'name',da.canonical_name))
+           FILTER (WHERE da.id IS NOT NULL),
+         '[]'::jsonb
+       ) AS destination_associations
+     FROM route_candidate rc
+     JOIN source_route_geometry srg ON srg.id=rc.source_route_geometry_id
+     JOIN taxi_rank o ON o.id=rc.origin_rank_id
+     JOIN taxi_rank d ON d.id=rc.destination_rank_id
+     LEFT JOIN taxi_rank_association ora ON ora.taxi_rank_id=rc.origin_rank_id
+     LEFT JOIN taxi_association oa ON oa.id=ora.association_id
+     LEFT JOIN taxi_rank_association dra ON dra.taxi_rank_id=rc.destination_rank_id
+     LEFT JOIN taxi_association da ON da.id=dra.association_id
+     WHERE ${where.join(' AND ')}
+     GROUP BY rc.id,o.id,o.canonical_name,d.id,d.canonical_name
+     ORDER BY rc.external_record_id
+     LIMIT 10000`,
+    params
+  );
+
+  const items=result.rows.map(row=>{
+    const originIds=new Set(row.origin_associations.map(x=>x.id));
+    const destinationIds=new Set(row.destination_associations.map(x=>x.id));
+    const shared=[...originIds].filter(id=>destinationIds.has(id));
+    let bucket='none';
+    let eligibleForAutomaticAssignment=false;
+    let sharedAssociation=null;
+
+    if(shared.length===1){
+      bucket='shared';
+      eligibleForAutomaticAssignment=true;
+      sharedAssociation=
+        row.origin_associations.find(x=>x.id===shared[0]) ||
+        row.destination_associations.find(x=>x.id===shared[0]) ||
+        null;
+    }else if(shared.length>1 || (originIds.size>0 && destinationIds.size>0)){
+      bucket='conflicting';
+    }else if(originIds.size>0){
+      bucket='origin-only';
+    }else if(destinationIds.size>0){
+      bucket='destination-only';
+    }
+
+    return {
+      routeCandidateId:row.id,
+      externalRecordId:row.external_record_id,
+      routeCode:row.route_code,
+      origin:{id:row.origin_rank_id,name:row.origin_name,associations:row.origin_associations},
+      destination:{id:row.destination_rank_id,name:row.destination_name,associations:row.destination_associations},
+      bucket,
+      eligibleForAutomaticAssignment,
+      sharedAssociation,
+      readOnly:true,
+      canonicalRoutePromotion:false
+    };
+  });
+
+  const buckets={shared:0,'origin-only':0,'destination-only':0,conflicting:0,none:0};
+  for(const item of items) buckets[item.bucket]+=1;
+
+  return {
+    evidenceType:'route_candidate_endpoint_association_evidence',
+    readOnly:true,
+    canonicalRouteWrites:false,
+    associationWrites:false,
+    total:items.length,
+    buckets,
+    eligibleForAutomaticAssignment:items.filter(x=>x.eligibleForAutomaticAssignment).length,
+    items
+  };
+}
+
 async function postgisRouteCandidates(url){
   const params=[];
   const where=["rc.reconciliation_status='exact_endpoint_pair'"];
@@ -836,6 +933,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/source-route-geometries'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisSourceRouteGeometries(url));
+    }
+
+    if(url.pathname==='/api/v1/route-candidates/association-evidence'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisRouteCandidateAssociationEvidence(url));
     }
 
     if(url.pathname==='/api/v1/route-candidates'){
