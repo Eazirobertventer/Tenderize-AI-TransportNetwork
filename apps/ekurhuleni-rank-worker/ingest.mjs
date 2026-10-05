@@ -182,23 +182,22 @@ try{
            province=$3,
            municipality=$4,
            town=$5,
-           region=$6,
-           rank_type=coalesce($7,rank_type),
-           location=ST_SetSRID(ST_MakePoint($8,$9),4326),
+           rank_type=coalesce($6,rank_type),
+           location=ST_SetSRID(ST_MakePoint($7,$8),4326),
            verification_status='official',
            last_verified_at=now(),
            updated_at=now()
          WHERE id=$1::uuid`,
-        [rankId,record.name,source.province,source.municipality,record.town,record.region,record.type,record.longitude,record.latitude]
+        [rankId,record.name,source.province,source.municipality,record.town,record.type,record.longitude,record.latitude]
       );
       updated+=1;
     }else{
       const inserted=await client.query(
         `INSERT INTO taxi_rank
-          (canonical_name,province,municipality,town,region,rank_type,location,verification_status,last_verified_at)
-         VALUES ($1,$2,$3,$4,$5,$6,ST_SetSRID(ST_MakePoint($7,$8),4326),'official',now())
+          (canonical_name,province,municipality,town,rank_type,location,verification_status,last_verified_at)
+         VALUES ($1,$2,$3,$4,$5,ST_SetSRID(ST_MakePoint($6,$7),4326),'official',now())
          RETURNING id::text`,
-        [record.name,source.province,source.municipality,record.town,record.region,record.type,record.longitude,record.latitude]
+        [record.name,source.province,source.municipality,record.town,record.type,record.longitude,record.latitude]
       );
       rankId=inserted.rows[0].id;
       created+=1;
