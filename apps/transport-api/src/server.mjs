@@ -333,6 +333,8 @@ async function postgisRouteCandidates(url){
         sourceKey:row.source_key,
         source:row.source_name,
         authority:row.authority,
+        associationEvidence:row.provenance?.endpointAssociationEvidence || null,
+        associationAssignment:row.provenance?.associationAssignment || null,
         candidateRoute:true,
         notCanonicalRoute:true
       }
