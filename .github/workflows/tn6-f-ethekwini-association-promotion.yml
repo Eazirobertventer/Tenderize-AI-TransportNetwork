@@ -1,0 +1,79 @@
+name: TN6-F eThekwini Association Promotion
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-ethekwini-association-promotion:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Seed TN6-F fixture
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f test/fixtures/tn6-ethekwini-association-candidates.sql
+
+      - name: Install worker
+        working-directory: apps/ethekwini-rank-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Dry-run association promotion
+        working-directory: apps/ethekwini-rank-worker
+        env:
+          ASSOCIATION_PROMOTION_DRY_RUN: "true"
+        run: |
+          npm run promote:associations | tee /tmp/dry-run.log
+          grep -q '"event":"ethekwini_association_promotion_dry_run"' /tmp/dry-run.log
+          grep -q '"eligible":2' /tmp/dry-run.log
+          grep -q 'Clemont & Kwadabeka Taxi Association' /tmp/dry-run.log
+          grep -q 'Kwamashu Taxi Owners Association' /tmp/dry-run.log
+          ! grep -q '"created":' /tmp/dry-run.log
+
+      - name: Prove dry-run made no writes
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association")" = "0"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association")" = "0"
+
+      - name: Apply promotion
+        working-directory: apps/ethekwini-rank-worker
+        run: npm run promote:associations
+
+      - name: Prove only explicit association labels promoted
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association")" = "2"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association")" = "2"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association where canonical_name ilike '%Committee%' or canonical_name ilike '%Region%'")" = "0"
+
+      - name: Prove idempotency
+        working-directory: apps/ethekwini-rank-worker
+        run: |
+          npm run promote:associations
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association")" = "2"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association")" = "2"
