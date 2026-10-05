@@ -42,3 +42,5 @@
 .toolbar{flex-wrap:wrap;height:auto;min-height:54px;padding-top:9px;padding-bottom:9px}
 .toolbar select{min-width:130px}
 #city{max-width:190px}
+
+.route-swatch.source-geometry{border-top:3px dashed #0d8ca3}
