@@ -172,6 +172,78 @@ async function postgisNetworkInventory(){
   };
 }
 
+async function postgisSourceRouteGeometries(url){
+  const params=[];
+  const where=["srg.geometry IS NOT NULL"];
+  const bbox=url.searchParams.get('bbox');
+  const province=url.searchParams.get('province');
+
+  if(bbox){
+    const parts=bbox.split(',').map(Number);
+    if(parts.length===4 && parts.every(Number.isFinite)){
+      params.push(parts[0],parts[1],parts[2],parts[3]);
+      const n=params.length;
+      where.push(`ST_Intersects(srg.geometry,ST_MakeEnvelope(${n-3},${n-2},${n-1},${n},4326))`);
+    }
+  }
+
+  if(province){
+    params.push(province);
+    where.push(`srg.province=${params.length}`);
+  }
+
+  const result=await pool.query(
+    `SELECT
+       srg.id::text,
+       srg.external_record_id,
+       srg.route_code,
+       srg.province,
+       srg.municipality,
+       srg.district,
+       srg.category,
+       srg.map_title,
+       srg.verification_status::text,
+       srg.promoted_route_id::text,
+       ST_AsGeoJSON(srg.geometry)::json AS geometry,
+       s.source_key,
+       s.source_name,
+       s.authority
+     FROM source_route_geometry srg
+     JOIN source_registry s ON s.id=srg.source_id
+     WHERE ${where.join(' AND ')}
+     ORDER BY srg.id
+     LIMIT 10000`,
+    params
+  );
+
+  return {
+    type:'FeatureCollection',
+    evidenceType:'official_source_route_geometry',
+    notCanonicalRoute:true,
+    features:result.rows.map(row=>({
+      type:'Feature',
+      id:row.id,
+      geometry:row.geometry,
+      properties:{
+        id:row.id,
+        externalRecordId:row.external_record_id,
+        routeCode:row.route_code,
+        province:row.province,
+        municipality:row.municipality,
+        district:row.district,
+        category:row.category,
+        mapTitle:row.map_title,
+        verificationStatus:row.verification_status,
+        promotedRouteId:row.promoted_route_id,
+        sourceKey:row.source_key,
+        source:row.source_name,
+        authority:row.authority,
+        notCanonicalRoute:true
+      }
+    }))
+  };
+}
+
 async function postgisRoutes(url){
   const params=[];
   const where=['tr.geometry IS NOT NULL'];
@@ -663,6 +735,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/network-inventory'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisNetworkInventory());
+    }
+
+    if(url.pathname==='/api/v1/source-route-geometries'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisSourceRouteGeometries(url));
     }
 
     if(url.pathname==='/api/v1/routes'){
