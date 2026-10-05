@@ -38,5 +38,37 @@
     "registrationNumber": "RASFSA0134187",
     "province": "Free State",
     "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34187&sAssocName=greater+bloemfontein+taxi+association&sAssocRegNum=rasfsa0134187"
+  },
+  {
+    "id": "nltis-civic-centre",
+    "associationId": 33790,
+    "associationName": "Civic Centre Taxi Association",
+    "registrationNumber": "RASGPA0333790",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33790&sAssocName=Civic+Centre+Taxi+Association&sAssocRegNum=RASGPA0333790"
+  },
+  {
+    "id": "nltis-lehlabile",
+    "associationId": 33649,
+    "associationName": "Lehlabile Taxi Association",
+    "registrationNumber": "RASGPA0333649",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33649&sAssocName=Lehlabile+Taxi+Association&sAssocRegNum=RASGPA0333649"
+  },
+  {
+    "id": "nltis-germiston-jane-furse",
+    "associationId": 33751,
+    "associationName": "Germiston Jane Furse Long Distance Taxi Association",
+    "registrationNumber": "RASGPA0333751",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33751&sAssocName=Germiston+Jane+Furse+Long+Distance+Taxi+Association&sAssocRegNum=RASGPA0333751"
+  },
+  {
+    "id": "nltis-hammanskraal",
+    "associationId": 33788,
+    "associationName": "HAMMANSKRAAL TAXI ORGANISATION",
+    "registrationNumber": "RASGPA0333788",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33788&sAssocName=HAMMANSKRAAL+TAXI+ORGANISATION&sAssocRegNum=RASGPA0333788"
   }
 ]
