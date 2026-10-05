@@ -16,6 +16,7 @@ jobs:
         run: |
           node --check apps/kzn-rank-worker/association-field-inventory.mjs
           node --check apps/kzn-route-worker/association-evidence-readonly.mjs
+          node --check apps/kzn-route-worker/enrich-association-evidence.mjs
       - name: Prove read-only
         run: |
           grep -q "BEGIN READ ONLY" apps/kzn-rank-worker/association-field-inventory.mjs
@@ -26,3 +27,9 @@ jobs:
           ! grep -q "INSERT INTO" apps/kzn-route-worker/association-evidence-readonly.mjs
           ! grep -q "UPDATE " apps/kzn-route-worker/association-evidence-readonly.mjs
           ! grep -q "DELETE FROM" apps/kzn-route-worker/association-evidence-readonly.mjs
+          grep -q "not_assigned_endpoint_evidence_only" apps/kzn-route-worker/enrich-association-evidence.mjs
+          grep -q "associationWrites:false" apps/kzn-route-worker/enrich-association-evidence.mjs
+          grep -q "canonicalRouteWrites:false" apps/kzn-route-worker/enrich-association-evidence.mjs
+          ! grep -q "UPDATE taxi_route" apps/kzn-route-worker/enrich-association-evidence.mjs
+          ! grep -q "INSERT INTO taxi_route" apps/kzn-route-worker/enrich-association-evidence.mjs
+          ! grep -q "SET association_id" apps/kzn-route-worker/enrich-association-evidence.mjs
