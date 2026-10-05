@@ -1,7 +1,6 @@
 name: TN6 Western Cape NGI Rank Expansion
 
 on:
-  pull_request:
   workflow_dispatch:
 
 jobs:
