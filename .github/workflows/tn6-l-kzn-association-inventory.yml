@@ -1,0 +1,22 @@
+name: TN6-L KZN Association Field Inventory
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-read-only-association-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: node --check apps/kzn-rank-worker/association-field-inventory.mjs
+      - name: Prove read-only
+        run: |
+          grep -q "BEGIN READ ONLY" apps/kzn-rank-worker/association-field-inventory.mjs
+          ! grep -q "INSERT INTO" apps/kzn-rank-worker/association-field-inventory.mjs
+          ! grep -q "UPDATE " apps/kzn-rank-worker/association-field-inventory.mjs
+          ! grep -q "DELETE FROM" apps/kzn-rank-worker/association-field-inventory.mjs
