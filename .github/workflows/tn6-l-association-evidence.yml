@@ -1,0 +1,28 @@
+name: TN6-L Read-only Association Evidence
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-readonly-association-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check apps/kzn-route-worker/enrich-associations-readonly.mjs
+          node --check apps/transport-api/src/server.mjs
+      - name: Prove safety boundary
+        run: |
+          grep -q "bucket:'shared'" apps/kzn-route-worker/enrich-associations-readonly.mjs
+          grep -q "bucket:'origin-only'" apps/kzn-route-worker/enrich-associations-readonly.mjs
+          grep -q "bucket:'destination-only'" apps/kzn-route-worker/enrich-associations-readonly.mjs
+          grep -q "bucket:'conflicting'" apps/kzn-route-worker/enrich-associations-readonly.mjs
+          grep -q "bucket:'none'" apps/kzn-route-worker/enrich-associations-readonly.mjs
+          grep -q "associationWrites:false" apps/kzn-route-worker/enrich-associations-readonly.mjs
+          grep -q "/api/v1/route-candidates/association-evidence" apps/transport-api/src/server.mjs
+          ! grep -Eiq "(insert into|update[[:space:]]+taxi_|delete from)" apps/kzn-route-worker/enrich-associations-readonly.mjs
