@@ -4,6 +4,7 @@ const { Pool }=pg;
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 
 const sourceKey='ethekwini-bus-taxi-ranks-degraded';
+const dryRun=process.env.ASSOCIATION_PROMOTION_DRY_RUN==='true';
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false});
 const client=await pool.connect();
 
@@ -46,7 +47,24 @@ try{
 
   const selected=rows.rows.filter(row=>eligible(row.association_label));
 
-  await client.query('BEGIN');
+  if(dryRun){
+    console.log(JSON.stringify({
+      event:'ethekwini_association_promotion_dry_run',
+      candidates:rows.rows.length,
+      eligible:selected.length,
+      selected:selected.map(row=>({
+        label:row.association_label,
+        normalizedLabel:row.normalized_label,
+        rankIds:row.rank_ids,
+        sourceRankExternalIds:row.source_rank_external_ids
+      })),
+      excluded:rows.rows
+        .filter(row=>!eligible(row.association_label))
+        .map(row=>row.association_label)
+    }));
+    process.exitCode=0;
+  }else{
+    await client.query('BEGIN');
 
   let created=0,reused=0,linksCreated=0,linksUpdated=0;
 
@@ -160,6 +178,7 @@ try{
       .filter(row=>!eligible(row.association_label))
       .map(row=>row.association_label)
   }));
+  }
 }catch(error){
   await client.query('ROLLBACK').catch(()=>{});
   console.error(JSON.stringify({
