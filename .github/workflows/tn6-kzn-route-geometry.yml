@@ -1,0 +1,54 @@
+name: TN6 KZN Official Route Geometry
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-kzn-route-geometry:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply canonical schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Install KZN route worker
+        working-directory: apps/kzn-route-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Import official KZN route geometries
+        working-directory: apps/kzn-route-worker
+        run: npm run ingest
+
+      - name: Prove geometry staging boundary
+        run: |
+          staged=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_route_geometry")
+          canonical=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route")
+          promoted=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_route_geometry where promoted_route_id is not null")
+          test "$staged" -ge "2000"
+          test "$canonical" = "0"
+          test "$promoted" = "0"
