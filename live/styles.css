@@ -44,3 +44,7 @@
 #city{max-width:190px}
 
 .route-swatch.source-geometry{border-top:3px dashed #0d8ca3}
+
+.rank-finder-tabs{display:flex;gap:6px;margin-top:8px}
+.rank-finder-tabs button{height:30px;border:1px solid var(--line);border-radius:8px;background:white;padding:0 9px;font-size:10px;font-weight:800;color:#536879}
+.rank-finder-tabs button.active-toggle{background:#eaf2ff;border-color:#b8cff5;color:#0d5fd7}
