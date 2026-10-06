@@ -188,13 +188,13 @@ async function postgisSourceRouteGeometries(url){
     if(parts.length===4 && parts.every(Number.isFinite)){
       params.push(parts[0],parts[1],parts[2],parts[3]);
       const n=params.length;
-      where.push(`ST_Intersects(srg.geometry,ST_MakeEnvelope(${n-3},${n-2},${n-1},${n},4326))`);
+      where.push(`ST_Intersects(srg.geometry,ST_MakeEnvelope($${n-3},$${n-2},$${n-1},$${n},4326))`);
     }
   }
 
   if(province){
     params.push(province);
-    where.push(`srg.province=${params.length}`);
+    where.push(`srg.province=$${params.length}`);
   }
 
   const result=await pool.query(
@@ -257,7 +257,7 @@ async function postgisRouteCandidateAssociationEvidence(url){
 
   if(province){
     params.push(province);
-    where.push(`srg.province=${params.length}`);
+    where.push(`srg.province=$${params.length}`);
   }
 
   const result=await pool.query(
@@ -357,13 +357,13 @@ async function postgisRouteCandidates(url){
     if(parts.length===4 && parts.every(Number.isFinite)){
       params.push(parts[0],parts[1],parts[2],parts[3]);
       const n=params.length;
-      where.push(`ST_Intersects(srg.geometry,ST_MakeEnvelope(${n-3},${n-2},${n-1},${n},4326))`);
+      where.push(`ST_Intersects(srg.geometry,ST_MakeEnvelope($${n-3},$${n-2},$${n-1},$${n},4326))`);
     }
   }
 
   if(province){
     params.push(province);
-    where.push(`srg.province=${params.length}`);
+    where.push(`srg.province=$${params.length}`);
   }
 
   const result=await pool.query(
@@ -537,13 +537,13 @@ async function postgisNltisEndpointEvidence(url){
     if(parts.length===4 && parts.every(Number.isFinite)){
       params.push(parts[0],parts[1],parts[2],parts[3]);
       const n=params.length;
-      where.push(`ST_Intersects(ST_MakeLine(origin.location,destination.location),ST_MakeEnvelope(${n-3},${n-2},${n-1},${n},4326))`);
+      where.push(`ST_Intersects(ST_MakeLine(origin.location,destination.location),ST_MakeEnvelope($${n-3},$${n-2},$${n-1},$${n},4326))`);
     }
   }
 
   if(sourceKey){
     params.push(sourceKey);
-    where.push(`s.source_key = ${params.length}`);
+    where.push(`s.source_key = $${params.length}`);
   }
 
   const result=await pool.query(
