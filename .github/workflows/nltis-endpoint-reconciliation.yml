@@ -1,0 +1,93 @@
+name: NLTIS Endpoint Reconciliation Proof
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-endpoint-reconciliation:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+      - name: Seed NLTIS association, ranks, routes and provenance
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO source_registry (source_key,source_name,authority,source_class,official,legacy)
+          VALUES ('nltis-proof','NLTIS proof','National Land Transport Information System','nltis_olas',true,false);
+
+          INSERT INTO taxi_association (canonical_name,registration_number,province,verification_status)
+          VALUES ('PROOF TAXI ASSOCIATION','RASP000001','Gauteng','documented');
+
+          INSERT INTO taxi_rank (canonical_name,province,verification_status) VALUES
+            ('EXACT ORIGIN','Gauteng','official'),
+            ('EXACT DESTINATION','Gauteng','official'),
+            ('AMBIGUOUS RANK','Gauteng','official'),
+            ('AMBIGUOUS RANK','Gauteng','candidate');
+
+          WITH a AS (SELECT id FROM taxi_association WHERE registration_number='RASP000001')
+          INSERT INTO taxi_route
+            (association_id,origin_label,destination_label,route_name,route_type,geometry_status,verification_status)
+          SELECT id,'EXACT ORIGIN','MISSING DESTINATION','EXACT TO MISSING','minibus_taxi','pending','documented'::verification_status FROM a
+          UNION ALL
+          SELECT id,'AMBIGUOUS RANK','EXACT DESTINATION','AMBIGUOUS TO EXACT','minibus_taxi','pending','documented'::verification_status FROM a;
+
+          WITH s AS (SELECT id FROM source_registry WHERE source_key='nltis-proof')
+          INSERT INTO source_record (source_id,entity_type,entity_id,external_record_id,source_payload)
+          SELECT s.id,'taxi_route',tr.id,'route:'||row_number() over(order by tr.id),'{}'::jsonb
+          FROM s CROSS JOIN taxi_route tr;
+          SQL
+      - name: Install reconciliation worker
+        working-directory: apps/reconciliation-worker
+        run: npm install --no-audit --no-fund
+      - name: First endpoint reconciliation
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+      - name: Save first issue count
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation'" > /tmp/issues1
+      - name: Second endpoint reconciliation
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+      - name: Prove EXACT UNRESOLVED AMBIGUOUS classifications
+        run: |
+          exact_origin=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where origin_label='EXACT ORIGIN' and origin_rank_id is not null")
+          unresolved_dest=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where destination_label='MISSING DESTINATION' and destination_rank_id is null")
+          ambiguous_origin=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where origin_label='AMBIGUOUS RANK' and origin_rank_id is null")
+          exact_dest=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where destination_label='EXACT DESTINATION' and destination_rank_id is not null")
+          unresolved_issues=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation' and detail->>'classification'='UNRESOLVED'")
+          ambiguous_issues=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation' and detail->>'classification'='AMBIGUOUS'")
+          issues1=$(cat /tmp/issues1)
+          issues2=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation'")
+          assoc_links=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_rank_association")
+          test "$exact_origin" = "1"
+          test "$unresolved_dest" = "1"
+          test "$ambiguous_origin" = "1"
+          test "$exact_dest" = "1"
+          test "$unresolved_issues" = "1"
+          test "$ambiguous_issues" = "1"
+          test "$issues1" = "$issues2"
+          test "$assoc_links" = "2"

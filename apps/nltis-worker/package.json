@@ -1,0 +1,18 @@
+{
+  "name": "@tenderize/nltis-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "ingest": "node ingest.mjs",
+    "ingest:rank-seeds": "node ingest-rank-seeds.mjs",
+    "ingest:associations": "node ingest-associations.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

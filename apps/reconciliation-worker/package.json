@@ -1,0 +1,18 @@
+{
+  "name": "@tenderize/reconciliation-worker",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "reconcile": "node reconcile.mjs",
+    "reconcile:nltis": "node nltis-endpoints.mjs",
+    "start": "node server.mjs",
+    "dry-run:nltis": "node nltis-dry-run.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

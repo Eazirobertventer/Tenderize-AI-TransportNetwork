@@ -1,0 +1,11 @@
+{
+  "id": "capetown-taxi-routes",
+  "name": "City of Cape Town Taxi Routes",
+  "authority": "City of Cape Town / Western Cape Government",
+  "status": "official",
+  "url": "https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/Transport/MapServer/5",
+  "outFields": "OBJECTID,ORGN,DSTN",
+  "pageSize": 2000,
+  "province": "Western Cape",
+  "municipality": "City of Cape Town"
+}

@@ -1,0 +1,75 @@
+name: Full NLTIS Snapshot Ingest Proof
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-full-snapshot-ingest:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+      NLTIS_FORCE_SNAPSHOT: "true"
+      NLTIS_SOURCE_IDS: nltis-armsta,nltis-ivory-park,nltis-pretoria-plaza,nltis-greater-bloemfontein
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Install NLTIS worker
+        working-directory: apps/nltis-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Validate complete snapshots
+        run: node scripts/validate-nltis-full-snapshots.mjs
+
+      - name: First full snapshot import
+        working-directory: apps/nltis-worker
+        run: npm run ingest
+
+      - name: Prove first import
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association")" = "4"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where verification_status='documented'")" = "312"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record where entity_type='taxi_route'")" = "312"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_report_row_quarantined' and status='open'")" = "13"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record where entity_type='taxi_route' and external_record_id like 'route:seq:%'")" = "312"
+
+      - name: Save first counts
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route" > /tmp/routes1
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record where entity_type='taxi_route'" > /tmp/source_routes1
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_report_row_quarantined'" > /tmp/issues1
+
+      - name: Second full snapshot import
+        working-directory: apps/nltis-worker
+        run: npm run ingest
+
+      - name: Prove idempotency
+        run: |
+          test "$(cat /tmp/routes1)" = "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route")"
+          test "$(cat /tmp/source_routes1)" = "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from source_record where entity_type='taxi_route'")"
+          test "$(cat /tmp/issues1)" = "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_report_row_quarantined'")"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where verification_status='documented'")" = "312"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_association")" = "4"

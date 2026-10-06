@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Authoritative NLTIS/OLAS report evidence recovered from indexed official NLTIS PDF reports while the live GenerateReport endpoint returns HTTP 500 to the worker. This file is documentary evidence only and is not an automatic ingestion fallback.",
+  "recoveredAt": "2026-10-03",
+  "associations": [
+    {
+      "sourceId": "nltis-armsta",
+      "associationName": "ALEXANDRA RANDBURG MIDRAND SANDTON LOCAL AND LONG DISTANCE TAXI ASSOCIATION",
+      "registrationNumber": "RASGPA0134237",
+      "province": "Gauteng",
+      "authority": "National Land Transport Information System / OLAS",
+      "reportUrl": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34237&sAssocName=ALEXANDRA+RANDBURG+MIDRAND+SANDTON+LOCAL+AND+LONG+DISTANCE+TAXI+ASSOCIATION&sAssocRegNum=RASGPA0134237",
+      "reportPrintedAt": "2026-08-10T14:10:34+02:00",
+      "pageCount": 23,
+      "highestSequenceObserved": 118,
+      "evidenceState": "official_report_indexed",
+      "completeness": "representative_routes_only",
+      "liveWorkerStatus": "HTTP 500",
+      "sampleRoutes": [
+        {
+          "sequence": "1",
+          "routeName": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE - Sunnnghill",
+          "nationalRouteCode": "1205IE1205J700138574",
+          "boardRouteCode": "GPCOJ(ARMSTA)020 1",
+          "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+          "destination": "Sunnnghill (Midrand / Ivory Park)"
+        },
+        {
+          "sequence": "2",
+          "routeName": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE - Sunnnghill",
+          "nationalRouteCode": "1205IE1205J700138584",
+          "boardRouteCode": "GPCOJ(ARMSTA)020 1 A1",
+          "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+          "destination": "Sunnnghill (Midrand / Ivory Park)"
+        },
+        {
+          "sequence": "3",
+          "routeName": "ALEXANDRA PAN AFRICA TAXI RANK - Sunnnghill",
+          "nationalRouteCode": "1001NM1205J700138575",
+          "boardRouteCode": "GPCOJ(ARMSTA)020 1A1",
+          "origin": "ALEXANDRA PAN AFRICA TAXI RANK",
+          "destination": "Sunnnghill (Midrand / Ivory Park)"
+        },
+        {
+          "sequence": "4",
+          "routeName": "Pan Africa (Third & Second) - Sunnnghill",
+          "nationalRouteCode": "1000HL1205J700138583",
+          "boardRouteCode": "GPCOJ(ARMSTA)020 1A3",
+          "origin": "Pan Africa (Third & Second)",
+          "destination": "Sunnnghill (Midrand / Ivory Park)"
+        },
+        {
+          "sequence": "5",
+          "routeName": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE - Wynberg",
+          "nationalRouteCode": "1205IE1205IB00138586",
+          "boardRouteCode": "GPCOJ(ARMSTA)020 2",
+          "origin": "ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE",
+          "destination": "Wynberg (Sandton / Rosebank)"
+        }
+      ]
+    },
+    {
+      "sourceId": "nltis-ivory-park",
+      "associationName": "IVORY PARK TAXI ASSOCIATION",
+      "registrationNumber": "RASGPA0333747",
+      "province": "Gauteng",
+      "authority": "National Land Transport Information System / OLAS",
+      "reportUrl": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33747&sAssocName=Ivory+Park+Taxi+Association&sAssocRegNum=RASGPA0333747",
+      "reportPrintedAt": "2026-08-10T14:10:35+02:00",
+      "pageCount": 11,
+      "highestSequenceObserved": 44,
+      "evidenceState": "official_report_indexed",
+      "completeness": "representative_routes_only",
+      "liveWorkerStatus": "HTTP 500",
+      "sampleRoutes": [
+        {
+          "sequence": "1",
+          "routeName": "OLIFANTSFONTEIN SHOPPING MALL TAXI RANK - STERKFONTEIN TEMPORARY ALLOCATED TAXI RANK",
+          "nationalRouteCode": "1001KO136V3W10120215",
+          "boardRouteCode": "GPCOJ(IPTA)2501",
+          "origin": "OLIFANTSFONTEIN (Pretoria-Midrand)",
+          "destination": "OLIFANTSFONTEIN (Erand)"
+        },
+        {
+          "sequence": "2",
+          "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - OLIFANTSFONTEIN TAXI RANK",
+          "nationalRouteCode": "1001MV135MCE00120789",
+          "boardRouteCode": "GPCOJ(IPTA)2502",
+          "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+          "destination": "OLIFANTSFONTEIN (R562) (Pretoria-Midrand)"
+        },
+        {
+          "sequence": "3",
+          "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - MIDRAND MAIN TAXI RANK",
+          "nationalRouteCode": "1001MV1001KO00120790",
+          "boardRouteCode": "GPCOJ(IPTA)2503",
+          "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+          "destination": "MIDRAND MAIN TAXI RANK"
+        },
+        {
+          "sequence": "4",
+          "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - PAN AFRICA TAXI RANK (ALEXANDRA)",
+          "nationalRouteCode": "1001MV1000HL00120791",
+          "boardRouteCode": "GPCOJ(IPTA)2504",
+          "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+          "destination": "Pan Africa (Third & Second)"
+        },
+        {
+          "sequence": "5",
+          "routeName": "KOPANONG TAXI RANK IVORY PARK EXTENSION 3 - JOHANNESBURG HANCOCK STREET TEMPORARY ALLOCATED TAXI RANK",
+          "nationalRouteCode": "1001MV135KFS00120802",
+          "boardRouteCode": "GPCOJ(IPTA)2505",
+          "origin": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+          "destination": "HANCOCK (Johannesburg CBD)"
+        }
+      ]
+    },
+    {
+      "sourceId": "nltis-pretoria-plaza",
+      "associationName": "PRETORIA PLAZA TAXI ASSOCIATION",
+      "registrationNumber": "RASGPA0333774",
+      "province": "Gauteng",
+      "authority": "National Land Transport Information System / OLAS",
+      "reportUrl": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33774&sAssocName=Pretoria+Plaza+Taxi+Association&sAssocRegNum=RASGPA0333774",
+      "reportPrintedAt": "2026-08-10T14:13:07+02:00",
+      "pageCount": 5,
+      "highestSequenceObserved": 23,
+      "evidenceState": "official_report_indexed",
+      "completeness": "representative_routes_only",
+      "liveWorkerStatus": "HTTP 500",
+      "sampleRoutes": [
+        {
+          "sequence": "1",
+          "routeName": "EASTLYN PLAZA MAIN TAXI RANK - WONDERBOOM STATION MAIN TAXI RANK",
+          "nationalRouteCode": "1001TZ1001U300054792",
+          "boardRouteCode": "GPTSH(PPTA)2801",
+          "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+          "destination": "WONDERBOOM STATION MAIN TAXI RANK"
+        },
+        {
+          "sequence": "2",
+          "routeName": "EASTLYN PLAZA MAIN TAXI RANK - EASTLYN PLAZA MAIN TAXI RANK",
+          "nationalRouteCode": "1001TZ1001TZ00054793",
+          "boardRouteCode": "GPTSH(PPTA)2801.A1",
+          "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+          "destination": "EASTLYN PLAZA MAIN TAXI RANK"
+        },
+        {
+          "sequence": "3",
+          "routeName": "EASTLYN PLAZA MAIN TAXI RANK - KAMEELDRIFT WALMAN CROSS TEMPORARY ALLOCATED TAXI RANK",
+          "nationalRouteCode": "1001TZ1001U000054794",
+          "boardRouteCode": "GPTSH(PPTA)2802",
+          "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+          "destination": "KAMEELDRIFT WALMAN CROSS TEMPORARY ALLOCATED TAXI RANK"
+        },
+        {
+          "sequence": "4",
+          "routeName": "WONDERBOOM STATION MAIN TAXI RANK - WAVERLY 18 AVENUE INFORMAL TAXI RANK",
+          "nationalRouteCode": "1001U31001U100054795",
+          "boardRouteCode": "GPTSH(PPTA)2803",
+          "origin": "WONDERBOOM STATION MAIN TAXI RANK",
+          "destination": "WAVERLY 18 AVENUE INFORMAL TAXI RANK"
+        },
+        {
+          "sequence": "5",
+          "routeName": "EASTLYN PLAZA MAIN TAXI RANK - DOORMPORT MAIN TAXI RANK",
+          "nationalRouteCode": "1001TZ1001U200054796",
+          "boardRouteCode": "GPTSH(PPTA)2804",
+          "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+          "destination": "DOORMPORT MAIN TAXI RANK"
+        }
+      ]
+    },
+    {
+      "sourceId": "nltis-greater-bloemfontein",
+      "associationName": "GREATER BLOEMFONTEIN TAXI ASSOCIATION",
+      "registrationNumber": "RASFSA0134187",
+      "province": "Free State",
+      "authority": "National Land Transport Information System / OLAS",
+      "reportUrl": "https://nltis.transport.gov.za/reports/ras/generatereport.asp?cbofiltertypeid=2&cboreportid=5&iassocid=34187&sassocname=greater+bloemfontein+taxi+association&sassocregnum=rasfsa0134187",
+      "reportPrintedAt": "2026-08-10T14:11:07+02:00",
+      "pageCount": 13,
+      "highestSequenceObserved": 140,
+      "evidenceState": "official_report_indexed",
+      "completeness": "representative_routes_only",
+      "liveWorkerStatus": "HTTP 500",
+      "sampleRoutes": [
+        {
+          "sequence": "1",
+          "routeName": "Russel Square Taxi Rank - Opkoms",
+          "nationalRouteCode": "7000QH7209IP00033137",
+          "boardRouteCode": "FSBRC031(a)",
+          "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+          "destination": "Opkoms (Bloemfontein)"
+        },
+        {
+          "sequence": "2",
+          "routeName": "Russel Square Taxi Rank - Bloemside Phase I",
+          "nationalRouteCode": "7000QH7209IR00033139",
+          "boardRouteCode": "FSBRC031(b)",
+          "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+          "destination": "Bloemside Phase I (Bloemfontein)"
+        },
+        {
+          "sequence": "3",
+          "routeName": "Russel Square Taxi Rank - Bloemside phase II",
+          "nationalRouteCode": "7000QH7209IS00033142",
+          "boardRouteCode": "FSBRC031(c)",
+          "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+          "destination": "Bloemside phase II (Bloemfontein)"
+        },
+        {
+          "sequence": "4",
+          "routeName": "Bastion Taxi Rank - Lourierpark",
+          "nationalRouteCode": "7000QO10039286",
+          "boardRouteCode": "FS036",
+          "origin": "Bastion Taxi Rank, cnr. Harvey Road and Bastion Street(Bloemfontein)",
+          "destination": "Lourierpark"
+        },
+        {
+          "sequence": "5",
+          "routeName": "Railway Station Taxi Rank(Bloemfontein) - Tempe",
+          "nationalRouteCode": "7000QP10039291",
+          "boardRouteCode": "FS037",
+          "origin": "Railway Station Taxi Rank(Bloemfontein)",
+          "destination": "Tempe"
+        }
+      ]
+    }
+  ]
+}

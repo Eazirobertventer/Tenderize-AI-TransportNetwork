@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "phase": "TN5-H4",
+  "sourceId": "nltis-greater-bloemfontein",
+  "authority": "National Land Transport Information System / OLAS",
+  "reportUrl": "https://nltis.transport.gov.za/reports/ras/generatereport.asp?cbofiltertypeid=2&cboreportid=5&iassocid=34187&sassocname=greater+bloemfontein+taxi+association&sassocregnum=rasfsa0134187",
+  "associationRegistration": "RASFSA0134187",
+  "scope": "Greater Bloemfontein / Mangaung explicit taxi-rank endpoints only",
+  "policy": {
+    "canonicalLabelsFromOfficialRouteNodes": true,
+    "fuzzyMerge": false,
+    "coordinatesInvented": false,
+    "verificationStatus": "documented"
+  },
+  "ranks": [
+    {
+      "externalRecordId": "tn5-h4-bloem-rank-01",
+      "canonicalName": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "province": "Free State",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h4-bloem-rank-02",
+      "canonicalName": "Bastion Square Taxi Rank(Bloemfontein)",
+      "province": "Free State",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h4-bloem-rank-03",
+      "canonicalName": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "province": "Free State",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h4-bloem-rank-04",
+      "canonicalName": "Railway Station Taxi Rank(Bloemfontein)",
+      "province": "Free State",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h4-bloem-rank-05",
+      "canonicalName": "Jacaranda Taxi Rank",
+      "province": "Free State",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h4-bloem-rank-06",
+      "canonicalName": "Bastion Taxi Rank, cnr. Harvey Road and Bastion Street(Bloemfontein)",
+      "province": "Free State",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    }
+  ]
+}

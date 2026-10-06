@@ -1,0 +1,37 @@
+name: Map Rank Discovery Proof
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-rank-discovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: node --check live/app.js
+      - name: Prove visible rank discovery
+        run: |
+          grep -q 'id="rankFinder"' live/index.html
+          grep -q '<aside class="detail">' live/index.html
+          grep -q 'class="detail-content"' live/index.html
+          grep -q "rank-labels" live/app.js
+          grep -q "rank-halo" live/app.js
+          grep -q "zoom:15.8" live/app.js
+          grep -q "Find a taxi rank" live/index.html
+          grep -q "rank-finder-item" live/styles.css
+          grep -q 'id="showVisibleRanks"' live/index.html
+          grep -q 'id="showAllFilteredRanks"' live/index.html
+          grep -q "visibleRankFeatures" live/app.js
+          grep -q "Grey taxi-rank names" live/index.html
+          grep -q "id=\"city\"" live/index.html
+          grep -q "rank-filters" apps/transport-api/src/server.mjs
+          grep -q "new maplibregl.Popup" live/app.js
+          if grep -q "slice(0,12)" live/app.js; then
+            echo "rank finder is still truncated"
+            exit 1
+          fi

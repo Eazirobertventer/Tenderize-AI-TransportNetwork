@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tenderize Transport Network</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <div class="logo">TN</div>
+      <button class="active" title="Map">⌖</button>
+      <button title="Ranks">▦</button>
+      <button title="Routes">⇄</button>
+      <button title="Associations">◯</button>
+      <button title="Data quality">!</button>
+    </aside>
+
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">TENDERIZE • TRANSPORT INTELLIGENCE</div>
+          <h1>South Africa Taxi Network</h1>
+        </div>
+        <div class="search">
+          <span>⌕</span>
+          <input id="search" placeholder="Search taxi rank, town or province…" />
+        </div>
+        <div class="status"><span></span><b id="mode">Loading…</b></div>
+      </header>
+
+      <section class="kpis">
+        <div><span>Mapped ranks</span><strong id="rankCount">—</strong><small>coordinate available</small></div>
+        <div><span>Location pending</span><strong id="locationPendingCount">—</strong><small>documented rank, coordinate QA required</small></div>
+        <div><span>Associations</span><strong id="associationCount">—</strong><small>documented</small></div>
+        <div><span>Routes</span><strong id="routeCount">—</strong><small>evidence classified</small></div>
+        <div><span>Data state</span><strong id="dataState">—</strong><small>provenance retained</small></div>
+      </section>
+
+      <section class="layout">
+        <section class="mapCard">
+          <div class="toolbar">
+            <select id="province" aria-label="Filter taxi ranks by province">
+              <option value="">All provinces</option>
+            </select>
+            <select id="city" aria-label="Filter taxi ranks by city">
+              <option value="">All cities</option>
+            </select>
+            <button id="satelliteToggle" aria-pressed="false">Street</button>
+            <button id="routeToggle" class="active-toggle" aria-pressed="true">Routes on</button>
+            <button id="routeCandidateToggle" class="active-toggle" aria-pressed="true">Candidate routes on</button>
+            <button id="sourceGeometryToggle" class="active-toggle" aria-pressed="true">Source geometry on</button>
+            <button id="nltisEvidenceToggle" class="active-toggle" aria-pressed="true">NLTIS evidence on</button>
+            <button id="capeTownRoutes">Cape Town routes</button>
+            <button id="fit">National view</button>
+            <span id="resultStatus">Loading taxi ranks…</span>
+            <span id="routeStatus">Routes loading…</span>
+            <span id="basemapStatus">Street basemap</span>
+          </div>
+          <div id="map"></div>
+          <div class="legend">
+            <b>Evidence</b>
+            <span><i class="official"></i>Tenderize official / verified marker</span>
+            <span><i class="candidate"></i>Tenderize documented / candidate marker</span>
+            <span><i class="route-swatch official-route"></i>Official route geometry</span>
+            <span><i class="route-swatch documented-route"></i>Documented geometry</span>
+            <span><i class="route-swatch inferred-route"></i>Inferred geometry</span>
+            <span><i class="route-swatch candidate-route"></i>Exact route candidate — not canonical</span>
+            <span><i class="route-swatch source-geometry"></i>Official source geometry — endpoints pending</span>
+            <span><i class="route-swatch endpoint-evidence"></i>NLTIS exact endpoints — not route path</span>
+            <small>Grey taxi-rank names can come from the OpenStreetMap basemap and are not automatically in the Tenderize dataset. Only coloured Tenderize markers are synchronized with the rank list. In satellite mode, verify rank marker against visible physical taxi-rank facility before treating the location as visually confirmed.</small>
+          </div>
+        </section>
+
+        <aside class="detail">
+          <div id="rankFinder" class="rank-finder">
+            <div class="rank-finder-head">
+              <div><b>Find a taxi rank</b><span><strong id="rankFinderCount">0</strong> <span id="rankFinderScope">visible on map</span></span></div>
+              <small>Only coloured Tenderize pins are in our dataset. Grey map labels are basemap POIs.</small>
+              <div class="rank-finder-tabs">
+                <button id="showVisibleRanks" class="active-toggle" type="button">Visible on map</button>
+                <button id="showAllFilteredRanks" type="button">All filtered</button>
+              </div>
+            </div>
+            <div id="rankFinderList" class="rank-finder-list"></div>
+          </div>
+          <div id="detail" class="detail-content">
+            <div class="empty">
+              <div class="target">⌖</div>
+              <h2>Select a taxi rank or route</h2>
+              <p>Click a rank marker or route geometry to inspect its evidence classification and source provenance.</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "@tenderize/kzn-route-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ingest": "node ingest.mjs",
+    "start": "node server.mjs",
+    "build:route-candidates": "node build-route-candidates.mjs",
+    "inventory:route-associations": "node association-evidence-readonly.mjs",
+    "enrich:association-evidence": "node enrich-association-evidence.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

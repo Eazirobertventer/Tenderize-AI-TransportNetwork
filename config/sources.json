@@ -1,0 +1,81 @@
+[
+  {
+    "id": "ekurhuleni-taxi-ranks-poi-degraded",
+    "name": "City of Ekurhuleni Taxi Ranks POI layer",
+    "authority": "City of Ekurhuleni",
+    "kind": "taxi_rank",
+    "status": "official_degraded",
+    "url": "https://gis.ekurhuleni.gov.za/arcgis/rest/services/Ekurhuleni/Ekurhuleni_POI_Map/MapServer/24",
+    "outFields": "OBJECTID,TAXI_FACIL,REGION,LATITUDE,LONGITUDE,TYPE,OWNERSHIP,SUBURB,TOWN,NUMBER_OF,ASSOCIATIO,ASSOCIAT_1,ASSOCIAT_2,ASSOCIAT_3,ASSOCIAT_4,ASSOCIAT_5,ASSOCIAT_6,ASSOCIAT_7,ASSOCIAT_8,ASSOCIAT_9,NUMBER_O_1,DESTINATIO,DESTINAT_1,DESTINAT_2,DESTINAT_3,DESTINAT_4,DESTINAT_5,DESTINAT_6,DESTINAT_7,DESTINAT_8,DESTINAT_9,DESTINA_10,DESTINA_11,DESTINA_12,DESTINA_13,DESTINA_14",
+    "pageSize": 1000,
+    "mapping": {
+      "external_id": "OBJECTID",
+      "name": "TAXI_FACIL",
+      "province": "Gauteng",
+      "municipality": "City of Ekurhuleni",
+      "region": "REGION",
+      "suburb": "SUBURB",
+      "town": "TOWN",
+      "latitude": "LATITUDE",
+      "longitude": "LONGITUDE",
+      "rank_type": "TYPE",
+      "ownership": "OWNERSHIP"
+    },
+    "associationFields": ["ASSOCIATIO","ASSOCIAT_1","ASSOCIAT_2","ASSOCIAT_3","ASSOCIAT_4","ASSOCIAT_5","ASSOCIAT_6","ASSOCIAT_7","ASSOCIAT_8","ASSOCIAT_9"],
+    "destinationFields": ["DESTINATIO","DESTINAT_1","DESTINAT_2","DESTINAT_3","DESTINAT_4","DESTINAT_5","DESTINAT_6","DESTINAT_7","DESTINAT_8","DESTINAT_9","DESTINA_10","DESTINA_11","DESTINA_12","DESTINA_13","DESTINA_14"]
+  },
+  {
+    "id": "ekurhuleni-corridor-taxi-ranks",
+    "name": "City of Ekurhuleni Corridor Taxi Ranks",
+    "authority": "City of Ekurhuleni",
+    "kind": "taxi_rank",
+    "status": "official",
+    "url": "https://gis.ekurhuleni.gov.za/arcgis/rest/services/GMS/Corridor_1/MapServer/52",
+    "outFields": "OBJECTID,FID,NAME,NEW_REGION,REGION,TOWN,PHYSICAL_A,REF_NUMBER,LATTITUDE_,LONGITUDE_",
+    "pagination": false,
+    "mapping": {
+      "external_id": "OBJECTID",
+      "name": "NAME",
+      "province": "Gauteng",
+      "municipality": "City of Ekurhuleni",
+      "region": "NEW_REGION",
+      "town": "TOWN",
+      "address": "PHYSICAL_A",
+      "latitude": "LATTITUDE_",
+      "longitude": "LONGITUDE_",
+      "reference_number": "REF_NUMBER"
+    }
+  },
+  {
+    "id": "capetown-taxi-routes",
+    "name": "City of Cape Town Taxi Routes",
+    "authority": "City of Cape Town / Western Cape Government",
+    "kind": "route",
+    "status": "official",
+    "url": "https://citymaps.capetown.gov.za/agsext/rest/services/Theme_Based/Transport/MapServer/5",
+    "outFields": "OBJECTID,ORGN,DSTN",
+    "pageSize": 2000,
+    "mapping": {
+      "external_id": "OBJECTID",
+      "origin_name": "ORGN",
+      "destination_name": "DSTN",
+      "province": "Western Cape",
+      "municipality": "City of Cape Town"
+    }
+  },
+  {
+    "id": "kzn-taxi-routes-legacy",
+    "name": "KZN Department of Transport Taxi Routes (legacy layer)",
+    "authority": "KwaZulu-Natal Department of Transport",
+    "kind": "route",
+    "status": "official_legacy",
+    "url": "https://gis1.kzntransport.gov.za/arcgisserver/rest/services/KZN_Schools_Health_Facilities/MapServer/7",
+    "outFields": "OBJECTID,ID,KZNBRCD",
+    "pageSize": 1000,
+    "mapping": {
+      "external_id": "OBJECTID",
+      "board_route_code": "KZNBRCD",
+      "province": "KwaZulu-Natal"
+    }
+  }
+]

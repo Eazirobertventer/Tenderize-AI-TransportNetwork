@@ -1,0 +1,24 @@
+name: TN6 Source Route Geometry Map Proof
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-source-route-map:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check live/app.js
+          node --check apps/transport-api/src/server.mjs
+      - name: Prove source geometry separation
+        run: |
+          grep -q "source-route-geometries" live/app.js
+          grep -q "notCanonicalRoute:true" apps/transport-api/src/server.mjs
+          grep -q 'id="sourceGeometryToggle"' live/index.html
+          grep -q "Official source geometry — endpoints pending" live/index.html

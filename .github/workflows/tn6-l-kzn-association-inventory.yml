@@ -1,0 +1,35 @@
+name: TN6-L KZN Association Field Inventory
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-read-only-association-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check apps/kzn-rank-worker/association-field-inventory.mjs
+          node --check apps/kzn-route-worker/association-evidence-readonly.mjs
+          node --check apps/kzn-route-worker/enrich-association-evidence.mjs
+      - name: Prove read-only
+        run: |
+          grep -q "BEGIN READ ONLY" apps/kzn-rank-worker/association-field-inventory.mjs
+          grep -q "BEGIN READ ONLY" apps/kzn-route-worker/association-evidence-readonly.mjs
+          ! grep -q "INSERT INTO" apps/kzn-rank-worker/association-field-inventory.mjs
+          ! grep -q "UPDATE " apps/kzn-rank-worker/association-field-inventory.mjs
+          ! grep -q "DELETE FROM" apps/kzn-rank-worker/association-field-inventory.mjs
+          ! grep -q "INSERT INTO" apps/kzn-route-worker/association-evidence-readonly.mjs
+          ! grep -q "UPDATE " apps/kzn-route-worker/association-evidence-readonly.mjs
+          ! grep -q "DELETE FROM" apps/kzn-route-worker/association-evidence-readonly.mjs
+          grep -q "not_assigned_endpoint_evidence_only" apps/kzn-route-worker/enrich-association-evidence.mjs
+          grep -q "associationWrites:false" apps/kzn-route-worker/enrich-association-evidence.mjs
+          grep -q "canonicalRouteWrites:false" apps/kzn-route-worker/enrich-association-evidence.mjs
+          ! grep -q "UPDATE taxi_route" apps/kzn-route-worker/enrich-association-evidence.mjs
+          ! grep -q "INSERT INTO taxi_route" apps/kzn-route-worker/enrich-association-evidence.mjs
+          ! grep -q "SET association_id" apps/kzn-route-worker/enrich-association-evidence.mjs

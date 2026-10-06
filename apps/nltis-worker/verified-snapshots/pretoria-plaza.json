@@ -1,0 +1,202 @@
+{
+  "sourceId": "nltis-pretoria-plaza",
+  "acquisitionMode": "verified_snapshot",
+  "upstream": "NLTIS RAS Association Routes",
+  "reportPrintedAt": "2026-08-10T14:13:07+02:00",
+  "reportPageCount": 5,
+  "association": {
+    "name": "PRETORIA PLAZA TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0333774",
+    "province": "Gauteng"
+  },
+  "completeness": "full_report",
+  "routeCount": 23,
+  "routes": [
+    {
+      "sequence": "1",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "WONDERBOOM STATION MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - WONDERBOOM STATION MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001U300054792",
+      "boardRouteCode": "GPTSH(PPTA)2801"
+    },
+    {
+      "sequence": "2",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "EASTLYN PLAZA MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - EASTLYN PLAZA MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001TZ00054793",
+      "boardRouteCode": "GPTSH(PPTA)2801.A1"
+    },
+    {
+      "sequence": "3",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "KAMEELDRIFT WALMAN CROSS TEMPORARY ALLOCATED TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - KAMEELDRIFT WALMAN CROSS TEMPORARY ALLOCATED TAXI RANK",
+      "nationalRouteCode": "1001TZ1001U000054794",
+      "boardRouteCode": "GPTSH(PPTA)2802"
+    },
+    {
+      "sequence": "4",
+      "origin": "WONDERBOOM STATION MAIN TAXI RANK",
+      "destination": "WAVERLY 18 AVENUE INFORMAL TAXI RANK",
+      "routeName": "WONDERBOOM STATION MAIN TAXI RANK - WAVERLY 18 AVENUE INFORMAL TAXI RANK",
+      "nationalRouteCode": "1001U31001U100054795",
+      "boardRouteCode": "GPTSH(PPTA)2803"
+    },
+    {
+      "sequence": "5",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "DOORMPORT MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - DOORMPORT MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001U200054796",
+      "boardRouteCode": "GPTSH(PPTA)2804"
+    },
+    {
+      "sequence": "6",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "WONDERBOOM STATION MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - WONDERBOOM STATION MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001U300054797",
+      "boardRouteCode": "GPTSH(PPTA)2805"
+    },
+    {
+      "sequence": "7",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Koedoespoort (Cresswell & Moreleta)",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - Koedoespoort (Cresswell & Moreleta)",
+      "nationalRouteCode": "1001TZ1000MJ00054798",
+      "boardRouteCode": "GPTSH(PPTA)2806"
+    },
+    {
+      "sequence": "8",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Monsterloos (Greater Groblersdal Rural)",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - Monsterloos",
+      "nationalRouteCode": "1001TZ520B5S10181626",
+      "boardRouteCode": "GPTSH(PPTA)2807.INP"
+    },
+    {
+      "sequence": "9",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Matshiding (Dr J S Moroka Rural)",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - Matshiding",
+      "nationalRouteCode": "1001TZ8200UO10181632",
+      "boardRouteCode": "GPTSH(PPTA)2808.INP"
+    },
+    {
+      "sequence": "10",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "MAHUBE\\EXT10\\EXT17 TEMPORARY ALLOCATED TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - MAHUBE\\EXT10\\EXT17 TEMPORARY ALLOCATED TAXI RANK",
+      "nationalRouteCode": "1001TZ1001PK00181631",
+      "boardRouteCode": "GPTSH(PPTA)2809.INP"
+    },
+    {
+      "sequence": "11",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Nell Mapius (Pretoria)",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - Nell Mapius",
+      "nationalRouteCode": "1001TZ1205RM00181630",
+      "boardRouteCode": "GPTSH(PPTA)2810.INP"
+    },
+    {
+      "sequence": "12",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Polokwane Indian Centre Taxi rank",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - Polokwane Indian Centre Taxi rank",
+      "nationalRouteCode": "1001TZ50023G10181627",
+      "boardRouteCode": "GPTSH(PPTA)2811.INP"
+    },
+    {
+      "sequence": "13",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "HAMMANSKRAAL/KOPANONG SHOPPING COMPLEX MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - HAMMANSKRAAL/KOPANONG SHOPPING COMPLEX MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001O400181628",
+      "boardRouteCode": "GPTSH(PPTA)2812.INP"
+    },
+    {
+      "sequence": "14",
+      "origin": "Montana (Pretoria)",
+      "destination": "Cullinan (Cullinan/Rayton)",
+      "routeName": "MONTANA/KOLONDA TAXI RANK-CULLINAN SHOPPING CENTRE TAXI RANK",
+      "nationalRouteCode": "1205691201CZ10345585",
+      "boardRouteCode": "GPTSH(PPTA)2815"
+    },
+    {
+      "sequence": "15",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "WONDERPARK SHOPPING COMPLEX TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - WONDERPARK SHOPPING COMPLEX TAXI RANK",
+      "nationalRouteCode": "1001TZ1001UM00345590",
+      "boardRouteCode": "GPTSH(PPTA)2818"
+    },
+    {
+      "sequence": "16",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Rietgat (Rietgat)",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - RIETGAT TAXI RANK-SOSHANGUVE",
+      "nationalRouteCode": "1001TZ1000N300345593",
+      "boardRouteCode": "GPTSH(PPTA)2820"
+    },
+    {
+      "sequence": "17",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Pretoria",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - PRETORIA-MEYERFIELD",
+      "nationalRouteCode": "1001TZ1100HM10345589",
+      "boardRouteCode": "GPTSH(PPTA)2817"
+    },
+    {
+      "sequence": "18",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "MABOPANE STATION MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - MABOPANE STATION MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001T900345584",
+      "boardRouteCode": "GPTSH(PPTA)2814"
+    },
+    {
+      "sequence": "19",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "ERASMUS MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - ERASMUS MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001QJ00345591",
+      "boardRouteCode": "GPTSH(PPTA)2819"
+    },
+    {
+      "sequence": "20",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "ERASMUS MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - ERASMUS MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001QJ00345595",
+      "boardRouteCode": "GPTSH(PPTA)2819.A2"
+    },
+    {
+      "sequence": "21",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "DENNEBOOM STATION MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - DENNEBOOM STATION MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001MY00345586",
+      "boardRouteCode": "GPTSH(PPTA)2816"
+    },
+    {
+      "sequence": "22",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "Pretoria North (Pretoria)",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - PRETORIA-MEYERSFIELD",
+      "nationalRouteCode": "1001TZ1205V710345596",
+      "boardRouteCode": "GPTSH(PPTA)2817.A"
+    },
+    {
+      "sequence": "23",
+      "origin": "EASTLYN PLAZA MAIN TAXI RANK",
+      "destination": "ERASMUS MAIN TAXI RANK",
+      "routeName": "EASTLYN PLAZA MAIN TAXI RANK - ERASMUS MAIN TAXI RANK",
+      "nationalRouteCode": "1001TZ1001QJ00345597",
+      "boardRouteCode": "GPTSH(PPTA)2819.A3"
+    }
+  ],
+  "reportRouteRowCount": 23,
+  "quarantinedRows": []
+}

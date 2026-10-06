@@ -1,0 +1,1265 @@
+{
+  "sourceId": "nltis-greater-bloemfontein",
+  "acquisitionMode": "verified_snapshot",
+  "upstream": "NLTIS RAS Association Routes",
+  "reportPrintedAt": "2026-08-10T14:11:07+02:00",
+  "reportPageCount": 13,
+  "association": {
+    "name": "GREATER BLOEMFONTEIN TAXI ASSOCIATION",
+    "registrationNumber": "RASFSA0134187",
+    "province": "Free State"
+  },
+  "completeness": "full_report",
+  "reportRouteRowCount": 140,
+  "routeCount": 137,
+  "routes": [
+    {
+      "sequence": "1",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IP00033137",
+      "boardRouteCode": "FSBRC031(a)",
+      "streetDescription": null
+    },
+    {
+      "sequence": "2",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Bloemside Phase I (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IR00033139",
+      "boardRouteCode": "FSBRC031(b)",
+      "streetDescription": null
+    },
+    {
+      "sequence": "3",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Bloemside phase II (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IS00033142",
+      "boardRouteCode": "FSBRC031(c)",
+      "streetDescription": null
+    },
+    {
+      "sequence": "4",
+      "origin": "Bastion Taxi Rank, cnr. Harvey Road and Bastion Street(Bloemfontein)",
+      "destination": "Lourierpark (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QO10039286",
+      "boardRouteCode": "FS036",
+      "streetDescription": null
+    },
+    {
+      "sequence": "5",
+      "origin": "Railway Station Taxi Rank(Bloemfontein)",
+      "destination": "Tempe (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QP10039291",
+      "boardRouteCode": "FS037",
+      "streetDescription": null
+    },
+    {
+      "sequence": "6",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039289",
+      "boardRouteCode": "FS031",
+      "streetDescription": null
+    },
+    {
+      "sequence": "7",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Namibia Square (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039288",
+      "boardRouteCode": "FS029",
+      "streetDescription": null
+    },
+    {
+      "sequence": "8",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Phahameng (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039290",
+      "boardRouteCode": "FS025",
+      "streetDescription": null
+    },
+    {
+      "sequence": "9",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora West (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039420",
+      "boardRouteCode": "FSBC020MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "10",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Johannesburg South",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039398",
+      "boardRouteCode": "FSBC107MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "11",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora West",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039420",
+      "boardRouteCode": "FSBC020MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "12",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Turflaagte",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039424",
+      "boardRouteCode": "FSBC022MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "13",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039418",
+      "boardRouteCode": "FSBC120MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "14",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Station Street Taxi Rank(Kroonstad)",
+      "routeName": null,
+      "nationalRouteCode": "7000R37000R910039406",
+      "boardRouteCode": "FSBC102MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "15",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Aliwal North",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039395",
+      "boardRouteCode": "FSBC099MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "16",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "King Williams Town",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039405",
+      "boardRouteCode": "FSBC098MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "17",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Mafikeng Rural",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039410",
+      "boardRouteCode": "FSBC114MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "18",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora East",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039419",
+      "boardRouteCode": "FSBC027MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "19",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039422",
+      "boardRouteCode": "FSBC031MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "20",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Lourierpark",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039391",
+      "boardRouteCode": "FSBC036MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "21",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Botshabelo",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039381",
+      "boardRouteCode": "FSBC095MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "22",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Reddersburg",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039387",
+      "boardRouteCode": "FSBC085MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "23",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Van Riebeeck Taxi Rank(Thaba Nchu)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000QA00039388",
+      "boardRouteCode": "FSBC081MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "24",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Ipopeng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039417",
+      "boardRouteCode": "FSBC028MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "25",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Darvin Street Taxi Rank(Bultfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039380",
+      "boardRouteCode": "FSBC090MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "26",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Freedom Square",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039416",
+      "boardRouteCode": "FSBC023MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "27",
+      "origin": "Jacaranda Taxi Rank",
+      "destination": "Bayswater",
+      "routeName": null,
+      "nationalRouteCode": "7000QE10039392",
+      "boardRouteCode": "FSBC016MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "28",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Morojaneng",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039397",
+      "boardRouteCode": "FSBC111MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "29",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Bethulie",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039383",
+      "boardRouteCode": "FSBC082MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "30",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Edenburg",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039396",
+      "boardRouteCode": "FSBC110MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "31",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Philippolis",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039389",
+      "boardRouteCode": "FSBC084MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "32",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Fauresmith",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039384",
+      "boardRouteCode": "FSBC083MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "33",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Jagersfontein",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039382",
+      "boardRouteCode": "FSBC088MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "34",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Petrusburg",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039386",
+      "boardRouteCode": "FSBC087MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "35",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Luckhof",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039385",
+      "boardRouteCode": "FSBC094MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "36",
+      "origin": "Railway Station Taxi Rank(Bloemfontein)",
+      "destination": "Ikgomotseng",
+      "routeName": null,
+      "nationalRouteCode": "7000QP10039411",
+      "boardRouteCode": "FSBC092MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "37",
+      "origin": "Railway Station Taxi Rank(Bloemfontein)",
+      "destination": "Theunissen",
+      "routeName": null,
+      "nationalRouteCode": "7000QP10039414",
+      "boardRouteCode": "FSBC093MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "38",
+      "origin": "Railway Station Taxi Rank(Bloemfontein)",
+      "destination": "Brandfort",
+      "routeName": null,
+      "nationalRouteCode": "7000QP10039415",
+      "boardRouteCode": "FSBC091MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "39",
+      "origin": "Railway Station Taxi Rank(Bloemfontein)",
+      "destination": "Tswaraganang",
+      "routeName": null,
+      "nationalRouteCode": "7000QP10039413",
+      "boardRouteCode": "FSBC089MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "40",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Namibia Square",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039421",
+      "boardRouteCode": "FSBC029MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "41",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Phahameng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039423",
+      "boardRouteCode": "FSBC025MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "42",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Grootvlei Prison",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039393",
+      "boardRouteCode": "FSBC046MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "43",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora West",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039420",
+      "boardRouteCode": "FSBC020MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "44",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora East",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039377",
+      "boardRouteCode": "FSBC027ISO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "45",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Phahameng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039379",
+      "boardRouteCode": "FSBC025ISO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "46",
+      "origin": "Jacaranda Taxi Rank",
+      "destination": "Bayswater",
+      "routeName": null,
+      "nationalRouteCode": "7000QE10039359",
+      "boardRouteCode": "FSBC016JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "47",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora West",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039420",
+      "boardRouteCode": "FSBC020MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "48",
+      "origin": "Railway Station Taxi Rank(Bloemfontein)",
+      "destination": "Tempe",
+      "routeName": null,
+      "nationalRouteCode": "7000QP10039365",
+      "boardRouteCode": "FSBC037JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "49",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Darvin Street Taxi Rank(Bultfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000V710039358",
+      "boardRouteCode": "FSBC090JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "50",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Phahameng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039363",
+      "boardRouteCode": "FSBC025JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "51",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Turflaagte",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039364",
+      "boardRouteCode": "FSBC022JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "52",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora East",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039361",
+      "boardRouteCode": "FSBC027JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "53",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Waterbron Kontantwinkel, Piet Odendaal Street, Bainsvlei, Bloemfontein",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039357",
+      "boardRouteCode": "FSBC040JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "54",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039360",
+      "boardRouteCode": "FSBC120JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "55",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039346",
+      "boardRouteCode": "FSBC120EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "56",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora West",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039420",
+      "boardRouteCode": "FSBC020MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "57",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Turflaagte",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039353",
+      "boardRouteCode": "FSBC022EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "58",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora East",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039347",
+      "boardRouteCode": "FSBC027EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "59",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Namibia Square",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039349",
+      "boardRouteCode": "FSBC029EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "60",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039350",
+      "boardRouteCode": "FSBC031EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "61",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Waterbron Kontantwinkel, Piet Odendaal Street, Bainsvlei, Bloemfontein",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039344",
+      "boardRouteCode": "FSBC040EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "62",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Reddersburg",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039345",
+      "boardRouteCode": "FSBC085EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "63",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Phahameng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039351",
+      "boardRouteCode": "FSBC025EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "64",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Sterkspruit",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039408",
+      "boardRouteCode": "FSCB100MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "65",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Taung",
+      "routeName": null,
+      "nationalRouteCode": "7000R310039412",
+      "boardRouteCode": "FSBC106MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "66",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Setsing Taxi Rank cnr. Mampoi and Motebang Streets(Phuthaditjhaba)",
+      "routeName": null,
+      "nationalRouteCode": "7000R37000RE10039404",
+      "boardRouteCode": "FSBC108MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "67",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "routeName": "Majakathata Taxi Rank(Bloemfontein) - Ficksburg",
+      "nationalRouteCode": "7000R310039394",
+      "boardRouteCode": "FSBC105MTA",
+      "streetDescription": null,
+      "evidenceConflict": "route_nodes_destination_conflicts_with_route_description"
+    },
+    {
+      "sequence": "68",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Teachers Taxi Rank(Durban)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR2000VX10039390",
+      "boardRouteCode": "FSBC097MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "69",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Power Road and Jan Hofmeyer Road Taxi Rank(Welkom)",
+      "routeName": null,
+      "nationalRouteCode": "7000R37000QY10039407",
+      "boardRouteCode": "FSBC104MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "70",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Noord Street Taxi Rank(Klerksdorp)",
+      "routeName": null,
+      "nationalRouteCode": "7000R36000R810039399",
+      "boardRouteCode": "FSBC101MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "71",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Voortrekker Street Taxi Rank(Zastron)",
+      "routeName": null,
+      "nationalRouteCode": "7000R37000RG10039409",
+      "boardRouteCode": "FSBC113MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "72",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Kimberley Taxi Rank",
+      "routeName": null,
+      "nationalRouteCode": "7000R390011V10039400",
+      "boardRouteCode": "FSBC109MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "73",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039442",
+      "boardRouteCode": "FSBC120MTHI",
+      "streetDescription": null
+    },
+    {
+      "sequence": "74",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039439",
+      "boardRouteCode": "FSBC031MTHI",
+      "streetDescription": null
+    },
+    {
+      "sequence": "75",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Turflaagte",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039441",
+      "boardRouteCode": "FSBC022MTHI",
+      "streetDescription": null
+    },
+    {
+      "sequence": "76",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Phahameng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039440",
+      "boardRouteCode": "FSBC025MTHI",
+      "streetDescription": null
+    },
+    {
+      "sequence": "77",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora East",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039436",
+      "boardRouteCode": "FSBC027MTHI",
+      "streetDescription": null
+    },
+    {
+      "sequence": "78",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora West",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039420",
+      "boardRouteCode": "FSBC020MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "79",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Namibia Square",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039437",
+      "boardRouteCode": "FSBC029MTHI",
+      "streetDescription": null
+    },
+    {
+      "sequence": "80",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Ipopeng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039435",
+      "boardRouteCode": "FSBC028MTHI",
+      "streetDescription": null
+    },
+    {
+      "sequence": "81",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Waterbron Kontantwinkel, Piet Odendaal Street, Bainsvlei, Bloemfontein",
+      "routeName": null,
+      "nationalRouteCode": "7000QR10039431",
+      "boardRouteCode": "FSBC040MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "82",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039550",
+      "boardRouteCode": "FSBC031HTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "83",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Phahameng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039669",
+      "boardRouteCode": "FSBC025MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "84",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Turflaagte",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039670",
+      "boardRouteCode": "FSBC022MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "85",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora West",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039420",
+      "boardRouteCode": "FSBC020MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "86",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Freedom Square",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039664",
+      "boardRouteCode": "FSBC023MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "87",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora East",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039666",
+      "boardRouteCode": "FSBC027MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "88",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Ipopeng",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039663",
+      "boardRouteCode": "FSBC028MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "89",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Namibia Square",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039668",
+      "boardRouteCode": "FSBC029MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "90",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central",
+      "routeName": null,
+      "nationalRouteCode": "7000QH10039665",
+      "boardRouteCode": "FSBC120MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "91",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209J000043009",
+      "boardRouteCode": "FSBC120ISO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "92",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Trompsburg",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7100KZ10045155",
+      "boardRouteCode": "FSBC115MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "93",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Turflaagte (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209JC00045156",
+      "boardRouteCode": "FSBC22SOWESTO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "94",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Blue Taxi Rank (Reahola Complex)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000QC00045158",
+      "boardRouteCode": "FSBC095MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "95",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Umtata Urban (Umtata)",
+      "routeName": null,
+      "nationalRouteCode": "7000R33202WN10045159",
+      "boardRouteCode": "FSBC103MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "96",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IP00045160",
+      "boardRouteCode": "FSBC031MTA1",
+      "streetDescription": null
+    },
+    {
+      "sequence": "97",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Lelieveld Street Taxi Rank(Hoopstad)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000U710045161",
+      "boardRouteCode": "FSBC096MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "98",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora West (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209V000045195",
+      "boardRouteCode": "FSBC020HTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "99",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Freedom Square (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IJ00045205",
+      "boardRouteCode": "FSBC023JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "100",
+      "origin": "Jacaranda Taxi Rank",
+      "destination": "Glen (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QE7209JJ00045209",
+      "boardRouteCode": "FSBC047JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "101",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora East (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209V100045214",
+      "boardRouteCode": "FSBC027JTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "102",
+      "origin": "Railway Station Taxi Rank(Bloemfontein)",
+      "destination": "Tempe (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QP72050900045219",
+      "boardRouteCode": "FSBC037MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "103",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209J000045234",
+      "boardRouteCode": "FSBC120SOWESTO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "104",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IP00045237",
+      "boardRouteCode": "FSBC031MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "105",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Blue Taxi Rank (Reahola Complex)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000QC00045238",
+      "boardRouteCode": "FSBC095JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "106",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Bainsvlei (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR72050600045239",
+      "boardRouteCode": "FSBC041JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "107",
+      "origin": "Cnr. Kupela- and Thuso Streets, Matoporong(Reddersburg)",
+      "destination": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000UD7000R310045242",
+      "boardRouteCode": "FSBC700EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "108",
+      "origin": "Cnr. Kupela- and Thuso Streets, Matoporong(Reddersburg)",
+      "destination": "Leeuw Street taxi rank(Smithfield)",
+      "routeName": null,
+      "nationalRouteCode": "7000UD7000UE10045241",
+      "boardRouteCode": "FSBC701EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "109",
+      "origin": "Cnr. Kupela- and Thuso Streets, Matoporong(Reddersburg)",
+      "destination": "Cnr.Tsuelle and Temeku Streets taxi rank(Edenburg)",
+      "routeName": null,
+      "nationalRouteCode": "7000UD7000UF00045244",
+      "boardRouteCode": "FSBC702EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "110",
+      "origin": "Cnr. Kupela- and Thuso Streets, Matoporong(Reddersburg)",
+      "destination": "Gariepdam",
+      "routeName": null,
+      "nationalRouteCode": "7000UD7100NO00045243",
+      "boardRouteCode": "FSBC703EHTBO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "111",
+      "origin": "Bastion Taxi Rank, cnr. Harvey Road and Bastion Street(Bloemfontein)",
+      "destination": "Lourierpark (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QO7209IY00045251",
+      "boardRouteCode": "FSBC036MANGAUNG TA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "112",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Opkoms (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IP00045961",
+      "boardRouteCode": "FSBC031JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "113",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Namibia Square (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209IN00045963",
+      "boardRouteCode": "FSBC029JTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "114",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Bloemspruit Air Force Base (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000R37209JE00046464",
+      "boardRouteCode": "FSBC039SOWESTO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "115",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Mafora East",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209V100047833",
+      "boardRouteCode": "FSBC027SOWESTO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "116",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "J.B. Mafora Central (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209J000048290",
+      "boardRouteCode": "FSBC120HTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "117",
+      "origin": "Russel Square Taxi Rank Cnr. Harvey Road & Hanger Street(Bloemfontein)",
+      "destination": "Bloemanda (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QH7209J300048961",
+      "boardRouteCode": "FSBC118MTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "118",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Waterbron Kontantwinkel, Piet Odendaal Street, Bainsvlei, Bloemfontein (Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7209V700049098",
+      "boardRouteCode": "FSBC040MTRO",
+      "streetDescription": null
+    },
+    {
+      "sequence": "119",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Makeleketla (Winburg)",
+      "routeName": null,
+      "nationalRouteCode": "7000R37203A310129794",
+      "boardRouteCode": "FSBC112GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "120",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Winburg",
+      "routeName": null,
+      "nationalRouteCode": "7000R37100MT10188746",
+      "boardRouteCode": "FS1099GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "121",
+      "origin": "Bloemfontein",
+      "destination": "Bloemfontein",
+      "routeName": null,
+      "nationalRouteCode": "7201BZ7201BZ00133517",
+      "boardRouteCode": "TEMP 23",
+      "streetDescription": null
+    },
+    {
+      "sequence": "122",
+      "origin": "Bloemfontein",
+      "destination": "Koffiefontein",
+      "routeName": null,
+      "nationalRouteCode": "71001G71009Y10133525",
+      "boardRouteCode": "TEMP 24",
+      "streetDescription": null
+    },
+    {
+      "sequence": "123",
+      "origin": "Bloemfontein",
+      "destination": "Bultfontein",
+      "routeName": null,
+      "nationalRouteCode": "71001G4209SS10133604",
+      "boardRouteCode": "TEMP 27",
+      "streetDescription": null
+    },
+    {
+      "sequence": "124",
+      "origin": "Bloemfontein",
+      "destination": "Bloemfontein",
+      "routeName": null,
+      "nationalRouteCode": "71001G71001G00133665",
+      "boardRouteCode": "TEMP 33",
+      "streetDescription": null
+    },
+    {
+      "sequence": "125",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Sterkspruit",
+      "routeName": null,
+      "nationalRouteCode": "7000R33100K110225103",
+      "boardRouteCode": "FSCB101GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "126",
+      "origin": "Majakathata Taxi Rank, Peet Avenue(Bloemfontein)",
+      "destination": "Church Street taxi rank(Wepener)",
+      "routeName": null,
+      "nationalRouteCode": "7000R37000W010230769",
+      "boardRouteCode": "FSBC616FS",
+      "streetDescription": null
+    },
+    {
+      "sequence": "127",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Bastion Square Taxi Rank(Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000QR00359085",
+      "boardRouteCode": "FSBC2009GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "128",
+      "origin": "POWER (Bloemfontein)",
+      "destination": "Sasolburg",
+      "routeName": null,
+      "nationalRouteCode": "733F1Y7100IY10359076",
+      "boardRouteCode": "FSBC2001GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "129",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Malan Street Taxi Rank(Rusternburg)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR6000QZ10359080",
+      "boardRouteCode": "FSBC2006GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "130",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Teachers Taxi Rank(Durban)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR2000VX10359079",
+      "boardRouteCode": "FSBC2004GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "131",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Bastion Square Taxi Rank(Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000QR00359078",
+      "boardRouteCode": "FSBC2003GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "132",
+      "origin": "Bastion Square Taxi Rank(Bloemfontein)",
+      "destination": "Bastion Square Taxi Rank(Bloemfontein)",
+      "routeName": null,
+      "nationalRouteCode": "7000QR7000QR00359083",
+      "boardRouteCode": "FSBC2008GBTA",
+      "streetDescription": null
+    },
+    {
+      "sequence": "135",
+      "origin": "Bloemfontein",
+      "destination": "QWA QWA",
+      "routeName": null,
+      "nationalRouteCode": "71001G7100OU10480036",
+      "boardRouteCode": "GBTA RUSH PERMIT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "136",
+      "origin": "Bloemfontein",
+      "destination": "Aliwal North",
+      "routeName": null,
+      "nationalRouteCode": "71001G11000D10479951",
+      "boardRouteCode": "Bloemfontein to Aliwal North (RUSH PERMIT)",
+      "streetDescription": null
+    },
+    {
+      "sequence": "137",
+      "origin": "Bloemfontein",
+      "destination": "Ficksburg (Ficksburg)",
+      "routeName": null,
+      "nationalRouteCode": "71001G7204V510480149",
+      "boardRouteCode": "TEMP - RUSH PERMIT",
+      "streetDescription": null
+    },
+    {
+      "sequence": "139",
+      "origin": "Bloemfontein",
+      "destination": "Aliwal North",
+      "routeName": null,
+      "nationalRouteCode": "71001G11000D10479954",
+      "boardRouteCode": "RUSH PERMIT (1)",
+      "streetDescription": null
+    },
+    {
+      "sequence": "140",
+      "origin": "Bloemfontein",
+      "destination": "QWA QWA",
+      "routeName": null,
+      "nationalRouteCode": "71001G7100OU10480039",
+      "boardRouteCode": "GBTA -RUSH PERMIT",
+      "streetDescription": null
+    }
+  ],
+  "quarantinedRows": [
+    {
+      "sequence": "133",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "134",
+      "reason": "route_definition_not_captured_in_report"
+    },
+    {
+      "sequence": "138",
+      "reason": "route_definition_not_captured_in_report"
+    }
+  ]
+}

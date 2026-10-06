@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "phase": "TN5-H2",
+  "sourceId": "nltis-ivory-park",
+  "authority": "National Land Transport Information System / OLAS",
+  "reportUrl": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33747&sAssocName=Ivory+Park+Taxi+Association&sAssocRegNum=RASGPA0333747",
+  "associationRegistration": "RASGPA0333747",
+  "scope": "Ivory Park / Tembisa / Midrand / adjacent East Rand rank-like endpoints only",
+  "policy": {
+    "canonicalLabelsFromOfficialRouteNodes": true,
+    "fuzzyMerge": false,
+    "coordinatesInvented": false,
+    "verificationStatus": "documented"
+  },
+  "ranks": [
+    {
+      "externalRecordId": "tn5-h2-ivory-rank-01",
+      "canonicalName": "IVORY PARK EXTENSION 2 (EMTHONJENI TAXI RANK) EXTENSION 3 KOPANONG TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h2-ivory-rank-02",
+      "canonicalName": "WINNIE MANDELA TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h2-ivory-rank-03",
+      "canonicalName": "IVORY PARK KOPANONG TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h2-ivory-rank-04",
+      "canonicalName": "KEMPTON PARK MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h2-ivory-rank-05",
+      "canonicalName": "EDENVALE EASTLEIGH COMMUTERS TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h2-ivory-rank-06",
+      "canonicalName": "PHOMOLONG TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    }
+  ]
+}

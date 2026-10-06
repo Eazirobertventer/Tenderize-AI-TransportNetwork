@@ -1,0 +1,135 @@
+name: TN5-F Expanded NLTIS Endpoint Reconciliation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-expanded-endpoint-reconciliation:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Seed national-rank reconciliation fixture
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO source_registry (source_key,source_name,authority,source_class,official,legacy)
+          VALUES ('nltis-tn5f-proof','NLTIS TN5-F proof','National Land Transport Information System','nltis_olas',true,false);
+
+          INSERT INTO taxi_association
+            (canonical_name,registration_number,province,verification_status)
+          VALUES
+            ('TN5F GAUTENG ASSOCIATION','RASGPA0999999','Gauteng','documented');
+
+          INSERT INTO taxi_rank
+            (canonical_name,aliases,province,municipality,town,verification_status,location)
+          VALUES
+            ('ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE','{}','Gauteng','City of Johannesburg','Alexandra','official',ST_SetSRID(ST_MakePoint(28.102,-26.105),4326)),
+            ('IVORY PARK CENTRAL TAXI RANK',ARRAY['IVORY PARK CENTRAL RANK','IP CENTRAL TAXI RANK'],'Gauteng','City of Johannesburg','Ivory Park','official',ST_SetSRID(ST_MakePoint(28.176,-25.996),4326)),
+            ('MIDRAND MAIN TAXI RANK','{}','Gauteng','City of Johannesburg','Midrand','official',ST_SetSRID(ST_MakePoint(28.126,-25.999),4326)),
+            ('AMBIGUOUS CENTRAL TAXI RANK','{}','Gauteng','City of Johannesburg','Johannesburg','official',ST_SetSRID(ST_MakePoint(28.050,-26.180),4326)),
+            ('AMBIGUOUS CENTRAL TAXI RANK','{}','Gauteng','City of Johannesburg','Johannesburg','candidate',ST_SetSRID(ST_MakePoint(28.051,-26.181),4326)),
+            ('MIDRAND MAIN TAXI RANK','{}','Limpopo','Other Municipality','Other Town','official',ST_SetSRID(ST_MakePoint(29.000,-23.000),4326));
+
+          WITH a AS (
+            SELECT id FROM taxi_association WHERE registration_number='RASGPA0999999'
+          )
+          INSERT INTO taxi_route
+            (association_id,origin_label,destination_label,route_name,route_type,geometry_status,verification_status)
+          SELECT id,'ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE','IVORY PARK CENTRAL RANK','EXACT TO ALIAS','minibus_taxi','pending','documented'::verification_status FROM a
+          UNION ALL
+          SELECT id,'MIDRAND MAIN TAXI RNK','NOWHERE UNKNOWN TERMINUS','FUZZY TO UNRESOLVED','minibus_taxi','pending','documented'::verification_status FROM a
+          UNION ALL
+          SELECT id,'AMBIGUOUS CENTRAL TAXI RANK','IVORY PARK CENTRAL RANK','AMBIGUOUS TO ALIAS','minibus_taxi','pending','documented'::verification_status FROM a;
+
+          WITH s AS (
+            SELECT id FROM source_registry WHERE source_key='nltis-tn5f-proof'
+          )
+          INSERT INTO source_record
+            (source_id,entity_type,entity_id,external_record_id,source_payload)
+          SELECT s.id,'taxi_route',tr.id,'tn5f-route:'||row_number() over(order by tr.id),'{}'::jsonb
+          FROM s CROSS JOIN taxi_route tr;
+          SQL
+
+      - name: Install reconciliation worker
+        working-directory: apps/reconciliation-worker
+        run: npm install --no-audit --no-fund
+
+      - name: First expanded reconciliation
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+
+      - name: Capture issue count
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation'" > /tmp/issues1
+
+      - name: Second expanded reconciliation
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+
+      - name: Prove taxonomy and no fuzzy auto-merge
+        run: |
+          exact_links=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from taxi_route where origin_label='ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE' and origin_rank_id is not null")
+          alias_links=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from taxi_route where destination_label='IVORY PARK CENTRAL RANK' and destination_rank_id is not null")
+          fuzzy_links=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from taxi_route where origin_label='MIDRAND MAIN TAXI RNK' and origin_rank_id is not null")
+          candidate_issues=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation' and detail->>'classification'='HIGH_CONFIDENCE_CANDIDATE' and status='open'")
+          unresolved_issues=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation' and detail->>'classification'='UNRESOLVED' and status='open'")
+          ambiguous_issues=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation' and detail->>'classification'='AMBIGUOUS' and status='open'")
+          wrong_province_candidate=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from data_issue d, jsonb_array_elements(d.detail->'candidates') c where d.issue_type='nltis_endpoint_reconciliation' and c->>'province'='Limpopo'")
+          issues1=$(cat /tmp/issues1)
+          issues2=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select count(*) from data_issue where issue_type='nltis_endpoint_reconciliation'")
+
+          test "$exact_links" = "1"
+          test "$alias_links" = "2"
+          test "$fuzzy_links" = "0"
+          test "$candidate_issues" = "1"
+          test "$unresolved_issues" = "1"
+          test "$ambiguous_issues" = "1"
+          test "$wrong_province_candidate" = "0"
+          test "$issues1" = "$issues2"
+
+      - name: Prove review candidate metadata
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -Atc             "select detail::text from data_issue where issue_type='nltis_endpoint_reconciliation' and detail->>'classification'='HIGH_CONFIDENCE_CANDIDATE' limit 1" > /tmp/candidate.json
+          node <<'NODE'
+          const fs=require('fs');
+          const d=JSON.parse(fs.readFileSync('/tmp/candidate.json','utf8'));
+          if(d.autoMerge!==false) throw new Error('candidate must not auto merge');
+          if(d.action!=='manual_review_required') throw new Error('candidate must require manual review');
+          if(!Array.isArray(d.candidates) || d.candidates.length<1) throw new Error('candidate list missing');
+          if(!(d.topScore>=0.82)) throw new Error('top score below threshold');
+          if(!(d.scoreMargin>=0.08)) throw new Error('candidate margin below threshold');
+          if(d.candidates[0].name!=='MIDRAND MAIN TAXI RANK') throw new Error('unexpected top candidate');
+          console.log(JSON.stringify({event:'tn5_f_candidate_contract_pass',candidate:d.candidates[0],topScore:d.topScore,scoreMargin:d.scoreMargin}));
+          NODE
+
+      - name: Prove source routes unchanged
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route")" = "3"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where geometry is not null")" = "0"

@@ -1,0 +1,22 @@
+name: TN6-I KZN Route Reconciliation Read-Only
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-read-only-classifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: node --check apps/kzn-route-worker/reconcile-readonly.mjs
+      - name: Prove read-only and no canonical writes
+        run: |
+          grep -q "BEGIN READ ONLY" apps/kzn-route-worker/reconcile-readonly.mjs
+          grep -q "canonicalRouteWrites:false" apps/kzn-route-worker/reconcile-readonly.mjs
+          ! grep -q "INSERT INTO taxi_route" apps/kzn-route-worker/reconcile-readonly.mjs
+          ! grep -q "UPDATE taxi_route" apps/kzn-route-worker/reconcile-readonly.mjs

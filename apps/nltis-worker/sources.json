@@ -1,0 +1,74 @@
+[
+  {
+    "id": "nltis-birchleigh-oakmoor",
+    "associationId": 34385,
+    "associationName": "BIRCHLEIGH OAKMOOR TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0134385",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34385&sAssocName=BIRCHLEIGH+OAKMOOR+TAXI+ASSOCIATION&sAssocRegNum=RASGPA0134385"
+  },
+  {
+    "id": "nltis-armsta",
+    "associationId": 34237,
+    "associationName": "ALEXANDRA RANDBURG MIDRAND SANDTON LOCAL AND LONG DISTANCE TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0134237",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34237&sAssocName=ALEXANDRA+RANDBURG+MIDRAND+SANDTON+LOCAL+AND+LONG+DISTANCE+TAXI+ASSOCIATION&sAssocRegNum=RASGPA0134237"
+  },
+  {
+    "id": "nltis-ivory-park",
+    "associationId": 33747,
+    "associationName": "IVORY PARK TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0333747",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33747&sAssocName=Ivory+Park+Taxi+Association&sAssocRegNum=RASGPA0333747"
+  },
+  {
+    "id": "nltis-pretoria-plaza",
+    "associationId": 33774,
+    "associationName": "PRETORIA PLAZA TAXI ASSOCIATION",
+    "registrationNumber": "RASGPA0333774",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33774&sAssocName=Pretoria+Plaza+Taxi+Association&sAssocRegNum=RASGPA0333774"
+  },
+  {
+    "id": "nltis-greater-bloemfontein",
+    "associationId": 34187,
+    "associationName": "GREATER BLOEMFONTEIN TAXI ASSOCIATION",
+    "registrationNumber": "RASFSA0134187",
+    "province": "Free State",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=34187&sAssocName=greater+bloemfontein+taxi+association&sAssocRegNum=rasfsa0134187"
+  },
+  {
+    "id": "nltis-civic-centre",
+    "associationId": 33790,
+    "associationName": "Civic Centre Taxi Association",
+    "registrationNumber": "RASGPA0333790",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33790&sAssocName=Civic+Centre+Taxi+Association&sAssocRegNum=RASGPA0333790"
+  },
+  {
+    "id": "nltis-lehlabile",
+    "associationId": 33649,
+    "associationName": "Lehlabile Taxi Association",
+    "registrationNumber": "RASGPA0333649",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33649&sAssocName=Lehlabile+Taxi+Association&sAssocRegNum=RASGPA0333649"
+  },
+  {
+    "id": "nltis-germiston-jane-furse",
+    "associationId": 33751,
+    "associationName": "Germiston Jane Furse Long Distance Taxi Association",
+    "registrationNumber": "RASGPA0333751",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33751&sAssocName=Germiston+Jane+Furse+Long+Distance+Taxi+Association&sAssocRegNum=RASGPA0333751"
+  },
+  {
+    "id": "nltis-hammanskraal",
+    "associationId": 33788,
+    "associationName": "HAMMANSKRAAL TAXI ORGANISATION",
+    "registrationNumber": "RASGPA0333788",
+    "province": "Gauteng",
+    "url": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33788&sAssocName=HAMMANSKRAAL+TAXI+ORGANISATION&sAssocRegNum=RASGPA0333788"
+  }
+]

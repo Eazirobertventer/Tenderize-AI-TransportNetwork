@@ -1,0 +1,127 @@
+name: TN5-E NLTIS Map Evidence Proof
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-nltis-map-evidence:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+      NLTIS_FORCE_SNAPSHOT: "true"
+      NLTIS_SOURCE_IDS: nltis-armsta,nltis-ivory-park,nltis-pretoria-plaza,nltis-greater-bloemfontein
+      PORT: "8080"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply schema
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/001_initial.sql
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f db/002_relation_candidates.sql
+
+      - name: Seed exact rank endpoints only
+        run: |
+          psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO taxi_rank
+            (canonical_name,province,verification_status,location)
+          VALUES
+            ('EASTLYN PLAZA MAIN TAXI RANK','Gauteng','official',ST_SetSRID(ST_MakePoint(28.2730,-25.6810),4326)),
+            ('WONDERBOOM STATION MAIN TAXI RANK','Gauteng','official',ST_SetSRID(ST_MakePoint(28.1900,-25.6910),4326)),
+            ('ALEXANDRA MAIN TAXI RANK @ 15TH AVENUE','Gauteng','official',ST_SetSRID(ST_MakePoint(28.1000,-26.1050),4326)),
+            ('Wynberg (Sandton / Rosebank)','Gauteng','official',ST_SetSRID(ST_MakePoint(28.0870,-26.1030),4326));
+          SQL
+
+      - name: Install workers and API
+        run: |
+          npm --prefix apps/nltis-worker install --no-audit --no-fund
+          npm --prefix apps/reconciliation-worker install --no-audit --no-fund
+          npm --prefix apps/transport-api install --no-audit --no-fund
+
+      - name: Import complete verified NLTIS snapshots
+        working-directory: apps/nltis-worker
+        run: npm run ingest
+
+      - name: Reconcile exact NLTIS endpoints
+        working-directory: apps/reconciliation-worker
+        run: npm run reconcile:nltis
+
+      - name: Prove database safety boundary
+        run: |
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where verification_status='documented'")" = "312"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from data_issue where issue_type='nltis_report_row_quarantined' and status='open'")" = "13"
+          test "$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where geometry is not null and verification_status='documented'")" = "0"
+          linked=$(psql -h 127.0.0.1 -U transport -d transport_network -Atc "select count(*) from taxi_route where origin_rank_id is not null and destination_rank_id is not null and verification_status='documented'")
+          test "$linked" -ge "2"
+
+      - name: Start transport API
+        working-directory: apps/transport-api
+        run: |
+          npm start >/tmp/transport-api.log 2>&1 &
+          echo $! >/tmp/transport-api.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/transport-api.log
+          exit 1
+
+      - name: Prove endpoint evidence API and route-path separation
+        run: |
+          curl -fsS http://127.0.0.1:8080/api/v1/nltis/endpoint-evidence > /tmp/evidence.json
+          curl -fsS http://127.0.0.1:8080/api/v1/routes > /tmp/routes.json
+          node <<'NODE'
+          const fs=require('fs');
+          const evidence=JSON.parse(fs.readFileSync('/tmp/evidence.json','utf8'));
+          const routes=JSON.parse(fs.readFileSync('/tmp/routes.json','utf8'));
+
+          if(evidence.type!=='FeatureCollection') throw new Error('endpoint evidence must be GeoJSON FeatureCollection');
+          if(evidence.evidenceType!=='nltis_exact_endpoint_connector') throw new Error('unexpected evidence type');
+          if(evidence.notRoutePath!==true) throw new Error('top-level notRoutePath must be true');
+          if(evidence.features.length<2) throw new Error('expected at least two exactly reconciled endpoint connectors');
+
+          for(const feature of evidence.features){
+            if(feature.geometry?.type!=='LineString') throw new Error('endpoint evidence must be LineString');
+            if(feature.properties?.evidenceOnly!==true) throw new Error('feature missing evidenceOnly');
+            if(feature.properties?.exactEndpoints!==true) throw new Error('feature missing exactEndpoints');
+            if(feature.properties?.notRoutePath!==true) throw new Error('feature missing notRoutePath');
+            if(feature.properties?.geometryStatus!=='endpoint_connector_evidence') throw new Error('wrong geometryStatus');
+            if(!String(feature.properties?.sourceKey||'').startsWith('nltis-')) throw new Error('non-NLTIS source leaked into endpoint evidence');
+          }
+
+          if(routes.features.length!==0){
+            throw new Error('NLTIS endpoint connectors leaked into source-backed route geometry endpoint');
+          }
+
+          console.log(JSON.stringify({
+            event:'tn5_e_map_evidence_pass',
+            endpointEvidenceFeatures:evidence.features.length,
+            sourceBackedRouteGeometries:routes.features.length,
+            notRoutePath:true
+          }));
+          NODE
+
+      - name: Prove UI labels the evidence correctly
+        run: |
+          grep -q "NLTIS exact endpoints — not route path" live/index.html
+          grep -q "nltis-endpoint-connectors" live/app.js
+          grep -q "not the travelled road path" live/app.js

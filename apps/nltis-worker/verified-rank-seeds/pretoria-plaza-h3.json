@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "phase": "TN5-H3",
+  "sourceId": "nltis-pretoria-plaza",
+  "authority": "National Land Transport Information System / OLAS",
+  "reportUrl": "https://nltis.transport.gov.za/Reports/RAS/GenerateReport.asp?cboFilterTypeID=2&cboReportID=5&iAssocId=33774&sAssocName=Pretoria+Plaza+Taxi+Association&sAssocRegNum=RASGPA0333774",
+  "associationRegistration": "RASGPA0333774",
+  "scope": "Pretoria Plaza / Tshwane explicit taxi-rank endpoints only",
+  "policy": {
+    "canonicalLabelsFromOfficialRouteNodes": true,
+    "fuzzyMerge": false,
+    "coordinatesInvented": false,
+    "verificationStatus": "documented"
+  },
+  "ranks": [
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-01",
+      "canonicalName": "EASTLYN PLAZA MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-02",
+      "canonicalName": "WONDERBOOM STATION MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-03",
+      "canonicalName": "ERASMUS MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-04",
+      "canonicalName": "KAMEELDRIFT WALMAN CROSS TEMPORARY ALLOCATED TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-05",
+      "canonicalName": "WAVERLY 18 AVENUE INFORMAL TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-06",
+      "canonicalName": "DOORMPORT MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-07",
+      "canonicalName": "MAHUBE\\EXT10\\EXT17 TEMPORARY ALLOCATED TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-08",
+      "canonicalName": "HAMMANSKRAAL/KOPANONG SHOPPING COMPLEX MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-09",
+      "canonicalName": "WONDERPARK SHOPPING COMPLEX TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-10",
+      "canonicalName": "MABOPANE STATION MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    },
+    {
+      "externalRecordId": "tn5-h3-pretoria-rank-11",
+      "canonicalName": "DENNEBOOM STATION MAIN TAXI RANK",
+      "province": "Gauteng",
+      "verificationStatus": "documented",
+      "location": null,
+      "aliases": []
+    }
+  ]
+}

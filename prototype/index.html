@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tenderize Transport Network</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="nav-rail">
+      <div class="brand-mark">T</div>
+      <button class="nav-icon active" data-view="map" title="Map Explorer">⌖</button>
+      <button class="nav-icon" data-view="ranks" title="Taxi Ranks">▦</button>
+      <button class="nav-icon" data-view="routes" title="Routes">⇄</button>
+      <button class="nav-icon" data-view="associations" title="Associations">◇</button>
+      <button class="nav-icon" data-view="quality" title="Data Quality">!</button>
+      <div class="nav-spacer"></div>
+      <button class="nav-icon" title="Settings">⚙</button>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="title-block">
+          <div class="eyebrow">TENDERIZE • TRANSPORT INTELLIGENCE</div>
+          <h1>South Africa Taxi Network</h1>
+        </div>
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input id="globalSearch" placeholder="Search taxi rank, association, province or route…" />
+          <kbd>⌘ K</kbd>
+        </div>
+        <div class="top-actions">
+          <div class="coverage-pill"><span class="pulse"></span><span>Prototype data</span></div>
+          <button class="ghost-btn" id="sourceBtn">Sources</button>
+          <div class="avatar">RV</div>
+        </div>
+      </header>
+
+      <section class="kpi-strip">
+        <div class="kpi"><span>Mapped ranks</span><strong id="rankCount">0</strong><small>seed dataset</small></div>
+        <div class="kpi"><span>Associations</span><strong id="associationCount">0</strong><small>documented</small></div>
+        <div class="kpi"><span>Routes</span><strong id="routeCount">0</strong><small>documented + inferred</small></div>
+        <div class="kpi"><span>Official sources</span><strong id="sourceCount">0</strong><small>connected adapters</small></div>
+        <div class="kpi"><span>Data conflicts</span><strong>0</strong><small>prototype</small></div>
+      </section>
+
+      <section class="content-grid">
+        <section class="map-card">
+          <div class="map-toolbar">
+            <div class="segmented">
+              <button class="active" data-mapmode="map">Map</button>
+              <button data-mapmode="network">Network</button>
+            </div>
+            <select id="provinceFilter">
+              <option value="all">All South Africa</option>
+            </select>
+            <div class="map-toolbar-spacer"></div>
+            <button class="tool-btn" id="layersBtn">☷ Layers</button>
+            <button class="tool-btn" id="fitBtn">⊙ Fit</button>
+          </div>
+
+          <div class="map-stage" id="mapStage">
+            <svg id="mapSvg" viewBox="0 0 1000 680" preserveAspectRatio="none" aria-label="Prototype South Africa transport network map">
+              <defs>
+                <linearGradient id="mapBg" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#f8fbff"/>
+                  <stop offset="100%" stop-color="#eef4f8"/>
+                </linearGradient>
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="7" flood-opacity="0.18"/>
+                </filter>
+                <pattern id="gridPattern" width="34" height="34" patternUnits="userSpaceOnUse">
+                  <path d="M 34 0 L 0 0 0 34" fill="none" stroke="#dbe5ec" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect x="0" y="0" width="1000" height="680" fill="url(#mapBg)"/>
+              <rect x="0" y="0" width="1000" height="680" fill="url(#gridPattern)" opacity="0.55"/>
+              <path id="saShape" d="M141,304 L176,214 L258,171 L366,131 L478,111 L595,125 L690,166 L781,203 L854,261 L889,338 L858,422 L807,489 L718,546 L617,586 L502,604 L384,589 L277,548 L206,483 L166,394 Z"
+                    fill="#ffffff" stroke="#cbd8e2" stroke-width="3" filter="url(#shadow)"/>
+              <g id="provinceLabels" class="province-labels">
+                <text x="520" y="205">LIMPOPO</text>
+                <text x="670" y="280">MPUMALANGA</text>
+                <text x="550" y="328">GAUTENG</text>
+                <text x="750" y="410">KWAZULU-NATAL</text>
+                <text x="525" y="455">FREE STATE</text>
+                <text x="335" y="280">NORTH WEST</text>
+                <text x="305" y="435">NORTHERN CAPE</text>
+                <text x="600" y="545">EASTERN CAPE</text>
+                <text x="342" y="560">WESTERN CAPE</text>
+              </g>
+              <g id="routeLayer"></g>
+              <g id="markerLayer"></g>
+            </svg>
+
+            <div class="map-badge top-left">
+              <strong>Network coverage</strong>
+              <span>Prototype seed • live adapters configured</span>
+            </div>
+            <div class="zoom-controls">
+              <button>＋</button><button>−</button>
+            </div>
+            <div class="legend">
+              <div><span class="legend-dot official"></span>Official / verified</div>
+              <div><span class="legend-dot candidate"></span>Candidate</div>
+              <div><span class="legend-line documented"></span>Documented route</div>
+              <div><span class="legend-line inferred"></span>Inferred only</div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="detail-panel" id="detailPanel">
+          <div class="detail-empty" id="detailEmpty">
+            <div class="target-glyph">⌖</div>
+            <h2>Select a taxi rank</h2>
+            <p>Choose a marker to inspect coordinates, provenance, associations and route relationships.</p>
+          </div>
+          <div class="detail-content hidden" id="detailContent">
+            <div class="detail-head">
+              <div>
+                <div class="badge" id="detailStatus">CANDIDATE</div>
+                <h2 id="detailName"></h2>
+                <p id="detailTown"></p>
+              </div>
+              <button class="icon-close" id="closeDetail">×</button>
+            </div>
+            <div class="detail-tabs">
+              <button class="active">Overview</button>
+              <button>Routes</button>
+              <button>Sources</button>
+            </div>
+            <div class="detail-body">
+              <div class="info-grid">
+                <div><span>Province</span><strong id="detailProvince"></strong></div>
+                <div><span>Coordinates</span><strong id="detailCoords"></strong></div>
+                <div><span>Associations</span><strong id="detailAssoc"></strong></div>
+                <div><span>Direct destinations</span><strong id="detailDest"></strong></div>
+              </div>
+              <div class="section-block">
+                <div class="section-title">Data provenance</div>
+                <div class="source-card">
+                  <div class="source-icon">◎</div>
+                  <div><strong id="detailSource"></strong><span id="detailSourceNote">Verification pending</span></div>
+                </div>
+              </div>
+              <div class="section-block">
+                <div class="section-title">Connected network</div>
+                <div id="detailRoutes" class="route-list"></div>
+              </div>
+              <button class="primary-btn full" id="openNetwork">Explore connections</button>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="bottom-grid">
+        <div class="panel route-explorer">
+          <div class="panel-head"><div><span class="eyebrow">NETWORK EXPLORER</span><h3>Plan through the taxi network</h3></div><span class="beta">BETA</span></div>
+          <div class="journey-form">
+            <label>FROM<select id="fromRank"></select></label>
+            <div class="arrow">→</div>
+            <label>TO<select id="toRank"></select></label>
+            <button class="primary-btn" id="findRoute">Find connections</button>
+          </div>
+          <div id="journeyResult" class="journey-result">Choose two mapped ranks to test the graph. Prototype paths are clearly labelled as inferred.</div>
+        </div>
+
+        <div class="panel source-panel" id="sourcePanel">
+          <div class="panel-head"><div><span class="eyebrow">SOURCE REGISTRY</span><h3>Connected official feeds</h3></div><button class="ghost-btn small" id="refreshSources">Refresh</button></div>
+          <div id="sourceList" class="source-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./data/seed-data.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
