@@ -1,0 +1,47 @@
+name: TN6-Z1-R2 Authoritative Mirror Recovery
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/**'
+      - '.github/workflows/tn6-z1-r2-mirror-recovery.yml'
+  workflow_dispatch:
+
+jobs:
+  verify-mirrors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        working-directory: apps/kzn-licence-corpus-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Download authoritative provincial-gazette mirrors
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-all-errors --connect-timeout 30 --max-time 180             'https://www1.saflii.org/za/gaz/ZAKZPrGaz/2025/31.pdf' -o /tmp/mirror-mar.pdf
+          curl -fL --retry 3 --retry-all-errors --connect-timeout 30 --max-time 180             'https://www.saflii.org/za/gaz/ZAKZPrGaz/2025/11.pdf' -o /tmp/mirror-jan.pdf
+          test -s /tmp/mirror-mar.pdf
+          test -s /tmp/mirror-jan.pdf
+
+      - name: Verify route-level mirror anchors
+        working-directory: apps/kzn-licence-corpus-worker
+        run: |
+          node verify-mirrors.mjs             --pdf-LGKZNG06-2025-MAY=/tmp/mirror-mar.pdf             --pdf-LGKZNG11-2025-JUN=/tmp/mirror-jan.pdf             --pdf-LGKZNG13-2025-JUL=/tmp/mirror-mar.pdf             | tee /tmp/tn6-z1-r2-summary.json
+          grep -q '"routeLevelAuthoritativeMirrors": 3' /tmp/tn6-z1-r2-summary.json
+          grep -q '"exactDocumentMirrors": 0' /tmp/tn6-z1-r2-summary.json
+
+      - name: Prove read-only boundary
+        run: |
+          ! grep -REiq "(insert into|update[[:space:]]+taxi_|delete from|DATABASE_URL)" apps/kzn-licence-corpus-worker
+          grep -q '"databaseWrites": false' /tmp/tn6-z1-r2-summary.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tn6-z1-r2-mirror-verification
+          path: /tmp/tn6-z1-r2-summary.json
+          retention-days: 7

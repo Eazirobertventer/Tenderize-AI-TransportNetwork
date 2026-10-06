@@ -1,0 +1,29 @@
+[
+  {
+    "targetDocumentId":"LGKZNG06-2025-MAY",
+    "targetAnchorRouteId":"2207GY2207GY00050412",
+    "targetAnchorAssociation":"NQUTHU DISTRICT PIONEERS TAXI ASSOC.",
+    "mirrorDocumentId":"LGKZNG48-2025-MAR",
+    "mirrorUrl":"https://www1.saflii.org/za/gaz/ZAKZPrGaz/2025/31.pdf",
+    "mirrorAuthority":"KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+    "identityClass":"route-level-authoritative-mirror"
+  },
+  {
+    "targetDocumentId":"LGKZNG11-2025-JUN",
+    "targetAnchorRouteId":"2203BJ2202ER00047603",
+    "targetAnchorAssociation":"BERGVILLE TAXI ASSOCIATION",
+    "mirrorDocumentId":"LGKZNG41-2025-JAN",
+    "mirrorUrl":"https://www.saflii.org/za/gaz/ZAKZPrGaz/2025/11.pdf",
+    "mirrorAuthority":"KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+    "identityClass":"route-level-authoritative-mirror"
+  },
+  {
+    "targetDocumentId":"LGKZNG13-2025-JUL",
+    "targetAnchorRouteId":"KZPRERC2775617",
+    "targetAnchorAssociation":"NOT AVAILABLE",
+    "mirrorDocumentId":"LGKZNG48-2025-MAR",
+    "mirrorUrl":"https://www1.saflii.org/za/gaz/ZAKZPrGaz/2025/31.pdf",
+    "mirrorAuthority":"KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+    "identityClass":"route-level-authoritative-mirror"
+  }
+]

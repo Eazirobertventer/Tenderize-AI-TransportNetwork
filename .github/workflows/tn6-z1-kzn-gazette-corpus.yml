@@ -1,0 +1,35 @@
+name: TN6-Z1 KZN Gazette Corpus Extractor
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-dormant-extractor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install extractor dependencies
+        working-directory: apps/kzn-licence-corpus-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Syntax
+        run: |
+          node --check apps/kzn-licence-corpus-worker/parser.mjs
+          node --check apps/kzn-licence-corpus-worker/extract.mjs
+          node --check apps/kzn-licence-corpus-worker/test-parser.mjs
+
+      - name: Parse representative fixture
+        working-directory: apps/kzn-licence-corpus-worker
+        run: npm test
+
+      - name: Prove dormant read-only boundary
+        run: |
+          ! grep -REiq "(insert into|update[[:space:]]+taxi_|delete from|DATABASE_URL)" apps/kzn-licence-corpus-worker
+          grep -q "databaseWrites:false" apps/kzn-licence-corpus-worker/extract.mjs
+          grep -q "rankLinkWrites:false" apps/kzn-licence-corpus-worker/extract.mjs
+          grep -q "routeCandidateWrites:false" apps/kzn-licence-corpus-worker/extract.mjs
