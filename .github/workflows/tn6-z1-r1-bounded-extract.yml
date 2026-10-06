@@ -21,13 +21,23 @@ jobs:
         working-directory: apps/kzn-licence-corpus-worker
         run: npm install --no-audit --no-fund
 
+      - name: Download bounded three-document batch
+        run: |
+          set -euo pipefail
+          curl -4 -fL --retry 4 --retry-all-errors --connect-timeout 30 --max-time 180             -A 'TenderizeTransportNetwork/1.0 tn6-z1-r1'             'https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG06-2025-MAY.pdf'             -o /tmp/may.pdf
+          curl -4 -fL --retry 4 --retry-all-errors --connect-timeout 30 --max-time 180             -A 'TenderizeTransportNetwork/1.0 tn6-z1-r1'             'https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG11-2025-JUN.pdf'             -o /tmp/jun.pdf
+          curl -4 -fL --retry 4 --retry-all-errors --connect-timeout 30 --max-time 180             -A 'TenderizeTransportNetwork/1.0 tn6-z1-r1'             'https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG13-2025-JUL.pdf'             -o /tmp/jul.pdf
+          test -s /tmp/may.pdf
+          test -s /tmp/jun.pdf
+          test -s /tmp/jul.pdf
+
       - name: Extract bounded three-document batch
         working-directory: apps/kzn-licence-corpus-worker
         run: |
           set -euo pipefail
-          node extract.mjs --source=LGKZNG06-2025-MAY > /tmp/may.jsonl
-          node extract.mjs --source=LGKZNG11-2025-JUN > /tmp/jun.jsonl
-          node extract.mjs --source=LGKZNG13-2025-JUL > /tmp/jul.jsonl
+          node extract.mjs --source=LGKZNG06-2025-MAY --pdf=/tmp/may.pdf > /tmp/may.jsonl
+          node extract.mjs --source=LGKZNG11-2025-JUN --pdf=/tmp/jun.pdf > /tmp/jun.jsonl
+          node extract.mjs --source=LGKZNG13-2025-JUL --pdf=/tmp/jul.pdf > /tmp/jul.jsonl
 
       - name: Quantify evidence coverage
         working-directory: apps/kzn-licence-corpus-worker
