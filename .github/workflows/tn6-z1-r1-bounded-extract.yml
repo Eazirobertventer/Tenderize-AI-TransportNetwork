@@ -1,10 +1,6 @@
 name: TN6-Z1-R1 Bounded KZN Gazette Extraction
 
 on:
-  pull_request:
-    paths:
-      - 'apps/kzn-licence-corpus-worker/**'
-      - '.github/workflows/tn6-z1-r1-bounded-extract.yml'
   workflow_dispatch:
 
 jobs:
