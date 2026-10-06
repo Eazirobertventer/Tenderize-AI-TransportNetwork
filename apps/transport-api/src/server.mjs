@@ -923,6 +923,11 @@ const server=createServer(async(req,res)=>{
   const url=new URL(req.url,`http://${req.headers.host || 'localhost'}`);
 
   try{
+    if(!['GET','HEAD'].includes(req.method || 'GET')){
+      res.setHeader('allow','GET, HEAD');
+      return send(res,405,{error:'method_not_allowed'});
+    }
+
     if(url.pathname==='/health'){
       if(!pool) return send(res,503,{ok:false,service:'transport-api',mode:'unconfigured'});
       await pool.query('select 1');
