@@ -1,11 +1,10 @@
-FROM python:3.12-slim
+FROM postgres:16
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends postgresql-client ca-certificates \
-  && rm -rf /var/lib/apt/lists/* \
-  && pip install --no-cache-dir boto3==1.35.95
+  && apt-get install -y --no-install-recommends python3 python3-boto3 ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY backup.py restore.py ./
 
-CMD ["python","backup.py"]
+CMD ["python3","backup.py"]
