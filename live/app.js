@@ -58,8 +58,12 @@ function esc(value=''){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[ch]);
 }
+function rankName(p){
+  return p.displayName || p.name || p.sourceCode || 'Unnamed rank';
+}
 function rankSubtitle(p){
-  return [p.town,p.municipality,p.province].filter(Boolean).join(' • ') || 'Mapped rank';
+  const place=[p.town,p.municipality,p.province].filter(Boolean).join(' • ') || 'Mapped rank';
+  return p.sourceCode && p.sourceCode!==rankName(p) ? p.sourceCode+' • '+place : place;
 }
 
 function focusRank(feature){
@@ -72,8 +76,10 @@ function focusRank(feature){
   rankPopup=new maplibregl.Popup({offset:18,closeButton:true,closeOnClick:false})
     .setLngLat(coordinates)
     .setHTML(
-      '<div class="rank-popup"><strong>'+esc(feature.properties.name)+'</strong>'+
-      '<span>'+esc(rankSubtitle(feature.properties))+'</span></div>'
+      '<div class="rank-popup"><strong>'+esc(rankName(feature.properties))+'</strong>'+
+      (feature.properties.sourceCode && feature.properties.sourceCode!==rankName(feature.properties)
+        ? '<code>'+esc(feature.properties.sourceCode)+'</code>' : '')+
+      '<span>'+esc(rankSubtitle(feature.properties).replace((feature.properties.sourceCode || '')+' • ',''))+'</span></div>'
     )
     .addTo(map);
 }
@@ -110,7 +116,7 @@ function renderRankFinder(){
   list.innerHTML=features.map((feature,index)=>
     '<button class="rank-finder-item" data-rank-index="'+index+'">'+
       '<span class="rank-pin-mini">●</span>'+
-      '<span><strong>'+esc(feature.properties.name)+'</strong><small>'+esc(rankSubtitle(feature.properties))+'</small></span>'+
+      '<span><strong>'+esc(rankName(feature.properties))+'</strong><small>'+esc(rankSubtitle(feature.properties))+'</small></span>'+
       '<b>View</b>'+
     '</button>'
   ).join('');
@@ -308,6 +314,11 @@ async function detail(p){
   const status=full?.verificationStatus || p.verificationStatus || 'unverified';
   const associations=full?.associations || [];
   const routes=full?.routes || [];
+  const sources=full?.sources || [];
+  const candidateCounts=full?.routeCandidateCounts || {total:0,origin:0,destination:0};
+  const displayName=full?.displayName || p.displayName || p.name;
+  const sourceCode=full?.sourceCode || p.sourceCode || p.name;
+  const location=[full?.town || p.town,full?.municipality || p.municipality,full?.province || p.province].filter(Boolean).join(' • ') || 'Location pending';
 
   const associationHtml=associations.length
     ? associations.map(a=>`
@@ -329,23 +340,43 @@ async function detail(p){
           </div>
           <span class="route-type">${esc(r.verificationStatus)}</span>
         </div>`).join('')
-    : '<div class="journey-result">No source-backed route is linked to this rank yet.</div>';
+    : '<div class="journey-result">No canonical source-backed route is linked to this rank yet.</div>';
+
+  const sourceHtml=sources.length
+    ? sources.map(s=>`<div class="evidence-row"><strong>${esc(s.source_name || s.source_key)}</strong><span>${esc(s.authority || 'Authority pending')}</span></div>`).join('')
+    : '<div class="journey-result">No source provenance available.</div>';
 
   document.querySelector('#detail').innerHTML=`
     <div class="rank">
-      <span class="badge ${esc(status)}">${esc(status.replaceAll('_',' '))}</span>
-      <h2>${esc(full?.name || p.name)}</h2>
-      <p>${esc(full?.town || p.town || full?.municipality || p.municipality || 'Location pending')} • ${esc(full?.province || p.province || 'Province pending')}</p>
-      <div class="source">
-        <b>${esc(p.source || 'Tenderize source registry')}</b>
-        <span>Evidence classification is retained. Candidate and inferred data are never represented as official.</span>
+      <div class="rank-headline">
+        <span class="badge ${esc(status)}">${esc(status.replaceAll('_',' '))}</span>
+        ${sourceCode && sourceCode!==displayName ? `<span class="rank-code">KZN Rank Code: ${esc(sourceCode)}</span>` : ''}
       </div>
+      <h2>${esc(displayName)}</h2>
+      <p>${esc(location)}</p>
+
+      <div class="evidence-summary">
+        <div><span>Association</span><strong>${esc(associations[0]?.name || 'Pending')}</strong></div>
+        <div><span>Candidate routes</span><strong>${Number(candidateCounts.total || 0)}</strong><small>${Number(candidateCounts.origin || 0)} origin • ${Number(candidateCounts.destination || 0)} destination</small></div>
+        <div><span>Canonical routes</span><strong>${routes.length}</strong><small>linked to this rank</small></div>
+      </div>
+
+      <div class="source">
+        <b>${esc(sources[0]?.source_name || p.source || 'Tenderize source registry')}</b>
+        <span>${esc(sources[0]?.authority || 'Evidence provenance retained')}</span>
+        <span>Candidate routes remain explicitly separate from canonical routes.</span>
+      </div>
+
       <div class="section-block">
         <div class="section-title">Associations</div>
         <div class="route-list">${associationHtml}</div>
       </div>
       <div class="section-block">
-        <div class="section-title">Linked routes</div>
+        <div class="section-title">Source provenance</div>
+        <div class="route-list">${sourceHtml}</div>
+      </div>
+      <div class="section-block">
+        <div class="section-title">Canonical linked routes</div>
         <div class="route-list">${routeHtml}</div>
       </div>
     </div>`;
