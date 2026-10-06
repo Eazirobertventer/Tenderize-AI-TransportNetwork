@@ -6,7 +6,8 @@
   "scripts": {
     "ingest": "node ingest.mjs",
     "start": "node server.mjs",
-    "build:route-candidates": "node build-route-candidates.mjs"
+    "build:route-candidates": "node build-route-candidates.mjs",
+    "inventory:route-associations": "node association-evidence-readonly.mjs"
   },
   "dependencies": {
     "pg": "^8.13.1"
