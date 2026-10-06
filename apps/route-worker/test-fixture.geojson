@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 900001,
+      "properties": {
+        "OBJECTID": 900001,
+        "ORGN": "CI Fixture Origin A",
+        "DSTN": "CI Fixture Destination A"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[18.41,-33.92],[18.43,-33.94]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 900002,
+      "properties": {
+        "OBJECTID": 900002,
+        "ORGN": "CI Fixture Origin B",
+        "DSTN": "CI Fixture Destination B"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[18.46,-33.91],[18.48,-33.93]]
+      }
+    }
+  ]
+}
