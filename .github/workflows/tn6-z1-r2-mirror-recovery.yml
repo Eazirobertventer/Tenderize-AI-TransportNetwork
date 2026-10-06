@@ -1,10 +1,6 @@
 name: TN6-Z1-R2 Authoritative Mirror Recovery
 
 on:
-  pull_request:
-    paths:
-      - 'apps/kzn-licence-corpus-worker/**'
-      - '.github/workflows/tn6-z1-r2-mirror-recovery.yml'
   workflow_dispatch:
 
 jobs:
