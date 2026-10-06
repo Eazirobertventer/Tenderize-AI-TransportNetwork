@@ -1,0 +1,44 @@
+[
+  {
+    "routeCode":"KZNBRCLDY1085",
+    "association":"Amangwe-Bhekuzulu Taxi Association",
+    "rankNarrative":"Loskop Taxi Rank / Amangwe Tribal Court to Ladysmith",
+    "source":"KwaZulu-Natal Provincial Gazette",
+    "sourceUrl":"https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/10.pdf"
+  },
+  {
+    "routeCode":"KZNBRCLDY1054",
+    "association":"Amangwe-Bhekuzulu Taxi Association",
+    "rankNarrative":"Loskop Taxi Rank / Amangwe Tribal Court to Bergville",
+    "source":"KwaZulu-Natal Provincial Gazette",
+    "sourceUrl":"https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/35.pdf"
+  },
+  {
+    "routeCode":"KZNBRCLDY1220",
+    "association":"Amangwe-Bhekuzulu Taxi Association",
+    "rankNarrative":"Amangwe Tribal Court to Estcourt",
+    "source":"KwaZulu-Natal Provincial Gazette",
+    "sourceUrl":"https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/122.pdf"
+  },
+  {
+    "routeCode":"KZNBRCLDY000651",
+    "association":"Weenen & District Taxi Association",
+    "rankNarrative":"Weenen Taxi Rank to Estcourt Taxi Rank",
+    "source":"KwaZulu-Natal Provincial Gazette",
+    "sourceUrl":"https://www.saflii.org/za/gaz/ZAKZPrGaz/2010/154.pdf"
+  },
+  {
+    "routeCode":"KZNBRCLDY006020",
+    "association":"Estcourt District Taxi Association",
+    "rankNarrative":"Estcourt Taxi Rank to Weenen",
+    "source":"KwaZulu-Natal Provincial Gazette",
+    "sourceUrl":"https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/119.pdf"
+  },
+  {
+    "routeCode":"KZNBRCLDY0857",
+    "association":"Klipriver Taxi Association",
+    "rankNarrative":"Lyell Street Taxi Rank, Ladysmith to Winterton Taxi Rank",
+    "source":"KwaZulu-Natal Provincial Gazette",
+    "sourceUrl":"https://www.saflii.org/za/gaz/ZAKZPrGaz/2008/174.pdf"
+  }
+]
