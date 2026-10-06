@@ -26,6 +26,12 @@ jobs:
           grep -Fq "method_not_allowed" apps/transport-api/src/server.mjs
           grep -Fq "'GET','HEAD'" live/server.mjs
           grep -Fq "'GET','HEAD'" apps/transport-api/src/server.mjs
+      - name: Backup worker syntax
+        run: |
+          python -m py_compile ops/postgres-backup/backup.py ops/postgres-backup/restore.py
+          grep -Fq "pg_dump" ops/postgres-backup/backup.py
+          grep -Fq "pg_restore" ops/postgres-backup/restore.py
+
       - name: Prove public proxy allowlist
         run: |
           grep -Fq "/api/v1/ranks" live/server.mjs
