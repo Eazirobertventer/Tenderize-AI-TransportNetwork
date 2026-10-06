@@ -8,6 +8,7 @@ if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 
 const root=resolve(new URL('.',import.meta.url).pathname);
 const source=JSON.parse(await readFile(resolve(root,'source.json'),'utf8'));
+const fixturePath=process.env.ROUTE_INGEST_FIXTURE ? resolve(root,process.env.ROUTE_INGEST_FIXTURE) : null;
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:3,ssl:false});
 
 async function fetchJson(url, timeoutMs=60000){
@@ -106,25 +107,44 @@ try{
     throw new Error('Required transport schema is not present');
   }
 
-  const ids=await fetchObjectIds();
-  if(ids.length===0) throw new Error('Fail closed: source returned zero route IDs');
+  let ids;
+  let features;
 
-  const features=[];
-  const batchSize=50;
-  for(let i=0;i<ids.length;i+=batchSize){
-    const batch=ids.slice(i,i+batchSize);
-    const rows=await fetchObjectBatch(batch);
-    features.push(...rows);
+  if(fixturePath){
+    const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
+    if(!Array.isArray(fixture.features)) throw new Error('Route fixture has no features array');
+    features=fixture.features;
+    ids=features
+      .map(feature=>Number(feature?.properties?.OBJECTID ?? feature?.id))
+      .filter(Number.isFinite)
+      .sort((a,b)=>a-b);
     console.log(JSON.stringify({
-      event:'route_batch_fetched',
-      start:i,
-      requested:batch.length,
-      returned:rows.length,
-      totalIds:ids.length
+      event:'route_fixture_loaded',
+      fixture:process.env.ROUTE_INGEST_FIXTURE,
+      features:features.length
     }));
+  }else{
+    ids=await fetchObjectIds();
+    if(ids.length===0) throw new Error('Fail closed: source returned zero route IDs');
+
+    features=[];
+    const batchSize=50;
+    for(let i=0;i<ids.length;i+=batchSize){
+      const batch=ids.slice(i,i+batchSize);
+      const rows=await fetchObjectBatch(batch);
+      features.push(...rows);
+      console.log(JSON.stringify({
+        event:'route_batch_fetched',
+        start:i,
+        requested:batch.length,
+        returned:rows.length,
+        totalIds:ids.length
+      }));
+    }
   }
 
-  if(features.length===0) throw new Error('Fail closed: source returned zero route features');
+  if(ids.length===0) throw new Error('Fail closed: source or fixture returned zero route IDs');
+  if(features.length===0) throw new Error('Fail closed: source or fixture returned zero route features');
 
   await client.query('BEGIN');
 
