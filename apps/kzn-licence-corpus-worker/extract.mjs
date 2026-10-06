@@ -7,6 +7,7 @@ import { parseGazetteText } from './parser.mjs';
 const args=new Set(process.argv.slice(2));
 const sourceArg=process.argv.find(value=>value.startsWith('--source='));
 const fixtureArg=process.argv.find(value=>value.startsWith('--fixture='));
+const pdfArg=process.argv.find(value=>value.startsWith('--pdf='));
 const manifest=JSON.parse(await readFile(new URL('./sources.json',import.meta.url),'utf8'));
 
 async function fetchBuffer(url){
@@ -23,7 +24,9 @@ async function extractSource(source){
   if(fixtureArg){
     text=await readFile(fixtureArg.split('=').slice(1).join('='),'utf8');
   }else{
-    const buffer=await fetchBuffer(source.url);
+    const buffer=pdfArg
+      ? await readFile(pdfArg.split('=').slice(1).join('='))
+      : await fetchBuffer(source.url);
     const parsed=await pdf(buffer);
     text=parsed.text;
   }
