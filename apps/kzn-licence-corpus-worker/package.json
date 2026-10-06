@@ -1,0 +1,16 @@
+{
+  "name": "@tenderize/kzn-licence-corpus-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "extract": "node extract.mjs",
+    "test": "node test-parser.mjs"
+  },
+  "dependencies": {
+    "pdf-parse": "1.1.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
