@@ -7,6 +7,22 @@ const root = resolve(new URL('.', import.meta.url).pathname);
 const repoRoot = resolve(root, '..');
 const apiBase = process.env.TRANSPORT_API_URL || '';
 
+const publicApiPaths = [
+  '/api/v1/meta',
+  '/api/v1/ranks',
+  '/api/v1/rank-filters',
+  '/api/v1/routes',
+  '/api/v1/nltis/endpoint-evidence',
+  '/api/v1/source-route-geometries',
+  '/api/v1/route-candidates'
+];
+
+function isPublicApiPath(rawUrl=''){
+  const url=new URL(rawUrl,'http://localhost');
+  if(publicApiPaths.includes(url.pathname)) return true;
+  return /^\/api\/v1\/ranks\/[^/]+$/.test(url.pathname);
+}
+
 const mime = {
   '.html':'text/html; charset=utf-8',
   '.css':'text/css; charset=utf-8',
@@ -46,6 +62,16 @@ createServer(async(req,res)=>{
     }
 
     if (req.url?.startsWith('/api/')) {
+      if(!['GET','HEAD'].includes(req.method || 'GET')){
+        res.writeHead(405,{'content-type':'application/json; charset=utf-8','allow':'GET, HEAD'});
+        res.end(JSON.stringify({error:'method_not_allowed'}));
+        return;
+      }
+      if(!isPublicApiPath(req.url)){
+        res.writeHead(404,{'content-type':'application/json; charset=utf-8'});
+        res.end(JSON.stringify({error:'not_found'}));
+        return;
+      }
       await proxy(req,res);
       return;
     }
