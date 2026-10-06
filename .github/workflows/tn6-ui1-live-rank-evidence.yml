@@ -1,0 +1,27 @@
+name: TN6-UI1 Live Rank Evidence UI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-ui1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check apps/transport-api/src/server.mjs
+          node --check live/app.js
+      - name: Prove UI contract
+        run: |
+          grep -q 'displayName' apps/transport-api/src/server.mjs
+          grep -q 'sourceCode' apps/transport-api/src/server.mjs
+          grep -q 'routeCandidateCounts' apps/transport-api/src/server.mjs
+          grep -q 'KZN Rank Code:' live/app.js
+          grep -q 'Candidate routes' live/app.js
+          grep -q 'Canonical linked routes' live/app.js
+          grep -q 'rank-code' live/styles.css
