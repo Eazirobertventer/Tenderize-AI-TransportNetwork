@@ -1,5 +1,7 @@
 import { readFile } from 'node:fs/promises';
-import pdf from 'pdf-parse/lib/pdf-parse.js';
+import { createRequire } from 'node:module';
+const require=createRequire(import.meta.url);
+const pdf=require('pdf-parse');
 import { parseGazetteText } from './parser.mjs';
 
 const args=new Set(process.argv.slice(2));
