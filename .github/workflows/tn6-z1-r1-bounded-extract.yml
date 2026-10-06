@@ -1,0 +1,53 @@
+name: TN6-Z1-R1 Bounded KZN Gazette Extraction
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/**'
+      - '.github/workflows/tn6-z1-r1-bounded-extract.yml'
+  workflow_dispatch:
+
+jobs:
+  extract-first-batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install extractor dependencies
+        working-directory: apps/kzn-licence-corpus-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Extract bounded three-document batch
+        working-directory: apps/kzn-licence-corpus-worker
+        run: |
+          set -euo pipefail
+          node extract.mjs --source=LGKZNG06-2025-MAY > /tmp/may.jsonl
+          node extract.mjs --source=LGKZNG11-2025-JUN > /tmp/jun.jsonl
+          node extract.mjs --source=LGKZNG13-2025-JUL > /tmp/jul.jsonl
+
+      - name: Quantify evidence coverage
+        working-directory: apps/kzn-licence-corpus-worker
+        run: |
+          node summarize.mjs /tmp/may.jsonl /tmp/jun.jsonl /tmp/jul.jsonl | tee /tmp/tn6-z1-r1-summary.json
+
+      - name: Prove read-only boundary
+        run: |
+          ! grep -REiq "(insert into|update[[:space:]]+taxi_|delete from|DATABASE_URL)" apps/kzn-licence-corpus-worker
+          test -s /tmp/may.jsonl
+          test -s /tmp/jun.jsonl
+          test -s /tmp/jul.jsonl
+          grep -q '"databaseWrites": false' /tmp/tn6-z1-r1-summary.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tn6-z1-r1-bounded-evidence
+          path: |
+            /tmp/may.jsonl
+            /tmp/jun.jsonl
+            /tmp/jul.jsonl
+            /tmp/tn6-z1-r1-summary.json
+          retention-days: 7
