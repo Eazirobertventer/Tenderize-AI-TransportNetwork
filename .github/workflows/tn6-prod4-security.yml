@@ -2,11 +2,6 @@ name: TN6-PROD-4 Security Boundary
 
 on:
   pull_request:
-    paths:
-      - 'live/server.mjs'
-      - 'apps/transport-api/src/server.mjs'
-      - '.github/workflows/tn6-prod4-security.yml'
-      - 'ops/postgres-backup/**'
   workflow_dispatch:
 
 jobs:
