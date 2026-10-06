@@ -25,6 +25,7 @@ jobs:
       PGPASSWORD: transport
       DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
       NLTIS_SOURCE_IDS: nltis-birchleigh-oakmoor
+      NLTIS_FORCE_SNAPSHOT: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
