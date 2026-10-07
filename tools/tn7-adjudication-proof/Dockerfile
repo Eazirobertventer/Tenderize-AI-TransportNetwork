@@ -6,6 +6,7 @@ COPY db/007_two_person_decision_proposals.sql /proof/007_two_person_decision_pro
 COPY db/008_transport_entity_aliases.sql /proof/008_transport_entity_aliases.sql
 COPY db/009_rank_association_promotions.sql /proof/009_rank_association_promotions.sql
 COPY db/010_route_candidate_promotions.sql /proof/010_route_candidate_promotions.sql
+COPY db/011_taxi_rank_merge_foundation.sql /proof/011_taxi_rank_merge_foundation.sql
 COPY tools/tn7-adjudication-proof/setup.sh /proof/setup.sh
 RUN chmod +x /proof/setup.sh
 CMD ["/proof/setup.sh"]
