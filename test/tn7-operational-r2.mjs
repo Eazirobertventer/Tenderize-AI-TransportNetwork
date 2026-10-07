@@ -14,7 +14,7 @@ const checks=[
   [api.includes('async function postgisAssociationDetail'),'association detail API exists'],
   [api.includes("const area=url.searchParams.get('area')"),'association geography supports area scope'],
   [api.includes("WHERE a.id=$1::uuid"),'association detail uses parameterized identity lookup'],
-  [api.includes("where.push('province = $'+params.length)"),'rank filter parameter placeholder is safe'],
+  [api.includes("String.fromCharCode(36) + params.length"),'rank filter parameter placeholder is safe'],
   [web.includes("/^\\/api\\/v1\\/associations\\/[^/]+$/"),'association detail is explicitly public GET allow-listed'],
   [!web.includes("'/api/v1/data-issues'"),'detailed data issues remain private'],
   [index.includes('id="rankExplorerTab"'),'rank explorer tab exists'],
