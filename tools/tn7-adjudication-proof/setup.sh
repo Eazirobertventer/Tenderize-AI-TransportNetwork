@@ -53,7 +53,16 @@ CREATE TABLE IF NOT EXISTS taxi_rank (
   suburb text,
   town text,
   address text,
+  rank_type text,
+  ownership text,
+  formal_status text,
+  service_types text[] NOT NULL DEFAULT '{}',
+  google_place_id text,
+  location geometry(Point,4326),
   verification_status text NOT NULL DEFAULT 'unverified',
+  confidence numeric(5,4),
+  last_verified_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
