@@ -90,6 +90,11 @@
         </section>
 
         <aside class="detail">
+          <div class="explorer-tabs" role="tablist" aria-label="Network explorer">
+            <button id="rankExplorerTab" class="active-toggle" type="button">Ranks</button>
+            <button id="associationExplorerTab" type="button">Associations</button>
+          </div>
+
           <div id="rankFinder" class="rank-finder">
             <div class="rank-finder-head">
               <div><b>Find a taxi rank</b><span><strong id="rankFinderCount">0</strong> <span id="rankFinderScope">visible on map</span></span></div>
@@ -101,6 +106,15 @@
             </div>
             <div id="rankFinderList" class="rank-finder-list"></div>
           </div>
+
+          <div id="associationFinder" class="rank-finder association-finder">
+            <div class="rank-finder-head">
+              <div><b>Find an association</b><span><strong id="associationFinderCount">0</strong> in current scope</span></div>
+              <small>Association points may be authoritative coordinates or clearly-labelled linked-rank coverage centroids.</small>
+            </div>
+            <div id="associationFinderList" class="rank-finder-list"></div>
+          </div>
+
           <div id="detail" class="detail-content">
             <div class="empty">
               <div class="target">⌖</div>
