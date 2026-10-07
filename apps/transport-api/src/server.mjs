@@ -8,6 +8,7 @@ import {
   createAliasProposal,
   createRankAssociationAssignmentProposal,
   createRoutePromotionProposal,
+  createTaxiRankMergeProposal,
   approveDecisionProposal,
   rejectDecisionProposal,
   withdrawDecisionProposal,
@@ -33,7 +34,7 @@ function send(res,status,payload){
 
 async function postgisRanks(url){
   const params=[];
-  const where=['r.location IS NOT NULL'];
+  const where=['r.location IS NOT NULL',"coalesce(to_jsonb(r)->>'merged_into_rank_id','')=''"];
   const province=url.searchParams.get('province');
   const city=url.searchParams.get('city');
   const q=url.searchParams.get('q');
@@ -112,6 +113,7 @@ async function postgisRankFilters(url){
     `SELECT DISTINCT province
      FROM taxi_rank
      WHERE location IS NOT NULL
+       AND coalesce(to_jsonb(taxi_rank)->>'merged_into_rank_id','')=''
        AND province IS NOT NULL
        AND trim(province)<>''
      ORDER BY province`
@@ -120,6 +122,7 @@ async function postgisRankFilters(url){
   const params=[];
   const where=[
     'location IS NOT NULL',
+    "coalesce(to_jsonb(taxi_rank)->>'merged_into_rank_id','')=''",
     "coalesce(nullif(trim(town),''),nullif(trim(municipality),'')) IS NOT NULL"
   ];
 
@@ -147,9 +150,9 @@ async function postgisCoverage(url){
 
   const national=await pool.query(
     `SELECT
-       (SELECT count(*)::int FROM taxi_rank) AS ranks,
-       (SELECT count(*)::int FROM taxi_rank WHERE location IS NOT NULL) AS mapped_ranks,
-       (SELECT count(*)::int FROM taxi_rank WHERE location IS NULL) AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NOT NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS location_pending_ranks,
        (SELECT count(*)::int FROM taxi_association) AS associations,
        (SELECT count(*)::int FROM taxi_route) AS routes,
        (SELECT count(*)::int FROM source_registry) AS sources`
@@ -157,15 +160,15 @@ async function postgisCoverage(url){
 
   const provinces=await pool.query(
     `WITH names AS (
-       SELECT province FROM taxi_rank WHERE province IS NOT NULL AND trim(province)<>''
+       SELECT province FROM taxi_rank r WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')='' AND province IS NOT NULL AND trim(province)<>''
        UNION
        SELECT province FROM taxi_association WHERE province IS NOT NULL AND trim(province)<>''
      )
      SELECT
        names.province,
-       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province) AS ranks,
-       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province AND r.location IS NOT NULL) AS mapped_ranks,
-       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province AND r.location IS NULL) AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province AND r.location IS NOT NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province AND r.location IS NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS location_pending_ranks,
        (SELECT count(*)::int FROM taxi_association a WHERE a.province=names.province) AS associations,
        (SELECT count(*)::int
           FROM taxi_route tr
@@ -185,6 +188,7 @@ async function postgisCoverage(url){
            location
          FROM taxi_rank
          WHERE province=$1
+           AND coalesce(to_jsonb(taxi_rank)->>'merged_into_rank_id','')=''
        )
        SELECT
          ra.area,
@@ -500,9 +504,9 @@ async function postgisDataQualitySummary(){
 async function postgisNetworkInventory(){
   const counts=await pool.query(
     `SELECT
-       (SELECT count(*)::int FROM taxi_rank) AS ranks,
-       (SELECT count(*)::int FROM taxi_rank WHERE location IS NOT NULL) AS mapped_ranks,
-       (SELECT count(*)::int FROM taxi_rank WHERE location IS NULL) AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NOT NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS location_pending_ranks,
        (SELECT count(*)::int FROM taxi_association) AS associations,
        (SELECT count(*)::int FROM taxi_route) AS routes,
        (SELECT count(*)::int FROM rank_association_candidate) AS rank_association_candidates,
@@ -1920,9 +1924,9 @@ async function meta(){
 
   const result=await pool.query(
     `SELECT
-       (SELECT count(*)::int FROM taxi_rank) AS ranks,
-       (SELECT count(*)::int FROM taxi_rank WHERE location IS NOT NULL) AS mapped_ranks,
-       (SELECT count(*)::int FROM taxi_rank WHERE location IS NULL) AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NOT NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS location_pending_ranks,
        (SELECT count(*)::int FROM taxi_association) AS associations,
        (SELECT count(*)::int FROM taxi_route) AS routes,
        (SELECT count(*)::int FROM source_registry) AS sources,
@@ -1948,7 +1952,8 @@ async function rankDetail(id){
        ST_X(r.location) AS lng,
        ST_Y(r.location) AS lat
      FROM taxi_rank r
-     WHERE r.id=$1::uuid`,
+     WHERE r.id=$1::uuid
+       AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')=''`,
     [id]
   );
 
@@ -2026,6 +2031,48 @@ const server=createServer(async(req,res)=>{
   const method=req.method || 'GET';
 
   try{
+    if(url.pathname==='/api/v1/operator/proposals/rank-merges'){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const survivorRankId=typeof body.survivorRankId==='string' ? body.survivorRankId.trim() : '';
+      const duplicateRankId=typeof body.duplicateRankId==='string' ? body.duplicateRankId.trim() : '';
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(!/^[0-9a-fA-F-]{36}$/.test(survivorRankId) || !/^[0-9a-fA-F-]{36}$/.test(duplicateRankId)){
+        return send(res,400,{error:'rank_merge_ids_required'});
+      }
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'proposal_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'proposal_evidence_required'});
+      }
+
+      const result=await createTaxiRankMergeProposal(pool,{
+        survivorRankId,
+        duplicateRankId,
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
     const createRoutePromotionProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/route-candidates\/([0-9a-fA-F-]{36})\/promote$/);
     if(createRoutePromotionProposalMatch){
       if(method!=='POST'){
