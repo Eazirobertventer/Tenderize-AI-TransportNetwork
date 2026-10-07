@@ -156,6 +156,13 @@ export function authenticateOperatorRequest(req,allowed=[]){
 export function operatorAuthCapabilities(env=process.env){
   const config=operatorAuthConfig(env);
   const deferIssueEnabled=env.OPERATOR_DEFER_ISSUE_ENABLED==='true';
+  const rejectIssueEnabled=env.OPERATOR_REJECT_ISSUE_ENABLED==='true';
+  const reopenIssueEnabled=env.OPERATOR_REOPEN_ISSUE_ENABLED==='true';
+  const enabledActions=[];
+  if(deferIssueEnabled) enabledActions.push('data_issue.defer');
+  if(rejectIssueEnabled) enabledActions.push('data_issue.reject');
+  if(reopenIssueEnabled) enabledActions.push('data_issue.reopen');
+
   return {
     configured:config.configured,
     scheme:'Bearer',
@@ -163,10 +170,12 @@ export function operatorAuthCapabilities(env=process.env){
     issuer:config.issuer,
     audience:config.audience,
     roles:[...allowedRoles],
-    mutationEnabled:deferIssueEnabled,
+    mutationEnabled:enabledActions.length>0,
     adjudication:{
       deferIssueEnabled,
-      enabledActions:deferIssueEnabled?['data_issue.defer']:[]
+      rejectIssueEnabled,
+      reopenIssueEnabled,
+      enabledActions
     }
   };
 }
