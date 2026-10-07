@@ -41,7 +41,7 @@ export async function appendOperatorAuditEvent(client,{
      ) VALUES (
        $1,$2,$3,$4,$5,$6::uuid,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb,$12,$13::jsonb
      )
-     RETURNING id::text,occurred_at`,
+     RETURNING id::text,event_sequence,occurred_at`,
     [
       actor.subject,
       actor.displayName,
