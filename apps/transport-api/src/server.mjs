@@ -7,6 +7,7 @@ import {
   createDataIssueDeferProposal,
   createAliasProposal,
   createRankAssociationAssignmentProposal,
+  createRoutePromotionProposal,
   approveDecisionProposal,
   rejectDecisionProposal,
   withdrawDecisionProposal,
@@ -2025,6 +2026,48 @@ const server=createServer(async(req,res)=>{
   const method=req.method || 'GET';
 
   try{
+    const createRoutePromotionProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/route-candidates\/([0-9a-fA-F-]{36})\/promote$/);
+    if(createRoutePromotionProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const associationId=typeof body.associationId==='string' ? body.associationId.trim() : '';
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(!/^[0-9a-fA-F-]{36}$/.test(associationId)){
+        return send(res,400,{error:'association_id_required'});
+      }
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'proposal_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'proposal_evidence_required'});
+      }
+
+      const result=await createRoutePromotionProposal(pool,{
+        candidateId:createRoutePromotionProposalMatch[1],
+        associationId,
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
     const createRankAssociationProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/rank-association-candidates\/([0-9a-fA-F-]{36})\/assign$/);
     if(createRankAssociationProposalMatch){
       if(method!=='POST'){
