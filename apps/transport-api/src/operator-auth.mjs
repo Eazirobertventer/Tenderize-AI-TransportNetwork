@@ -155,6 +155,7 @@ export function authenticateOperatorRequest(req,allowed=[]){
 
 export function operatorAuthCapabilities(env=process.env){
   const config=operatorAuthConfig(env);
+  const deferIssueEnabled=env.OPERATOR_DEFER_ISSUE_ENABLED==='true';
   return {
     configured:config.configured,
     scheme:'Bearer',
@@ -162,6 +163,10 @@ export function operatorAuthCapabilities(env=process.env){
     issuer:config.issuer,
     audience:config.audience,
     roles:[...allowedRoles],
-    mutationEnabled:false
+    mutationEnabled:deferIssueEnabled,
+    adjudication:{
+      deferIssueEnabled,
+      enabledActions:deferIssueEnabled?['data_issue.defer']:[]
+    }
   };
 }
