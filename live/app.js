@@ -112,7 +112,7 @@ function setSatelliteMode(enabled){
   const status=document.querySelector('#basemapStatus');
   if(status){
     status.textContent=satelliteVisible
-      ? 'Satellite imagery — verify mapped evidence against the visible physical environment'
+      ? 'Satellite imagery — verify rank marker against visible facility; imagery remains physical context only'
       : 'Street basemap';
   }
 }
