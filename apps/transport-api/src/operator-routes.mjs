@@ -391,10 +391,11 @@ export function validateRoutePromotionSnapshot(snapshot,associationId){
 
   if(candidate.routeCode){
     const codeDuplicate=snapshot.duplicates.find(item=>
-      item.id!==exactDuplicate?.id &&
-      [item.sourceRouteCode,item.nationalRouteCode,item.boardRouteCode]
-        .filter(Boolean)
-        .some(code=>String(code).trim().toLowerCase()===String(candidate.routeCode).trim().toLowerCase())
+      !(
+        item.associationId===associationId &&
+        item.originRankId===candidate.originRankId &&
+        item.destinationRankId===candidate.destinationRankId
+      )
     );
     if(codeDuplicate){
       return {
