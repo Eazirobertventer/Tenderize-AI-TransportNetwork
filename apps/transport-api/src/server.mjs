@@ -229,11 +229,11 @@ async function postgisAssociationMap(url){
        END AS location_basis,
        CASE
          WHEN a.location IS NOT NULL THEN ST_X(a.location)
-         ELSE ST_X(ST_Centroid(ST_Collect(r.location)) FILTER (WHERE r.location IS NOT NULL))
+         ELSE ST_X(ST_Centroid(ST_Collect(r.location) FILTER (WHERE r.location IS NOT NULL)))
        END AS lng,
        CASE
          WHEN a.location IS NOT NULL THEN ST_Y(a.location)
-         ELSE ST_Y(ST_Centroid(ST_Collect(r.location)) FILTER (WHERE r.location IS NOT NULL))
+         ELSE ST_Y(ST_Centroid(ST_Collect(r.location) FILTER (WHERE r.location IS NOT NULL)))
        END AS lat
      FROM taxi_association a
      LEFT JOIN taxi_rank_association ra ON ra.association_id=a.id
