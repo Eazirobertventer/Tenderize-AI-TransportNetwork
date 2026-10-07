@@ -26,6 +26,12 @@ import {
   markSourceGeometryPromoted,
   registerRouteCandidatePromotion
 } from './operator-routes.mjs';
+import {
+  rankMergeEnabled,
+  buildTaxiRankMergeSnapshot,
+  validateTaxiRankMergeSnapshot,
+  applyTaxiRankMerge
+} from './operator-rank-merges.mjs';
 
 function actorRole(actor){
   if(actor?.roles?.includes('admin')) return 'admin';
@@ -874,6 +880,127 @@ export async function createRoutePromotionProposal(pool,{
   }
 }
 
+export async function createTaxiRankMergeProposal(pool,{
+  survivorRankId,
+  duplicateRankId,
+  actor,
+  idempotencyKey,
+  rationale,
+  evidence,
+  requestId=randomUUID()
+}){
+  if(!pool) return {status:503,payload:{error:'database_not_configured'}};
+  if(!dualControlEnabled() || !rankMergeEnabled()){
+    return {status:503,payload:{error:'rank_merge_disabled',mutationEnabled:false}};
+  }
+
+  const action='taxi_rank.merge';
+  const role=actorRole(actor);
+  const client=await pool.connect();
+
+  try{
+    await client.query('BEGIN');
+
+    const replayBeforeLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayBeforeLock){
+      if(replayBeforeLock.intended_change?.survivorRankId!==survivorRankId ||
+         replayBeforeLock.intended_change?.duplicateRankId!==duplicateRankId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayBeforeLock)}};
+    }
+
+    const snapshot=await buildTaxiRankMergeSnapshot(client,{
+      survivorRankId,
+      duplicateRankId,
+      lock:true
+    });
+    const validation=validateTaxiRankMergeSnapshot(snapshot);
+    if(!validation.ok){
+      await client.query('ROLLBACK');
+      return {status:409,payload:validation};
+    }
+
+    const replayAfterLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayAfterLock){
+      if(replayAfterLock.intended_change?.survivorRankId!==survivorRankId ||
+         replayAfterLock.intended_change?.duplicateRankId!==duplicateRankId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayAfterLock)}};
+    }
+
+    const beforeState=canonicalize(snapshot);
+    const beforeStateHash=canonicalStateHash(beforeState);
+    const intendedChange={
+      survivorRankId,
+      duplicateRankId,
+      action:'merge_duplicate_into_survivor',
+      tombstoneDuplicate:true
+    };
+
+    const insert=await client.query(
+      `INSERT INTO operator_decision_proposal (
+         action,target_entity_type,target_entity_id,intended_change,before_state,before_state_hash,
+         evidence,rationale,proposer_subject,proposer_display_name,proposer_role,proposal_idempotency_key
+       ) VALUES (
+         $1,'taxi_rank',$2::uuid,$3::jsonb,$4::jsonb,$5,$6::jsonb,$7,$8,$9,$10,$11
+       )
+       RETURNING
+         id::text,action,target_entity_type,target_entity_id::text,intended_change,before_state,before_state_hash,
+         evidence,rationale,proposer_subject,proposer_display_name,proposer_role,proposal_idempotency_key,
+         proposed_at,status,decision_actor_subject,decision_actor_display_name,decision_actor_role,
+         decision_rationale,decision_evidence,decision_idempotency_key,decided_at,approved_audit_event_id::text`,
+      [
+        action,
+        survivorRankId,
+        JSON.stringify(intendedChange),
+        JSON.stringify(beforeState),
+        beforeStateHash,
+        JSON.stringify(evidence || {}),
+        rationale,
+        actor.subject,
+        actor.displayName,
+        role,
+        idempotencyKey
+      ]
+    );
+    const proposal=insert.rows[0];
+
+    await appendOperatorAuditEvent(client,{
+      actor,
+      action:'decision_proposal.create',
+      entityType:'operator_decision_proposal',
+      entityId:proposal.id,
+      requestId,
+      idempotencyKey,
+      beforeState:null,
+      afterState:proposalView(proposal),
+      evidence,
+      rationale,
+      metadata:{
+        gate:'TN7-ADJUDICATION-7',
+        proposedAction:action,
+        survivorRankId,
+        duplicateRankId,
+        beforeStateHash
+      }
+    });
+
+    await client.query('COMMIT');
+    return {status:201,payload:{replay:false,proposal:proposalView(proposal)}};
+  }catch(error){
+    try{await client.query('ROLLBACK');}catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
+
 export async function approveDecisionProposal(pool,{
   proposalId,
   actor,
@@ -930,8 +1057,11 @@ export async function approveDecisionProposal(pool,{
     const isRoutePromotionProposal=
       proposal.action==='taxi_route.promote' &&
       proposal.target_entity_type==='route_candidate';
+    const isTaxiRankMergeProposal=
+      proposal.action==='taxi_rank.merge' &&
+      proposal.target_entity_type==='taxi_rank';
 
-    if(!isDeferProposal && !isAliasProposal && !isRankAssociationProposal && !isRoutePromotionProposal){
+    if(!isDeferProposal && !isAliasProposal && !isRankAssociationProposal && !isRoutePromotionProposal && !isTaxiRankMergeProposal){
       await client.query('ROLLBACK');
       return {status:422,payload:{error:'decision_proposal_action_not_supported'}};
     }
@@ -1500,6 +1630,142 @@ export async function approveDecisionProposal(pool,{
             route,
             sourceRecordId:sourceRecord.id,
             promotion
+          }
+        }
+      };
+    }
+
+    if(isTaxiRankMergeProposal){
+      if(!rankMergeEnabled()){
+        await client.query('ROLLBACK');
+        return {status:503,payload:{error:'rank_merge_disabled',mutationEnabled:false}};
+      }
+
+      const survivorRankId=proposal.intended_change?.survivorRankId;
+      const duplicateRankId=proposal.intended_change?.duplicateRankId;
+      if(!survivorRankId || !duplicateRankId || survivorRankId!==proposal.target_entity_id){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'decision_proposal_rank_merge_payload_invalid'}};
+      }
+
+      const snapshot=await buildTaxiRankMergeSnapshot(client,{
+        survivorRankId,
+        duplicateRankId,
+        lock:true,
+        excludeProposalId:proposal.id
+      });
+      const validation=validateTaxiRankMergeSnapshot(snapshot);
+      if(!validation.ok){
+        await client.query('ROLLBACK');
+        return {status:409,payload:validation};
+      }
+
+      const currentState=canonicalize(snapshot);
+      const currentHash=canonicalStateHash(currentState);
+      if(currentHash!==proposal.before_state_hash){
+        await client.query('ROLLBACK');
+        return {
+          status:409,
+          payload:{
+            error:'decision_proposal_stale_before_state',
+            proposedBeforeStateHash:proposal.before_state_hash,
+            currentBeforeStateHash:currentHash
+          }
+        };
+      }
+
+      const canonicalAudit=await appendOperatorAuditEvent(client,{
+        actor,
+        action:'taxi_rank.merge',
+        entityType:'taxi_rank',
+        entityId:survivorRankId,
+        requestId,
+        idempotencyKey:'proposal:'+proposal.id+':'+idempotencyKey,
+        beforeState:currentState,
+        afterState:{
+          survivorRankId,
+          duplicateRankId,
+          duplicateBecomesTombstone:true
+        },
+        evidence:{
+          proposalId:proposal.id,
+          proposalEvidence:proposal.evidence,
+          approvalEvidence:evidence
+        },
+        rationale:proposal.rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-7',
+          dualControl:true,
+          proposerSubject:proposal.proposer_subject,
+          approverSubject:actor.subject,
+          proposalBeforeStateHash:proposal.before_state_hash,
+          survivorRankId,
+          duplicateRankId
+        }
+      });
+
+      const merge=await applyTaxiRankMerge(client,{
+        snapshot,
+        proposalId:proposal.id,
+        auditEventId:canonicalAudit.id
+      });
+
+      const updateProposal=await client.query(
+        `UPDATE operator_decision_proposal
+         SET status='approved',
+             decision_actor_subject=$2,
+             decision_actor_display_name=$3,
+             decision_actor_role=$4,
+             decision_rationale=$5,
+             decision_evidence=$6::jsonb,
+             decision_idempotency_key=$7,
+             decided_at=now(),
+             approved_audit_event_id=$8::uuid
+         WHERE id=$1::uuid AND status='proposed'
+         RETURNING
+           id::text,action,target_entity_type,target_entity_id::text,intended_change,before_state,before_state_hash,
+           evidence,rationale,proposer_subject,proposer_display_name,proposer_role,proposal_idempotency_key,
+           proposed_at,status,decision_actor_subject,decision_actor_display_name,decision_actor_role,
+           decision_rationale,decision_evidence,decision_idempotency_key,decided_at,approved_audit_event_id::text`,
+        [proposalId,actor.subject,actor.displayName,role,rationale,JSON.stringify(evidence || {}),idempotencyKey,canonicalAudit.id]
+      );
+      const approved=updateProposal.rows[0];
+
+      await appendOperatorAuditEvent(client,{
+        actor,
+        action:'decision_proposal.approve',
+        entityType:'operator_decision_proposal',
+        entityId:proposalId,
+        requestId,
+        idempotencyKey,
+        beforeState:proposalView(proposal),
+        afterState:proposalView(approved),
+        evidence,
+        rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-7',
+          canonicalAuditEventId:canonicalAudit.id,
+          mergeLineageId:merge.lineage.id,
+          survivorRankId,
+          duplicateRankId,
+          redirectCounts:merge.counts,
+          proposedAction:proposal.action
+        }
+      });
+
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:false,
+          proposal:proposalView(approved),
+          canonicalMutation:{
+            action:'taxi_rank.merge',
+            auditEventId:canonicalAudit.id,
+            survivor:merge.survivor,
+            duplicateTombstone:merge.duplicate,
+            redirectCounts:merge.counts,
+            lineage:merge.lineage
           }
         }
       };
