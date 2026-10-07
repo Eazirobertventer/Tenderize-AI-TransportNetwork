@@ -3,6 +3,13 @@ import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { authenticateOperatorRequest, operatorAuthCapabilities } from './operator-auth.mjs';
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
+import {
+  createDataIssueDeferProposal,
+  approveDecisionProposal,
+  rejectDecisionProposal,
+  withdrawDecisionProposal,
+  getDecisionProposal
+} from './operator-proposals.mjs';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 8080);
@@ -2016,6 +2023,156 @@ const server=createServer(async(req,res)=>{
   const method=req.method || 'GET';
 
   try{
+    const createDeferProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/data-issues\/([0-9a-fA-F-]{36})\/defer$/);
+    if(createDeferProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const expectedStatus=typeof body.expectedStatus==='string' ? body.expectedStatus.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'proposal_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'proposal_evidence_required'});
+      }
+      if(!['open','reviewing'].includes(expectedStatus)){
+        return send(res,400,{error:'expected_status_required'});
+      }
+
+      const result=await createDataIssueDeferProposal(pool,{
+        issueId:createDeferProposalMatch[1],
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        expectedStatus,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
+    const approveProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/([0-9a-fA-F-]{36})\/approve$/);
+    if(approveProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'decision_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'decision_evidence_required'});
+      }
+
+      const result=await approveDecisionProposal(pool,{
+        proposalId:approveProposalMatch[1],
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
+    const rejectProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/([0-9a-fA-F-]{36})\/reject$/);
+    if(rejectProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'decision_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'decision_evidence_required'});
+      }
+
+      const result=await rejectDecisionProposal(pool,{
+        proposalId:rejectProposalMatch[1],
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
+    const withdrawProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/([0-9a-fA-F-]{36})\/withdraw$/);
+    if(withdrawProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'decision_rationale_required'});
+      }
+
+      const result=await withdrawDecisionProposal(pool,{
+        proposalId:withdrawProposalMatch[1],
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
     const deferMatch=url.pathname.match(/^\/api\/v1\/operator\/adjudications\/data-issues\/([0-9a-fA-F-]{36})\/defer$/);
     if(deferMatch){
       if(method!=='POST'){
@@ -2163,6 +2320,17 @@ const server=createServer(async(req,res)=>{
     if(!['GET','HEAD'].includes(method)){
       res.setHeader('allow','GET, HEAD');
       return send(res,405,{error:'method_not_allowed'});
+    }
+
+    const getProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/([0-9a-fA-F-]{36})$/);
+    if(getProposalMatch){
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const proposal=await getDecisionProposal(pool,getProposalMatch[1]);
+      return proposal
+        ? send(res,200,{proposal})
+        : send(res,404,{error:'decision_proposal_not_found'});
     }
 
     if(url.pathname==='/health'){
