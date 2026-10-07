@@ -5,6 +5,7 @@ import { authenticateOperatorRequest, operatorAuthCapabilities } from './operato
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
 import {
   createDataIssueDeferProposal,
+  createAliasProposal,
   approveDecisionProposal,
   rejectDecisionProposal,
   withdrawDecisionProposal,
@@ -2023,6 +2024,86 @@ const server=createServer(async(req,res)=>{
   const method=req.method || 'GET';
 
   try{
+    const createRankAliasProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/ranks\/([0-9a-fA-F-]{36})\/aliases$/);
+    if(createRankAliasProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const alias=typeof body.alias==='string' ? body.alias : '';
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'proposal_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'proposal_evidence_required'});
+      }
+
+      const result=await createAliasProposal(pool,{
+        entityType:'taxi_rank',
+        entityId:createRankAliasProposalMatch[1],
+        alias,
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
+    const createAssociationAliasProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/associations\/([0-9a-fA-F-]{36})\/aliases$/);
+    if(createAssociationAliasProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const alias=typeof body.alias==='string' ? body.alias : '';
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'proposal_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'proposal_evidence_required'});
+      }
+
+      const result=await createAliasProposal(pool,{
+        entityType:'taxi_association',
+        entityId:createAssociationAliasProposalMatch[1],
+        alias,
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
     const createDeferProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/proposals\/data-issues\/([0-9a-fA-F-]{36})\/defer$/);
     if(createDeferProposalMatch){
       if(method!=='POST'){
@@ -2326,6 +2407,10 @@ const server=createServer(async(req,res)=>{
     if(getProposalMatch){
       const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
       if(!auth) return;
+      const capabilities=operatorAuthCapabilities();
+      if(!capabilities.adjudication.dualControlEnabled){
+        return send(res,503,{error:'dual_control_disabled',mutationEnabled:false});
+      }
       if(!pool) return send(res,503,{error:'database_not_configured'});
       const proposal=await getDecisionProposal(pool,getProposalMatch[1]);
       return proposal
