@@ -159,11 +159,13 @@ export function operatorAuthCapabilities(env=process.env){
   const rejectIssueEnabled=env.OPERATOR_REJECT_ISSUE_ENABLED==='true';
   const reopenIssueEnabled=env.OPERATOR_REOPEN_ISSUE_ENABLED==='true';
   const dualControlEnabled=env.OPERATOR_DUAL_CONTROL_ENABLED==='true';
+  const aliasPromotionEnabled=env.OPERATOR_ALIAS_PROMOTION_ENABLED==='true';
   const enabledActions=[];
   if(deferIssueEnabled) enabledActions.push('data_issue.defer');
   if(rejectIssueEnabled) enabledActions.push('data_issue.reject');
   if(reopenIssueEnabled) enabledActions.push('data_issue.reopen');
   if(dualControlEnabled) enabledActions.push('decision_proposal.create','decision_proposal.approve','decision_proposal.reject','decision_proposal.withdraw');
+  if(dualControlEnabled && aliasPromotionEnabled) enabledActions.push('taxi_rank.alias.add','taxi_association.alias.add');
 
   return {
     configured:config.configured,
@@ -178,6 +180,7 @@ export function operatorAuthCapabilities(env=process.env){
       rejectIssueEnabled,
       reopenIssueEnabled,
       dualControlEnabled,
+      aliasPromotionEnabled,
       enabledActions
     }
   };
