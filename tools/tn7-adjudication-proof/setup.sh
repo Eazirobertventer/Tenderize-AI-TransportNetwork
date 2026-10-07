@@ -51,7 +51,10 @@ INSERT INTO taxi_rank (
 ('16161616-1616-4616-8616-161616161616','North Taxi Rank',ARRAY[]::text[],'Gauteng','City C','North','verified'),
 ('17171717-1717-4717-8717-171717171717','South Taxi Rank',ARRAY[]::text[],'Gauteng','City D','South','verified'),
 ('18181818-1818-4818-8818-181818181818','East Taxi Rank',ARRAY[]::text[],'Gauteng','City E','East','verified'),
-('19191919-1919-4919-8919-191919191919','Airport Taxi Rank',ARRAY[]::text[],'Gauteng','City F','Airport','verified');
+('19191919-1919-4919-8919-191919191919','Airport Taxi Rank',ARRAY[]::text[],'Gauteng','City F','Airport','verified'),
+('20202020-2020-4020-8020-202020202020','Atomic Taxi Rank',ARRAY[]::text[],'Gauteng','City G','Atomic','verified'),
+('25252525-2525-4525-8525-252525252525','Reject Taxi Rank',ARRAY[]::text[],'Gauteng','City H','Reject','verified'),
+('26262626-2626-4626-8626-262626262626','Multi Association Rank',ARRAY[]::text[],'Gauteng','City I','Multi','verified');
 
 INSERT INTO taxi_association (
   id,canonical_name,acronym,registration_number,province,municipality,verification_status
@@ -59,6 +62,63 @@ INSERT INTO taxi_association (
 ('21212121-2121-4212-8212-212121212121','Alpha Taxi Association','ATA','REG-ALPHA','Gauteng','City A','verified'),
 ('23232323-2323-4232-8232-232323232323','Beta Taxi Association','BTA','REG-BETA','Gauteng','City B','verified'),
 ('24242424-2424-4242-8242-242424242424','Gamma Taxi Association','GTA','REG-GAMMA','Gauteng','City C','verified');
+
+CREATE TABLE IF NOT EXISTS source_registry (
+  id uuid PRIMARY KEY,
+  source_key text UNIQUE NOT NULL,
+  source_name text NOT NULL,
+  authority text
+);
+
+CREATE TABLE IF NOT EXISTS rank_association_candidate (
+  id uuid PRIMARY KEY,
+  source_id uuid NOT NULL REFERENCES source_registry(id) ON DELETE CASCADE,
+  source_rank_external_id text NOT NULL,
+  taxi_rank_id uuid REFERENCES taxi_rank(id) ON DELETE CASCADE,
+  association_label text NOT NULL,
+  normalized_label text NOT NULL,
+  verification_status text NOT NULL DEFAULT 'documented',
+  first_seen_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (source_id,source_rank_external_id,normalized_label)
+);
+
+CREATE TABLE IF NOT EXISTS taxi_rank_association (
+  taxi_rank_id uuid NOT NULL REFERENCES taxi_rank(id) ON DELETE CASCADE,
+  association_id uuid NOT NULL REFERENCES taxi_association(id) ON DELETE CASCADE,
+  verification_status text NOT NULL DEFAULT 'unverified',
+  confidence numeric(5,4),
+  first_seen_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (taxi_rank_id,association_id)
+);
+
+TRUNCATE rank_association_candidate,source_registry,taxi_rank_association;
+
+INSERT INTO source_registry (id,source_key,source_name,authority) VALUES
+('31313131-3131-4131-8131-313131313131','proof-source-a','Proof Source A','Proof Authority A'),
+('32323232-3232-4232-8232-323232323232','proof-source-b','Proof Source B','Proof Authority B');
+
+INSERT INTO rank_association_candidate (
+  id,source_id,source_rank_external_id,taxi_rank_id,association_label,normalized_label,verification_status
+) VALUES
+('41414141-4141-4141-8141-414141414141','31313131-3131-4131-8131-313131313131','central-a','14141414-1414-4414-8414-141414141414','Alpha Taxi Association','alpha taxi association','documented'),
+('42424242-4242-4242-8242-424242424242','32323232-3232-4232-8232-323232323232','central-b','14141414-1414-4414-8414-141414141414','ATA','ata','documented'),
+('43434343-4343-4343-8343-434343434343','31313131-3131-4131-8131-313131313131','west-a','15151515-1515-4515-8515-151515151515','Alpha Taxi Association','alpha taxi association','documented'),
+('45454545-4545-4545-8545-454545454545','32323232-3232-4232-8232-323232323232','west-b','15151515-1515-4515-8515-151515151515','Beta Taxi Association','beta taxi association','documented'),
+('46464646-4646-4646-8646-464646464646','31313131-3131-4131-8131-313131313131','north-x','16161616-1616-4616-8616-161616161616','Unknown Operators Association','unknown operators association','documented'),
+('47474747-4747-4747-8747-474747474747','31313131-3131-4131-8131-313131313131','south-a','17171717-1717-4717-8717-171717171717','Alpha Taxi Association','alpha taxi association','documented'),
+('48484848-4848-4848-8848-484848484848','31313131-3131-4131-8131-313131313131','east-a','18181818-1818-4818-8818-181818181818','Alpha Taxi Association','alpha taxi association','documented'),
+('49494949-4949-4949-8949-494949494949','31313131-3131-4131-8131-313131313131','airport-g','19191919-1919-4919-8919-191919191919','Gamma Taxi Association','gamma taxi association','documented'),
+('50505050-5050-4050-8050-505050505050','31313131-3131-4131-8131-313131313131','atomic-b','20202020-2020-4020-8020-202020202020','Beta Taxi Association','beta taxi association','documented'),
+('51515151-5151-4151-8151-515151515151','31313131-3131-4131-8131-313131313131','reject-a','25252525-2525-4525-8525-252525252525','Alpha Taxi Association','alpha taxi association','documented'),
+('52525252-5252-4252-8252-525252525252','31313131-3131-4131-8131-313131313131','multi-a','26262626-2626-4626-8626-262626262626','Alpha Taxi Association','alpha taxi association','documented');
+
+INSERT INTO taxi_rank_association (
+  taxi_rank_id,association_id,verification_status,confidence
+) VALUES
+('17171717-1717-4717-8717-171717171717','21212121-2121-4212-8212-212121212121','verified',NULL),
+('26262626-2626-4626-8626-262626262626','23232323-2323-4232-8232-232323232323','verified',NULL);
 
 TRUNCATE data_issue;
 INSERT INTO data_issue (id,entity_type,issue_type,severity,summary,status) VALUES
@@ -84,5 +144,6 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/005_operator_audit.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/006_data_issue_rejected_status.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/007_two_person_decision_proposals.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/008_transport_entity_aliases.sql
-echo "TN7_ADJ4_DB_SETUP_PASS"
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/009_rank_association_promotions.sql
+echo "TN7_ADJ5_DB_SETUP_PASS"
 sleep 8
