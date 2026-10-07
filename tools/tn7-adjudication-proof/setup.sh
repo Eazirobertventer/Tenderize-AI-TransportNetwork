@@ -30,7 +30,16 @@ CREATE TABLE IF NOT EXISTS taxi_association (
   district text,
   municipality text,
   address text,
+  rank_type text,
+  ownership text,
+  formal_status text,
+  service_types text[] NOT NULL DEFAULT '{}',
+  google_place_id text,
+  location geometry(Point,4326),
   verification_status text NOT NULL DEFAULT 'unverified',
+  confidence numeric(5,4),
+  last_verified_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -97,6 +106,19 @@ CREATE TABLE IF NOT EXISTS rank_association_candidate (
   source_rank_external_id text NOT NULL,
   taxi_rank_id uuid REFERENCES taxi_rank(id) ON DELETE CASCADE,
   association_label text NOT NULL,
+  normalized_label text NOT NULL,
+  verification_status text NOT NULL DEFAULT 'documented',
+  first_seen_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (source_id,source_rank_external_id,normalized_label)
+);
+
+CREATE TABLE IF NOT EXISTS rank_destination_candidate (
+  id uuid PRIMARY KEY,
+  source_id uuid NOT NULL REFERENCES source_registry(id) ON DELETE CASCADE,
+  source_rank_external_id text NOT NULL,
+  taxi_rank_id uuid REFERENCES taxi_rank(id) ON DELETE CASCADE,
+  destination_label text NOT NULL,
   normalized_label text NOT NULL,
   verification_status text NOT NULL DEFAULT 'documented',
   first_seen_at timestamptz NOT NULL DEFAULT now(),
@@ -275,6 +297,59 @@ INSERT INTO source_record (
 ) VALUES
 ('82828282-8282-4282-8282-828282828282','33333333-aaaa-4333-8333-333333333333','taxi_route','81818181-8181-4181-8181-818181818181','route-source-record','{}',ST_GeomFromText('MULTILINESTRING((29.10 -26.00,29.11 -26.01))',4326),1.0);
 
+INSERT INTO taxi_rank (
+  id,canonical_name,aliases,province,municipality,town,address,google_place_id,location,verification_status
+) VALUES
+('90909090-9090-4090-8090-909090909090','Merged Central Rank',ARRAY['MCR'],'Gauteng','Merge City','Central','1 Merge Road','merge-place-1',ST_SetSRID(ST_MakePoint(28.1000,-26.1000),4326),'verified'),
+('91919191-9191-4191-8191-919191919191','Old Central Taxi Rank',ARRAY['Old Central','OCR'],'Gauteng','Merge City','Central','1 Old Merge Road','merge-place-1',ST_SetSRID(ST_MakePoint(28.1002,-26.1001),4326),'documented'),
+('92929292-9292-4292-8292-929292929292','Merge Route Peer',ARRAY[]::text[],'Gauteng','Merge City','Peer','2 Merge Road',NULL,ST_SetSRID(ST_MakePoint(28.1200,-26.1200),4326),'verified'),
+('93939393-9393-4393-8393-939393939393','Google Conflict Survivor',ARRAY[]::text[],'Gauteng','Merge City','GC1',NULL,'google-a',ST_SetSRID(ST_MakePoint(28.2000,-26.2000),4326),'verified'),
+('94949494-9494-4494-8494-949494949494','Google Conflict Duplicate',ARRAY[]::text[],'Gauteng','Merge City','GC2',NULL,'google-b',ST_SetSRID(ST_MakePoint(28.2001,-26.2001),4326),'verified'),
+('95959595-9595-4595-8595-959595959595','Alias Collision Survivor',ARRAY[]::text[],'Gauteng','Merge City','AC1',NULL,NULL,ST_SetSRID(ST_MakePoint(28.3000,-26.3000),4326),'verified'),
+('96969696-9696-4696-8696-969696969696','Alias Collision Duplicate',ARRAY['Third Party Alias'],'Gauteng','Merge City','AC2',NULL,NULL,ST_SetSRID(ST_MakePoint(28.3001,-26.3001),4326),'documented'),
+('97979797-9797-4797-8797-979797979797','Third Party Alias',ARRAY[]::text[],'Gauteng','Merge City','Third',NULL,NULL,ST_SetSRID(ST_MakePoint(28.5000,-26.5000),4326),'verified'),
+('98989898-9898-4898-8898-989898989898','Self Loop Survivor',ARRAY[]::text[],'Gauteng','Merge City','SL1',NULL,NULL,ST_SetSRID(ST_MakePoint(28.4000,-26.4000),4326),'verified'),
+('99999998-9998-4998-8998-999999999998','Self Loop Duplicate',ARRAY[]::text[],'Gauteng','Merge City','SL2',NULL,NULL,ST_SetSRID(ST_MakePoint(28.4001,-26.4001),4326),'documented'),
+('a1a1a1a1-a1a1-41a1-81a1-a1a1a1a1a1a1','Atomic Merge Survivor',ARRAY['AMS'],'Gauteng','Merge City','AT1',NULL,NULL,ST_SetSRID(ST_MakePoint(28.6000,-26.6000),4326),'verified'),
+('a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','Atomic Merge Duplicate',ARRAY['AMD'],'Gauteng','Merge City','AT2',NULL,NULL,ST_SetSRID(ST_MakePoint(28.6001,-26.6001),4326),'documented'),
+('a3a3a3a3-a3a3-43a3-83a3-a3a3a3a3a3a3','Concurrent Merge Survivor',ARRAY[]::text[],'Gauteng','Merge City','CC1',NULL,NULL,ST_SetSRID(ST_MakePoint(28.7000,-26.7000),4326),'verified'),
+('a4a4a4a4-a4a4-44a4-84a4-a4a4a4a4a4a4','Concurrent Merge Duplicate',ARRAY['CMD'],'Gauteng','Merge City','CC2',NULL,NULL,ST_SetSRID(ST_MakePoint(28.7001,-26.7001),4326),'documented');
+
+INSERT INTO taxi_rank_association (taxi_rank_id,association_id,verification_status,confidence) VALUES
+('90909090-9090-4090-8090-909090909090','21212121-2121-4212-8212-212121212121','verified',NULL),
+('91919191-9191-4191-8191-919191919191','21212121-2121-4212-8212-212121212121','documented',NULL),
+('91919191-9191-4191-8191-919191919191','23232323-2323-4232-8232-232323232323','documented',NULL),
+('a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','23232323-2323-4232-8232-232323232323','documented',NULL),
+('a4a4a4a4-a4a4-44a4-84a4-a4a4a4a4a4a4','24242424-2424-4242-8242-242424242424','documented',NULL);
+
+INSERT INTO taxi_route (
+  id,association_id,origin_rank_id,destination_rank_id,origin_label,destination_label,
+  route_name,geometry,geometry_status,verification_status,source_route_code
+) VALUES
+('b1b1b1b1-b1b1-41b1-81b1-b1b1b1b1b1b1','23232323-2323-4232-8232-232323232323','91919191-9191-4191-8191-919191919191','92929292-9292-4292-8292-929292929292','Old Central','Peer','Merge Redirect Route',ST_GeomFromText('MULTILINESTRING((28.1002 -26.1001,28.1200 -26.1200))',4326),'source_documented','documented','MERGE-R1'),
+('b2b2b2b2-b2b2-42b2-82b2-b2b2b2b2b2b2','21212121-2121-4212-8212-212121212121','98989898-9898-4898-8898-989898989898','99999998-9998-4998-8998-999999999998','SL1','SL2','Self Loop Conflict',ST_GeomFromText('MULTILINESTRING((28.4000 -26.4000,28.4001 -26.4001))',4326),'source_documented','documented','SL-CONFLICT'),
+('b3b3b3b3-b3b3-43b3-83b3-b3b3b3b3b3b3','23232323-2323-4232-8232-232323232323','a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','92929292-9292-4292-8292-929292929292','AT2','Peer','Atomic Merge Route',ST_GeomFromText('MULTILINESTRING((28.6001 -26.6001,28.1200 -26.1200))',4326),'source_documented','documented','AT-MERGE'),
+('b4b4b4b4-b4b4-44b4-84b4-b4b4b4b4b4b4','24242424-2424-4242-8242-242424242424','a4a4a4a4-a4a4-44a4-84a4-a4a4a4a4a4a4','92929292-9292-4292-8292-929292929292','CC2','Peer','Concurrent Merge Route',ST_GeomFromText('MULTILINESTRING((28.7001 -26.7001,28.1200 -26.1200))',4326),'source_documented','documented','CC-MERGE');
+
+INSERT INTO rank_association_candidate (
+  id,source_id,source_rank_external_id,taxi_rank_id,association_label,normalized_label,verification_status
+) VALUES
+('c1c1c1c1-c1c1-41c1-81c1-c1c1c1c1c1c1','31313131-3131-4131-8131-313131313131','merge-old-alpha','91919191-9191-4191-8191-919191919191','Alpha Taxi Association','alpha taxi association','documented');
+
+INSERT INTO rank_destination_candidate (
+  id,source_id,source_rank_external_id,taxi_rank_id,destination_label,normalized_label,verification_status
+) VALUES
+('c2c2c2c2-c2c2-42c2-82c2-c2c2c2c2c2c2','31313131-3131-4131-8131-313131313131','merge-old-dest','91919191-9191-4191-8191-919191919191','Peer','peer','documented');
+
+INSERT INTO source_record (
+  id,source_id,entity_type,entity_id,external_record_id,source_payload,source_confidence
+) VALUES
+('c3c3c3c3-c3c3-43c3-83c3-c3c3c3c3c3c3','31313131-3131-4131-8131-313131313131','taxi_rank','91919191-9191-4191-8191-919191919191','merge-old-source','{"name":"Old Central Taxi Rank"}',1.0);
+
+INSERT INTO data_issue (id,entity_type,entity_id,issue_type,severity,summary,status) VALUES
+('c4c4c4c4-c4c4-44c4-84c4-c4c4c4c4c4c4','taxi_rank','91919191-9191-4191-8191-919191919191','merge-review','warning','Issue follows survivor','open'),
+('c5c5c5c5-c5c5-45c5-85c5-c5c5c5c5c5c5','taxi_rank','a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','atomic-merge-review','warning','Atomic merge issue','open');
+
 TRUNCATE data_issue;
 INSERT INTO data_issue (id,entity_type,issue_type,severity,summary,status) VALUES
 ('11111111-1111-4111-8111-111111111111','taxi_rank','proof_open','warning','Open proof issue','open'),
@@ -293,7 +368,9 @@ INSERT INTO data_issue (id,entity_type,issue_type,severity,summary,status) VALUE
 ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','taxi_rank','proof_dual_withdraw','warning','Proposal withdraw proof issue','reviewing'),
 ('ffffffff-ffff-4fff-8fff-ffffffffffff','taxi_rank','proof_dual_atomic','warning','Proposal approval rollback proof issue','open'),
 ('12121212-1212-4212-8212-121212121212','taxi_rank','proof_dual_concurrent','warning','Concurrent dual-approval proof issue','open'),
-('13131313-1313-4313-8313-131313131313','taxi_rank','proof_dual_idempotency_conflict','warning','Proposal idempotency conflict proof issue','open');
+('13131313-1313-4313-8313-131313131313','taxi_rank','proof_dual_idempotency_conflict','warning','Proposal idempotency conflict proof issue','open'),
+('c4c4c4c4-c4c4-44c4-84c4-c4c4c4c4c4c4','taxi_rank','91919191-9191-4191-8191-919191919191','merge-review','warning','Issue follows survivor','open',now(),NULL),
+('c5c5c5c5-c5c5-45c5-85c5-c5c5c5c5c5c5','taxi_rank','a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','atomic-merge-review','warning','Atomic merge issue','open',now(),NULL);
 SQL
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/005_operator_audit.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/006_data_issue_rejected_status.sql
@@ -301,5 +378,6 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/007_two_person_decision_propos
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/008_transport_entity_aliases.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/009_rank_association_promotions.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/010_route_candidate_promotions.sql
-echo "TN7_ADJ6_DB_SETUP_PASS"
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/011_taxi_rank_merge_foundation.sql
+echo "TN7_ADJ7_DB_SETUP_PASS"
 sleep 8
