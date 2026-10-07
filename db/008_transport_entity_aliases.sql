@@ -9,7 +9,7 @@ LANGUAGE sql
 IMMUTABLE
 STRICT
 AS $$
-  SELECT lower(regexp_replace(btrim(value), '\s+', ' ', 'g'));
+  SELECT lower(regexp_replace(btrim(normalize(value, NFKC)), '\\s+', ' ', 'g'));
 $$;
 
 CREATE TABLE IF NOT EXISTS transport_entity_alias (
