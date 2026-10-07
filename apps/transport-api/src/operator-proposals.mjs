@@ -479,7 +479,7 @@ export async function approveDecisionProposal(pool,{
       entityType:'data_issue',
       entityId:proposal.target_entity_id,
       requestId,
-      idempotencyKey,
+      idempotencyKey:'proposal:'+proposal.id+':'+idempotencyKey,
       beforeState:currentState,
       afterState:canonicalize(afterIssue),
       evidence:{
