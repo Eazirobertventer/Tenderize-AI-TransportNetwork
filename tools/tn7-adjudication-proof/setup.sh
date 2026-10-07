@@ -1,6 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+DO $
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname='verification_status') THEN
+    CREATE TYPE verification_status AS ENUM (
+      'official','verified','documented','community_verified',
+      'candidate','inferred','conflict','unverified'
+    );
+  END IF;
+END
+$;
+
 CREATE TABLE IF NOT EXISTS data_issue (
   id uuid PRIMARY KEY,
   entity_type text NOT NULL,
@@ -54,7 +67,19 @@ INSERT INTO taxi_rank (
 ('19191919-1919-4919-8919-191919191919','Airport Taxi Rank',ARRAY[]::text[],'Gauteng','City F','Airport','verified'),
 ('20202020-2020-4020-8020-202020202020','Atomic Taxi Rank',ARRAY[]::text[],'Gauteng','City G','Atomic','verified'),
 ('25252525-2525-4525-8525-252525252525','Reject Taxi Rank',ARRAY[]::text[],'Gauteng','City H','Reject','verified'),
-('26262626-2626-4626-8626-262626262626','Multi Association Rank',ARRAY[]::text[],'Gauteng','City I','Multi','verified');
+('26262626-2626-4626-8626-262626262626','Multi Association Rank',ARRAY[]::text[],'Gauteng','City I','Multi','verified'),
+('27272727-2727-4727-8727-272727272727','Route Rank A',ARRAY[]::text[],'Gauteng','Route City','A','verified'),
+('28282828-2828-4828-8828-282828282828','Route Rank B',ARRAY[]::text[],'Gauteng','Route City','B','verified'),
+('29292929-2929-4929-8929-292929292929','Route Rank C',ARRAY[]::text[],'Gauteng','Route City','C','verified'),
+('30303030-3030-4030-8030-303030303030','Route Rank D',ARRAY[]::text[],'Gauteng','Route City','D','verified'),
+('34343434-3434-4434-8434-343434343434','Route Rank E',ARRAY[]::text[],'Gauteng','Route City','E','verified'),
+('35353535-3535-4535-8535-353535353535','Route Rank F',ARRAY[]::text[],'Gauteng','Route City','F','verified'),
+('36363636-3636-4636-8636-363636363636','Route Rank G',ARRAY[]::text[],'Gauteng','Route City','G','verified'),
+('37373737-3737-4737-8737-373737373737','Route Rank H',ARRAY[]::text[],'Gauteng','Route City','H','verified'),
+('38383838-3838-4838-8838-383838383838','Route Rank I',ARRAY[]::text[],'Gauteng','Route City','I','verified'),
+('39393939-3939-4939-8939-393939393939','Route Rank J',ARRAY[]::text[],'Gauteng','Route City','J','verified'),
+('40404040-4040-4040-8040-404040404040','Route Rank K',ARRAY[]::text[],'Gauteng','Route City','K','verified'),
+('43434343-aaaa-4343-8343-434343434343','Route Rank L',ARRAY[]::text[],'Gauteng','Route City','L','verified');
 
 INSERT INTO taxi_association (
   id,canonical_name,acronym,registration_number,province,municipality,verification_status
@@ -67,7 +92,9 @@ CREATE TABLE IF NOT EXISTS source_registry (
   id uuid PRIMARY KEY,
   source_key text UNIQUE NOT NULL,
   source_name text NOT NULL,
-  authority text
+  authority text,
+  source_class text NOT NULL DEFAULT 'official_gis',
+  official boolean NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS rank_association_candidate (
@@ -95,9 +122,10 @@ CREATE TABLE IF NOT EXISTS taxi_rank_association (
 
 TRUNCATE rank_association_candidate,source_registry,taxi_rank_association;
 
-INSERT INTO source_registry (id,source_key,source_name,authority) VALUES
-('31313131-3131-4131-8131-313131313131','proof-source-a','Proof Source A','Proof Authority A'),
-('32323232-3232-4232-8232-323232323232','proof-source-b','Proof Source B','Proof Authority B');
+INSERT INTO source_registry (id,source_key,source_name,authority,source_class,official) VALUES
+('31313131-3131-4131-8131-313131313131','proof-source-a','Proof Source A','Proof Authority A','official_gis',true),
+('32323232-3232-4232-8232-323232323232','proof-source-b','Proof Source B','Proof Authority B','municipal_itp',false),
+('33333333-aaaa-4333-8333-333333333333','proof-route-source','Proof Route GIS','Proof Route Authority','official_gis',true);
 
 INSERT INTO rank_association_candidate (
   id,source_id,source_rank_external_id,taxi_rank_id,association_label,normalized_label,verification_status
@@ -118,7 +146,139 @@ INSERT INTO taxi_rank_association (
   taxi_rank_id,association_id,verification_status,confidence
 ) VALUES
 ('17171717-1717-4717-8717-171717171717','21212121-2121-4212-8212-212121212121','verified',NULL),
-('26262626-2626-4626-8626-262626262626','23232323-2323-4232-8232-232323232323','verified',NULL);
+('26262626-2626-4626-8626-262626262626','23232323-2323-4232-8232-232323232323','verified',NULL),
+('27272727-2727-4727-8727-272727272727','21212121-2121-4212-8212-212121212121','verified',NULL),
+('28282828-2828-4828-8828-282828282828','21212121-2121-4212-8212-212121212121','verified',NULL),
+('29292929-2929-4929-8929-292929292929','21212121-2121-4212-8212-212121212121','verified',NULL),
+('30303030-3030-4030-8030-303030303030','21212121-2121-4212-8212-212121212121','verified',NULL),
+('34343434-3434-4434-8434-343434343434','21212121-2121-4212-8212-212121212121','verified',NULL),
+('35353535-3535-4535-8535-353535353535','23232323-2323-4232-8232-232323232323','verified',NULL),
+('36363636-3636-4636-8636-363636363636','21212121-2121-4212-8212-212121212121','verified',NULL),
+('36363636-3636-4636-8636-363636363636','23232323-2323-4232-8232-232323232323','verified',NULL),
+('37373737-3737-4737-8737-373737373737','21212121-2121-4212-8212-212121212121','verified',NULL),
+('37373737-3737-4737-8737-373737373737','23232323-2323-4232-8232-232323232323','verified',NULL),
+('38383838-3838-4838-8838-383838383838','21212121-2121-4212-8212-212121212121','verified',NULL),
+('39393939-3939-4939-8939-393939393939','21212121-2121-4212-8212-212121212121','verified',NULL),
+('40404040-4040-4040-8040-404040404040','21212121-2121-4212-8212-212121212121','verified',NULL),
+('43434343-aaaa-4343-8343-434343434343','21212121-2121-4212-8212-212121212121','verified',NULL);
+
+CREATE TABLE IF NOT EXISTS taxi_route (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  association_id uuid REFERENCES taxi_association(id),
+  origin_rank_id uuid REFERENCES taxi_rank(id),
+  destination_rank_id uuid REFERENCES taxi_rank(id),
+  origin_label text,
+  destination_label text,
+  route_name text,
+  national_route_code text,
+  board_route_code text,
+  route_type text,
+  street_description text,
+  geometry geometry(MultiLineString,4326),
+  geometry_status text NOT NULL DEFAULT 'pending',
+  distance_km numeric(12,3),
+  duration_minutes integer,
+  verification_status verification_status NOT NULL DEFAULT 'unverified',
+  confidence numeric(5,4),
+  last_verified_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS source_record (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_id uuid NOT NULL REFERENCES source_registry(id),
+  entity_type text NOT NULL,
+  entity_id uuid NOT NULL,
+  external_record_id text,
+  source_payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+  source_geometry geometry(Geometry,4326),
+  source_retrieved_at timestamptz NOT NULL DEFAULT now(),
+  source_last_checked_at timestamptz,
+  source_confidence numeric(5,4),
+  checksum text,
+  UNIQUE (source_id,entity_type,external_record_id)
+);
+
+CREATE TABLE IF NOT EXISTS source_route_geometry (
+  id uuid PRIMARY KEY,
+  source_id uuid NOT NULL REFERENCES source_registry(id) ON DELETE CASCADE,
+  external_record_id text NOT NULL,
+  route_code text,
+  province text,
+  municipality text,
+  district text,
+  category text,
+  map_title text,
+  geometry geometry(MultiLineString,4326) NOT NULL,
+  verification_status verification_status NOT NULL DEFAULT 'documented',
+  source_date timestamptz,
+  source_payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+  first_seen_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  promoted_route_id uuid REFERENCES taxi_route(id),
+  UNIQUE (source_id,external_record_id)
+);
+
+CREATE TABLE IF NOT EXISTS route_candidate (
+  id uuid PRIMARY KEY,
+  source_route_geometry_id uuid NOT NULL UNIQUE REFERENCES source_route_geometry(id) ON DELETE CASCADE,
+  source_id uuid NOT NULL REFERENCES source_registry(id) ON DELETE CASCADE,
+  external_record_id text NOT NULL,
+  route_code text,
+  origin_rank_id uuid NOT NULL REFERENCES taxi_rank(id),
+  destination_rank_id uuid NOT NULL REFERENCES taxi_rank(id),
+  association_id uuid REFERENCES taxi_association(id),
+  origin_distance_m numeric(10,2) NOT NULL,
+  destination_distance_m numeric(10,2) NOT NULL,
+  reconciliation_status text NOT NULL,
+  verification_status verification_status NOT NULL DEFAULT 'documented',
+  confidence numeric(5,4) NOT NULL DEFAULT 1.0,
+  provenance jsonb NOT NULL DEFAULT '{}'::jsonb,
+  first_seen_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now()
+);
+
+TRUNCATE route_candidate,source_route_geometry,source_record,taxi_route;
+
+INSERT INTO source_route_geometry (
+  id,source_id,external_record_id,route_code,province,municipality,category,map_title,geometry,
+  verification_status,source_payload
+) VALUES
+('61616161-6161-4161-8161-616161616161','33333333-aaaa-4333-8333-333333333333','route-good','R-GOOD','Gauteng','Route City','official_route','Good Source Route',ST_GeomFromText('MULTILINESTRING((28.00 -26.00,28.01 -26.01,28.02 -26.02))',4326),'documented','{"kind":"official_path"}'),
+('62626262-6262-4262-8262-626262626262','33333333-aaaa-4333-8333-333333333333','route-endpoint','R-END','Gauteng','Route City','endpoint_connector_evidence','Endpoint Connector',ST_GeomFromText('MULTILINESTRING((28.10 -26.00,28.11 -26.01))',4326),'documented','{"notRoutePath":true}'),
+('63636363-6363-4363-8363-636363636363','33333333-aaaa-4333-8333-333333333333','route-assoc-conflict','R-ASSOC','Gauteng','Route City','official_route','Association Conflict Route',ST_GeomFromText('MULTILINESTRING((28.20 -26.00,28.21 -26.01))',4326),'documented','{}'),
+('64646464-6464-4464-8464-646464646464','33333333-aaaa-4333-8333-333333333333','route-shared-conflict','R-SHARED','Gauteng','Route City','official_route','Shared Conflict Route',ST_GeomFromText('MULTILINESTRING((28.30 -26.00,28.31 -26.01))',4326),'documented','{}'),
+('65656565-6565-4565-8565-656565656565','33333333-aaaa-4333-8333-333333333333','route-code-collision','R-COLLIDE','Gauteng','Route City','official_route','Code Collision Route',ST_GeomFromText('MULTILINESTRING((28.40 -26.00,28.41 -26.01))',4326),'documented','{}'),
+('66666666-aaaa-4666-8666-666666666666','33333333-aaaa-4333-8333-333333333333','route-stale','R-STALE','Gauteng','Route City','official_route','Stale Route',ST_GeomFromText('MULTILINESTRING((28.50 -26.00,28.51 -26.01))',4326),'documented','{}'),
+('67676767-6767-4767-8767-676767676767','33333333-aaaa-4333-8333-333333333333','route-race','R-RACE','Gauteng','Route City','official_route','Concurrent Route',ST_GeomFromText('MULTILINESTRING((28.60 -26.00,28.61 -26.01))',4326),'documented','{}'),
+('68686868-6868-4868-8868-686868686868','33333333-aaaa-4333-8333-333333333333','route-atomic','R-ATOMIC','Gauteng','Route City','official_route','Atomic Route',ST_GeomFromText('MULTILINESTRING((28.70 -26.00,28.71 -26.01))',4326),'documented','{}'),
+('69696969-6969-4969-8969-696969696969','33333333-aaaa-4333-8333-333333333333','route-source-record','R-SOURCE','Gauteng','Route City','official_route','Source Record Route',ST_GeomFromText('MULTILINESTRING((28.80 -26.00,28.81 -26.01))',4326),'documented','{}');
+
+INSERT INTO route_candidate (
+  id,source_route_geometry_id,source_id,external_record_id,route_code,origin_rank_id,destination_rank_id,
+  association_id,origin_distance_m,destination_distance_m,reconciliation_status,verification_status,confidence,provenance
+) VALUES
+('71717171-7171-4171-8171-717171717171','61616161-6161-4161-8161-616161616161','33333333-aaaa-4333-8333-333333333333','route-good','R-GOOD','27272727-2727-4727-8727-272727272727','28282828-2828-4828-8828-282828282828',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{}'),
+('72727272-7272-4272-8272-727272727272','62626262-6262-4262-8262-626262626262','33333333-aaaa-4333-8333-333333333333','route-endpoint','R-END','29292929-2929-4929-8929-292929292929','30303030-3030-4030-8030-303030303030',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{"notRoutePath":true}'),
+('73737373-7373-4373-8373-737373737373','63636363-6363-4363-8363-636363636363','33333333-aaaa-4333-8333-333333333333','route-assoc-conflict','R-ASSOC','27272727-2727-4727-8727-272727272727','28282828-2828-4828-8828-282828282828','23232323-2323-4232-8232-232323232323',0,0,'exact_endpoint_pair','documented',1.0,'{}'),
+('74747474-7474-4474-8474-747474747474','64646464-6464-4464-8464-646464646464','33333333-aaaa-4333-8333-333333333333','route-shared-conflict','R-SHARED','36363636-3636-4636-8636-363636363636','37373737-3737-4737-8737-373737373737',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{}'),
+('75757575-7575-4575-8575-757575757575','65656565-6565-4565-8565-656565656565','33333333-aaaa-4333-8333-333333333333','route-code-collision','R-COLLIDE','38383838-3838-4838-8838-383838383838','39393939-3939-4939-8939-393939393939',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{}'),
+('76767676-7676-4676-8676-767676767676','66666666-aaaa-4666-8666-666666666666','33333333-aaaa-4333-8333-333333333333','route-stale','R-STALE','38383838-3838-4838-8838-383838383838','40404040-4040-4040-8040-404040404040',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{}'),
+('77777777-aaaa-4777-8777-777777777777','67676767-6767-4767-8767-676767676767','33333333-aaaa-4333-8333-333333333333','route-race','R-RACE','39393939-3939-4939-8939-393939393939','40404040-4040-4040-8040-404040404040',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{}'),
+('78787878-7878-4878-8878-787878787878','68686868-6868-4868-8868-686868686868','33333333-aaaa-4333-8333-333333333333','route-atomic','R-ATOMIC','34343434-3434-4434-8434-343434343434','43434343-aaaa-4343-8343-434343434343',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{}'),
+('79797979-7979-4979-8979-797979797979','69696969-6969-4969-8969-696969696969','33333333-aaaa-4333-8333-333333333333','route-source-record','R-SOURCE','27272727-2727-4727-8727-272727272727','29292929-2929-4929-8929-292929292929',NULL,0,0,'exact_endpoint_pair','documented',1.0,'{}');
+
+INSERT INTO taxi_route (
+  id,association_id,origin_rank_id,destination_rank_id,origin_label,destination_label,
+  route_name,geometry,geometry_status,verification_status,source_route_code
+) VALUES
+('81818181-8181-4181-8181-818181818181','21212121-2121-4212-8212-212121212121','34343434-3434-4434-8434-343434343434','35353535-3535-4535-8535-353535353535','Route Rank E','Route Rank F','Existing Code Route',ST_GeomFromText('MULTILINESTRING((29.00 -26.00,29.01 -26.01))',4326),'source_documented','documented','R-COLLIDE');
+
+INSERT INTO source_record (
+  id,source_id,entity_type,entity_id,external_record_id,source_payload,source_geometry,source_confidence
+) VALUES
+('82828282-8282-4282-8282-828282828282','33333333-aaaa-4333-8333-333333333333','taxi_route','81818181-8181-4181-8181-818181818181','route-source-record','{}',ST_GeomFromText('MULTILINESTRING((29.10 -26.00,29.11 -26.01))',4326),1.0);
 
 TRUNCATE data_issue;
 INSERT INTO data_issue (id,entity_type,issue_type,severity,summary,status) VALUES
@@ -145,5 +305,6 @@ psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/006_data_issue_rejected_status
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/007_two_person_decision_proposals.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/008_transport_entity_aliases.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/009_rank_association_promotions.sql
-echo "TN7_ADJ5_DB_SETUP_PASS"
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/010_route_candidate_promotions.sql
+echo "TN7_ADJ6_DB_SETUP_PASS"
 sleep 8
