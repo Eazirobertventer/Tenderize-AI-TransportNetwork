@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
 import pg from 'pg';
+import { authenticateOperatorRequest, operatorAuthCapabilities } from './operator-auth.mjs';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 8080);
@@ -1007,6 +1008,127 @@ async function postgisAssociations(url){
   return {items:result.rows};
 }
 
+async function postgisOperatorQualityQueue(url){
+  const rawLimit=Number(url.searchParams.get('limit') || 100);
+  const limit=Math.min(Math.max(Number.isFinite(rawLimit)?Math.floor(rawLimit):100,1),250);
+
+  const [summary,issues,rankAssociationCandidates,routeCandidates]=await Promise.all([
+    postgisDataQualitySummary(),
+    postgisDataIssues(new URL('/api/v1/data-issues?limit='+limit,'http://localhost')),
+    pool.query(
+      `SELECT
+         rac.id::text,
+         rac.association_label,
+         rac.normalized_label,
+         rac.verification_status::text,
+         rac.first_seen_at,
+         rac.last_seen_at,
+         r.id::text AS rank_id,
+         r.canonical_name AS rank_name,
+         r.town,
+         r.municipality,
+         r.province,
+         CASE WHEN r.location IS NULL THEN NULL ELSE ST_X(r.location) END AS lng,
+         CASE WHEN r.location IS NULL THEN NULL ELSE ST_Y(r.location) END AS lat,
+         s.source_key,
+         s.source_name,
+         s.authority
+       FROM rank_association_candidate rac
+       JOIN source_registry s ON s.id=rac.source_id
+       LEFT JOIN taxi_rank r ON r.id=rac.taxi_rank_id
+       ORDER BY rac.last_seen_at DESC,rac.normalized_label
+       LIMIT $1`,
+      [limit]
+    ),
+    pool.query(
+      `SELECT
+         rc.id::text,
+         rc.route_code,
+         rc.reconciliation_status,
+         rc.verification_status::text,
+         rc.origin_distance_m,
+         rc.destination_distance_m,
+         rc.first_seen_at,
+         rc.last_seen_at,
+         origin.id::text AS origin_rank_id,
+         origin.canonical_name AS origin_rank_name,
+         destination.id::text AS destination_rank_id,
+         destination.canonical_name AS destination_rank_name,
+         s.source_key,
+         s.source_name,
+         s.authority
+       FROM route_candidate rc
+       JOIN source_registry s ON s.id=rc.source_id
+       JOIN taxi_rank origin ON origin.id=rc.origin_rank_id
+       JOIN taxi_rank destination ON destination.id=rc.destination_rank_id
+       WHERE rc.association_id IS NULL
+       ORDER BY rc.last_seen_at DESC,rc.route_code NULLS LAST,rc.id
+       LIMIT $1`,
+      [limit]
+    )
+  ]);
+
+  return {
+    mode:'operator_read_only',
+    mutationEnabled:false,
+    summary,
+    dataIssues:issues.items,
+    rankAssociationCandidates:rankAssociationCandidates.rows.map(row=>({
+      id:row.id,
+      associationLabel:row.association_label,
+      normalizedLabel:row.normalized_label,
+      verificationStatus:row.verification_status,
+      firstSeenAt:row.first_seen_at,
+      lastSeenAt:row.last_seen_at,
+      rank:row.rank_id ? {
+        id:row.rank_id,
+        name:row.rank_name,
+        town:row.town,
+        municipality:row.municipality,
+        province:row.province,
+        lng:row.lng==null?null:Number(row.lng),
+        lat:row.lat==null?null:Number(row.lat)
+      } : null,
+      source:{
+        key:row.source_key,
+        name:row.source_name,
+        authority:row.authority
+      }
+    })),
+    routeCandidatesWithoutAssociation:routeCandidates.rows.map(row=>({
+      id:row.id,
+      routeCode:row.route_code,
+      reconciliationStatus:row.reconciliation_status,
+      verificationStatus:row.verification_status,
+      originDistanceM:Number(row.origin_distance_m),
+      destinationDistanceM:Number(row.destination_distance_m),
+      firstSeenAt:row.first_seen_at,
+      lastSeenAt:row.last_seen_at,
+      origin:{id:row.origin_rank_id,name:row.origin_rank_name},
+      destination:{id:row.destination_rank_id,name:row.destination_rank_name},
+      source:{
+        key:row.source_key,
+        name:row.source_name,
+        authority:row.authority
+      }
+    }))
+  };
+}
+
+function operatorAuthOrSend(req,res,roles){
+  const auth=authenticateOperatorRequest(req,roles);
+  if(auth.ok) return auth;
+
+  if(auth.status===401){
+    res.setHeader('www-authenticate','Bearer realm="transport-network-operator"');
+  }
+  send(res,auth.status,{
+    error:auth.error,
+    requiredRoles:auth.requiredRoles || undefined
+  });
+  return null;
+}
+
 async function postgisDataIssues(url){
   const params=[];
   const where=["status IN ('open','reviewing','deferred')"];
@@ -1276,9 +1398,26 @@ async function rankDetail(id){
 
 const server=createServer(async(req,res)=>{
   const url=new URL(req.url,`http://${req.headers.host || 'localhost'}`);
+  const method=req.method || 'GET';
 
   try{
-    if(!['GET','HEAD'].includes(req.method || 'GET')){
+    if(url.pathname.startsWith('/api/v1/operator/adjudications/')){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['approver','admin']);
+      if(!auth) return;
+
+      return send(res,501,{
+        error:'adjudication_not_enabled',
+        mutationEnabled:false,
+        actor:{subject:auth.actor.subject,roles:auth.actor.roles}
+      });
+    }
+
+    if(!['GET','HEAD'].includes(method)){
       res.setHeader('allow','GET, HEAD');
       return send(res,405,{error:'method_not_allowed'});
     }
@@ -1287,6 +1426,27 @@ const server=createServer(async(req,res)=>{
       if(!pool) return send(res,503,{ok:false,service:'transport-api',mode:'unconfigured'});
       await pool.query('select 1');
       return send(res,200,{ok:true,service:'transport-api',mode:'postgis'});
+    }
+
+    if(url.pathname==='/api/v1/operator/me'){
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      return send(res,200,{
+        actor:auth.actor,
+        auth:operatorAuthCapabilities(),
+        mutationEnabled:false
+      });
+    }
+
+    if(url.pathname==='/api/v1/operator/quality-queue'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      const queue=await postgisOperatorQualityQueue(url);
+      return send(res,200,{
+        actor:{subject:auth.actor.subject,roles:auth.actor.roles},
+        ...queue
+      });
     }
 
     if(url.pathname==='/api/v1/meta'){
@@ -1363,11 +1523,15 @@ const server=createServer(async(req,res)=>{
 
     if(url.pathname==='/api/v1/data-issues'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
       return send(res,200,await postgisDataIssues(url));
     }
 
     if(url.pathname==='/api/v1/reconciliation/rank-candidates'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
       return send(res,200,await postgisRankReconciliation(url));
     }
 
