@@ -1,5 +1,15 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
+import {
+  aliasPromotionEnabled,
+  aliasActionForEntityType,
+  normalizeAlias,
+  loadAliasEntity,
+  lockAliasClaim,
+  findAliasCollision,
+  addAliasToEntity,
+  registerPromotedAlias
+} from './operator-aliases.mjs';
 
 function actorRole(actor){
   if(actor?.roles?.includes('admin')) return 'admin';
@@ -363,6 +373,176 @@ export async function createDataIssueDeferProposal(pool,{
   }
 }
 
+export async function createAliasProposal(pool,{
+  entityType,
+  entityId,
+  alias,
+  actor,
+  idempotencyKey,
+  rationale,
+  evidence,
+  requestId=randomUUID()
+}){
+  if(!pool) return {status:503,payload:{error:'database_not_configured'}};
+  if(!dualControlEnabled() || !aliasPromotionEnabled()){
+    return {status:503,payload:{error:'alias_promotion_disabled',mutationEnabled:false}};
+  }
+
+  const action=aliasActionForEntityType(entityType);
+  if(!action){
+    return {status:422,payload:{error:'alias_entity_type_not_supported'}};
+  }
+
+  const role=actorRole(actor);
+  const client=await pool.connect();
+
+  try{
+    await client.query('BEGIN');
+
+    const normalized=await normalizeAlias(client,alias);
+    if(!normalized.ok){
+      await client.query('ROLLBACK');
+      return {status:400,payload:{error:normalized.error}};
+    }
+
+    const replayBeforeLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayBeforeLock){
+      if(replayBeforeLock.target_entity_id!==entityId ||
+         replayBeforeLock.intended_change?.normalizedAlias!==normalized.normalizedAlias){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayBeforeLock)}};
+    }
+
+    const entity=await loadAliasEntity(client,entityType,entityId,{forUpdate:true});
+    if(!entity){
+      await client.query('ROLLBACK');
+      return {status:404,payload:{error:'alias_target_not_found'}};
+    }
+
+    const collision=await findAliasCollision(client,entityType,entityId,normalized.normalizedAlias);
+    if(collision){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{
+          error:collision.sameTarget?'alias_already_present_or_identity':'alias_collision',
+          collision
+        }
+      };
+    }
+
+    const replayAfterLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayAfterLock){
+      if(replayAfterLock.target_entity_id!==entityId ||
+         replayAfterLock.intended_change?.normalizedAlias!==normalized.normalizedAlias){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayAfterLock)}};
+    }
+
+    const beforeState=canonicalize(entity);
+    const beforeStateHash=canonicalStateHash(beforeState);
+    const intendedChange={
+      alias:normalized.alias,
+      normalizedAlias:normalized.normalizedAlias
+    };
+
+    const insert=await client.query(
+      `INSERT INTO operator_decision_proposal (
+         action,
+         target_entity_type,
+         target_entity_id,
+         intended_change,
+         before_state,
+         before_state_hash,
+         evidence,
+         rationale,
+         proposer_subject,
+         proposer_display_name,
+         proposer_role,
+         proposal_idempotency_key
+       ) VALUES (
+         $1,$2,$3::uuid,$4::jsonb,$5::jsonb,$6,$7::jsonb,$8,$9,$10,$11,$12
+       )
+       RETURNING
+         id::text,
+         action,
+         target_entity_type,
+         target_entity_id::text,
+         intended_change,
+         before_state,
+         before_state_hash,
+         evidence,
+         rationale,
+         proposer_subject,
+         proposer_display_name,
+         proposer_role,
+         proposal_idempotency_key,
+         proposed_at,
+         status,
+         decision_actor_subject,
+         decision_actor_display_name,
+         decision_actor_role,
+         decision_rationale,
+         decision_evidence,
+         decision_idempotency_key,
+         decided_at,
+         approved_audit_event_id::text`,
+      [
+        action,
+        entityType,
+        entityId,
+        JSON.stringify(intendedChange),
+        JSON.stringify(beforeState),
+        beforeStateHash,
+        JSON.stringify(evidence || {}),
+        rationale,
+        actor.subject,
+        actor.displayName,
+        role,
+        idempotencyKey
+      ]
+    );
+
+    const proposal=insert.rows[0];
+
+    await appendOperatorAuditEvent(client,{
+      actor,
+      action:'decision_proposal.create',
+      entityType:'operator_decision_proposal',
+      entityId:proposal.id,
+      requestId,
+      idempotencyKey,
+      beforeState:null,
+      afterState:proposalView(proposal),
+      evidence,
+      rationale,
+      metadata:{
+        gate:'TN7-ADJUDICATION-4',
+        targetEntityType:entityType,
+        targetEntityId:entityId,
+        proposedAction:action,
+        alias:normalized.alias,
+        normalizedAlias:normalized.normalizedAlias,
+        beforeStateHash
+      }
+    });
+
+    await client.query('COMMIT');
+    return {status:201,payload:{replay:false,proposal:proposalView(proposal)}};
+  }catch(error){
+    try{await client.query('ROLLBACK');}catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
+
 export async function approveDecisionProposal(pool,{
   proposalId,
   actor,
@@ -409,9 +589,202 @@ export async function approveDecisionProposal(pool,{
       return {status:403,payload:{error:'decision_proposal_self_approval_forbidden'}};
     }
 
-    if(proposal.action!=='data_issue.defer' || proposal.target_entity_type!=='data_issue'){
+    const isDeferProposal=proposal.action==='data_issue.defer' && proposal.target_entity_type==='data_issue';
+    const isAliasProposal=
+      (proposal.action==='taxi_rank.alias.add' && proposal.target_entity_type==='taxi_rank') ||
+      (proposal.action==='taxi_association.alias.add' && proposal.target_entity_type==='taxi_association');
+
+    if(!isDeferProposal && !isAliasProposal){
       await client.query('ROLLBACK');
       return {status:422,payload:{error:'decision_proposal_action_not_supported'}};
+    }
+
+    if(isAliasProposal){
+      if(!aliasPromotionEnabled()){
+        await client.query('ROLLBACK');
+        return {status:503,payload:{error:'alias_promotion_disabled',mutationEnabled:false}};
+      }
+
+      const alias=proposal.intended_change?.alias;
+      const normalizedAlias=proposal.intended_change?.normalizedAlias;
+      const normalized=await normalizeAlias(client,alias);
+      if(!normalized.ok || normalized.normalizedAlias!==normalizedAlias){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'decision_proposal_alias_normalization_mismatch'}};
+      }
+
+      await lockAliasClaim(client,proposal.target_entity_type,normalizedAlias);
+
+      const entity=await loadAliasEntity(client,proposal.target_entity_type,proposal.target_entity_id,{forUpdate:true});
+      if(!entity){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'decision_proposal_target_missing'}};
+      }
+
+      const currentState=canonicalize(entity);
+      const currentHash=canonicalStateHash(currentState);
+      if(currentHash!==proposal.before_state_hash){
+        await client.query('ROLLBACK');
+        return {
+          status:409,
+          payload:{
+            error:'decision_proposal_stale_before_state',
+            proposedBeforeStateHash:proposal.before_state_hash,
+            currentBeforeStateHash:currentHash
+          }
+        };
+      }
+
+      const collision=await findAliasCollision(
+        client,
+        proposal.target_entity_type,
+        proposal.target_entity_id,
+        normalizedAlias
+      );
+      if(collision){
+        await client.query('ROLLBACK');
+        return {
+          status:409,
+          payload:{
+            error:collision.sameTarget?'alias_already_present_or_identity':'alias_collision',
+            collision
+          }
+        };
+      }
+
+      const afterEntity=await addAliasToEntity(
+        client,
+        proposal.target_entity_type,
+        proposal.target_entity_id,
+        normalized.alias
+      );
+      if(!afterEntity){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'decision_proposal_target_missing'}};
+      }
+
+      const canonicalAudit=await appendOperatorAuditEvent(client,{
+        actor,
+        action:proposal.action,
+        entityType:proposal.target_entity_type,
+        entityId:proposal.target_entity_id,
+        requestId,
+        idempotencyKey:'proposal:'+proposal.id+':'+idempotencyKey,
+        beforeState:currentState,
+        afterState:canonicalize(afterEntity),
+        evidence:{
+          proposalId:proposal.id,
+          proposalEvidence:proposal.evidence,
+          approvalEvidence:evidence
+        },
+        rationale:proposal.rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-4',
+          dualControl:true,
+          proposerSubject:proposal.proposer_subject,
+          approverSubject:actor.subject,
+          proposalBeforeStateHash:proposal.before_state_hash,
+          alias:normalized.alias,
+          normalizedAlias
+        }
+      });
+
+      const aliasRecord=await registerPromotedAlias(client,{
+        entityType:proposal.target_entity_type,
+        entityId:proposal.target_entity_id,
+        alias:normalized.alias,
+        normalizedAlias,
+        proposalId:proposal.id,
+        auditEventId:canonicalAudit.id
+      });
+
+      const updateProposal=await client.query(
+        `UPDATE operator_decision_proposal
+         SET status='approved',
+             decision_actor_subject=$2,
+             decision_actor_display_name=$3,
+             decision_actor_role=$4,
+             decision_rationale=$5,
+             decision_evidence=$6::jsonb,
+             decision_idempotency_key=$7,
+             decided_at=now(),
+             approved_audit_event_id=$8::uuid
+         WHERE id=$1::uuid
+           AND status='proposed'
+         RETURNING
+           id::text,
+           action,
+           target_entity_type,
+           target_entity_id::text,
+           intended_change,
+           before_state,
+           before_state_hash,
+           evidence,
+           rationale,
+           proposer_subject,
+           proposer_display_name,
+           proposer_role,
+           proposal_idempotency_key,
+           proposed_at,
+           status,
+           decision_actor_subject,
+           decision_actor_display_name,
+           decision_actor_role,
+           decision_rationale,
+           decision_evidence,
+           decision_idempotency_key,
+           decided_at,
+           approved_audit_event_id::text`,
+        [
+          proposalId,
+          actor.subject,
+          actor.displayName,
+          role,
+          rationale,
+          JSON.stringify(evidence || {}),
+          idempotencyKey,
+          canonicalAudit.id
+        ]
+      );
+      const approved=updateProposal.rows[0];
+
+      await appendOperatorAuditEvent(client,{
+        actor,
+        action:'decision_proposal.approve',
+        entityType:'operator_decision_proposal',
+        entityId:proposalId,
+        requestId,
+        idempotencyKey,
+        beforeState:proposalView(proposal),
+        afterState:proposalView(approved),
+        evidence,
+        rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-4',
+          canonicalAuditEventId:canonicalAudit.id,
+          aliasRecordId:aliasRecord.id,
+          targetEntityType:proposal.target_entity_type,
+          targetEntityId:proposal.target_entity_id,
+          proposedAction:proposal.action,
+          normalizedAlias
+        }
+      });
+
+      await client.query('COMMIT');
+
+      return {
+        status:200,
+        payload:{
+          replay:false,
+          proposal:proposalView(approved),
+          canonicalMutation:{
+            action:proposal.action,
+            auditEventId:canonicalAudit.id,
+            aliasRecord,
+            entity:canonicalize(afterEntity)
+          }
+        }
+      };
     }
 
     const issue=await loadDataIssue(client,proposal.target_entity_id,{forUpdate:true});
