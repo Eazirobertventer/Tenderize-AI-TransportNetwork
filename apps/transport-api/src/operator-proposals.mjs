@@ -10,6 +10,13 @@ import {
   addAliasToEntity,
   registerPromotedAlias
 } from './operator-aliases.mjs';
+import {
+  associationAssignmentEnabled,
+  buildRankAssociationSnapshot,
+  validateRankAssociationSnapshot,
+  insertRankAssociation,
+  registerRankAssociationPromotion
+} from './operator-association-links.mjs';
 
 function actorRole(actor){
   if(actor?.roles?.includes('admin')) return 'admin';
@@ -543,6 +550,158 @@ export async function createAliasProposal(pool,{
   }
 }
 
+export async function createRankAssociationAssignmentProposal(pool,{
+  candidateId,
+  associationId,
+  actor,
+  idempotencyKey,
+  rationale,
+  evidence,
+  requestId=randomUUID()
+}){
+  if(!pool) return {status:503,payload:{error:'database_not_configured'}};
+  if(!dualControlEnabled() || !associationAssignmentEnabled()){
+    return {status:503,payload:{error:'association_assignment_disabled',mutationEnabled:false}};
+  }
+
+  const action='taxi_rank_association.assign';
+  const role=actorRole(actor);
+  const client=await pool.connect();
+
+  try{
+    await client.query('BEGIN');
+
+    const replayBeforeLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayBeforeLock){
+      if(replayBeforeLock.intended_change?.candidateId!==candidateId ||
+         replayBeforeLock.intended_change?.associationId!==associationId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayBeforeLock)}};
+    }
+
+    const snapshot=await buildRankAssociationSnapshot(client,{candidateId,associationId,lock:true});
+    const validation=validateRankAssociationSnapshot(snapshot);
+    if(!validation.ok){
+      await client.query('ROLLBACK');
+      return {status:409,payload:validation};
+    }
+
+    const replayAfterLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayAfterLock){
+      if(replayAfterLock.intended_change?.candidateId!==candidateId ||
+         replayAfterLock.intended_change?.associationId!==associationId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayAfterLock)}};
+    }
+
+    const beforeState=canonicalize(snapshot);
+    const beforeStateHash=canonicalStateHash(beforeState);
+    const intendedChange={
+      candidateId,
+      taxiRankId:snapshot.rank.id,
+      associationId,
+      relationshipVerificationStatus:'verified'
+    };
+
+    const insert=await client.query(
+      `INSERT INTO operator_decision_proposal (
+         action,
+         target_entity_type,
+         target_entity_id,
+         intended_change,
+         before_state,
+         before_state_hash,
+         evidence,
+         rationale,
+         proposer_subject,
+         proposer_display_name,
+         proposer_role,
+         proposal_idempotency_key
+       ) VALUES (
+         $1,'taxi_rank',$2::uuid,$3::jsonb,$4::jsonb,$5,$6::jsonb,$7,$8,$9,$10,$11
+       )
+       RETURNING
+         id::text,
+         action,
+         target_entity_type,
+         target_entity_id::text,
+         intended_change,
+         before_state,
+         before_state_hash,
+         evidence,
+         rationale,
+         proposer_subject,
+         proposer_display_name,
+         proposer_role,
+         proposal_idempotency_key,
+         proposed_at,
+         status,
+         decision_actor_subject,
+         decision_actor_display_name,
+         decision_actor_role,
+         decision_rationale,
+         decision_evidence,
+         decision_idempotency_key,
+         decided_at,
+         approved_audit_event_id::text`,
+      [
+        action,
+        snapshot.rank.id,
+        JSON.stringify(intendedChange),
+        JSON.stringify(beforeState),
+        beforeStateHash,
+        JSON.stringify({
+          ...(evidence || {}),
+          candidate:snapshot.candidate,
+          sourceCandidateSet:snapshot.candidates
+        }),
+        rationale,
+        actor.subject,
+        actor.displayName,
+        role,
+        idempotencyKey
+      ]
+    );
+
+    const proposal=insert.rows[0];
+
+    await appendOperatorAuditEvent(client,{
+      actor,
+      action:'decision_proposal.create',
+      entityType:'operator_decision_proposal',
+      entityId:proposal.id,
+      requestId,
+      idempotencyKey,
+      beforeState:null,
+      afterState:proposalView(proposal),
+      evidence,
+      rationale,
+      metadata:{
+        gate:'TN7-ADJUDICATION-5',
+        proposedAction:action,
+        candidateId,
+        taxiRankId:snapshot.rank.id,
+        associationId,
+        beforeStateHash
+      }
+    });
+
+    await client.query('COMMIT');
+    return {status:201,payload:{replay:false,proposal:proposalView(proposal)}};
+  }catch(error){
+    try{await client.query('ROLLBACK');}catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
+
 export async function approveDecisionProposal(pool,{
   proposalId,
   actor,
@@ -593,8 +752,11 @@ export async function approveDecisionProposal(pool,{
     const isAliasProposal=
       (proposal.action==='taxi_rank.alias.add' && proposal.target_entity_type==='taxi_rank') ||
       (proposal.action==='taxi_association.alias.add' && proposal.target_entity_type==='taxi_association');
+    const isRankAssociationProposal=
+      proposal.action==='taxi_rank_association.assign' &&
+      proposal.target_entity_type==='taxi_rank';
 
-    if(!isDeferProposal && !isAliasProposal){
+    if(!isDeferProposal && !isAliasProposal && !isRankAssociationProposal){
       await client.query('ROLLBACK');
       return {status:422,payload:{error:'decision_proposal_action_not_supported'}};
     }
@@ -782,6 +944,186 @@ export async function approveDecisionProposal(pool,{
             auditEventId:canonicalAudit.id,
             aliasRecord,
             entity:canonicalize(afterEntity)
+          }
+        }
+      };
+    }
+
+    if(isRankAssociationProposal){
+      if(!associationAssignmentEnabled()){
+        await client.query('ROLLBACK');
+        return {status:503,payload:{error:'association_assignment_disabled',mutationEnabled:false}};
+      }
+
+      const candidateId=proposal.intended_change?.candidateId;
+      const associationId=proposal.intended_change?.associationId;
+      if(!candidateId || !associationId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'decision_proposal_relationship_payload_invalid'}};
+      }
+
+      const snapshot=await buildRankAssociationSnapshot(client,{
+        candidateId,
+        associationId,
+        lock:true
+      });
+      const validation=validateRankAssociationSnapshot(snapshot);
+      if(!validation.ok){
+        await client.query('ROLLBACK');
+        return {status:409,payload:validation};
+      }
+
+      const currentState=canonicalize(snapshot);
+      const currentHash=canonicalStateHash(currentState);
+      if(currentHash!==proposal.before_state_hash){
+        await client.query('ROLLBACK');
+        return {
+          status:409,
+          payload:{
+            error:'decision_proposal_stale_before_state',
+            proposedBeforeStateHash:proposal.before_state_hash,
+            currentBeforeStateHash:currentHash
+          }
+        };
+      }
+
+      if(snapshot.rank.id!==proposal.target_entity_id){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'decision_proposal_target_mismatch'}};
+      }
+
+      const relationship=await insertRankAssociation(client,{
+        rankId:snapshot.rank.id,
+        associationId:snapshot.association.id
+      });
+
+      const canonicalAudit=await appendOperatorAuditEvent(client,{
+        actor,
+        action:'taxi_rank_association.assign',
+        entityType:'taxi_rank_association',
+        entityId:relationship.relationshipId,
+        requestId,
+        idempotencyKey:'proposal:'+proposal.id+':'+idempotencyKey,
+        beforeState:{
+          relationship:null,
+          snapshot:currentState
+        },
+        afterState:{
+          relationship,
+          rank:snapshot.rank,
+          association:snapshot.association
+        },
+        evidence:{
+          proposalId:proposal.id,
+          candidate:snapshot.candidate,
+          proposalEvidence:proposal.evidence,
+          approvalEvidence:evidence
+        },
+        rationale:proposal.rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-5',
+          dualControl:true,
+          proposerSubject:proposal.proposer_subject,
+          approverSubject:actor.subject,
+          proposalBeforeStateHash:proposal.before_state_hash,
+          candidateId,
+          taxiRankId:snapshot.rank.id,
+          associationId:snapshot.association.id
+        }
+      });
+
+      const promotion=await registerRankAssociationPromotion(client,{
+        candidateId,
+        relationship,
+        proposalId:proposal.id,
+        auditEventId:canonicalAudit.id
+      });
+
+      const updateProposal=await client.query(
+        `UPDATE operator_decision_proposal
+         SET status='approved',
+             decision_actor_subject=$2,
+             decision_actor_display_name=$3,
+             decision_actor_role=$4,
+             decision_rationale=$5,
+             decision_evidence=$6::jsonb,
+             decision_idempotency_key=$7,
+             decided_at=now(),
+             approved_audit_event_id=$8::uuid
+         WHERE id=$1::uuid
+           AND status='proposed'
+         RETURNING
+           id::text,
+           action,
+           target_entity_type,
+           target_entity_id::text,
+           intended_change,
+           before_state,
+           before_state_hash,
+           evidence,
+           rationale,
+           proposer_subject,
+           proposer_display_name,
+           proposer_role,
+           proposal_idempotency_key,
+           proposed_at,
+           status,
+           decision_actor_subject,
+           decision_actor_display_name,
+           decision_actor_role,
+           decision_rationale,
+           decision_evidence,
+           decision_idempotency_key,
+           decided_at,
+           approved_audit_event_id::text`,
+        [
+          proposalId,
+          actor.subject,
+          actor.displayName,
+          role,
+          rationale,
+          JSON.stringify(evidence || {}),
+          idempotencyKey,
+          canonicalAudit.id
+        ]
+      );
+      const approved=updateProposal.rows[0];
+
+      await appendOperatorAuditEvent(client,{
+        actor,
+        action:'decision_proposal.approve',
+        entityType:'operator_decision_proposal',
+        entityId:proposalId,
+        requestId,
+        idempotencyKey,
+        beforeState:proposalView(proposal),
+        afterState:proposalView(approved),
+        evidence,
+        rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-5',
+          canonicalAuditEventId:canonicalAudit.id,
+          promotionId:promotion.id,
+          relationshipId:relationship.relationshipId,
+          candidateId,
+          taxiRankId:snapshot.rank.id,
+          associationId:snapshot.association.id,
+          proposedAction:proposal.action
+        }
+      });
+
+      await client.query('COMMIT');
+
+      return {
+        status:200,
+        payload:{
+          replay:false,
+          proposal:proposalView(approved),
+          canonicalMutation:{
+            action:'taxi_rank_association.assign',
+            auditEventId:canonicalAudit.id,
+            relationship,
+            promotion
           }
         }
       };
