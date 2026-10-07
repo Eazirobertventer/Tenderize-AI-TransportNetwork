@@ -1183,21 +1183,34 @@ function deferIssueEnabled(){
   return process.env.OPERATOR_DEFER_ISSUE_ENABLED==='true';
 }
 
-async function existingDeferAudit(client,actorSubject,idempotencyKey){
+function rejectIssueEnabled(){
+  return process.env.OPERATOR_REJECT_ISSUE_ENABLED==='true';
+}
+
+function reopenIssueEnabled(){
+  return process.env.OPERATOR_REOPEN_ISSUE_ENABLED==='true';
+}
+
+async function existingActionAudit(client,actorSubject,action,idempotencyKey){
   const result=await client.query(
     `SELECT
        id::text,
        entity_id::text,
+       before_state,
        after_state,
        occurred_at
      FROM operator_audit_event
      WHERE actor_subject=$1
-       AND action='data_issue.defer'
-       AND idempotency_key=$2
+       AND action=$2
+       AND idempotency_key=$3
      LIMIT 1`,
-    [actorSubject,idempotencyKey]
+    [actorSubject,action,idempotencyKey]
   );
   return result.rows[0] || null;
+}
+
+async function existingDeferAudit(client,actorSubject,idempotencyKey){
+  return existingActionAudit(client,actorSubject,'data_issue.defer',idempotencyKey);
 }
 
 async function deferDataIssue({issueId,actor,idempotencyKey,rationale,evidence,expectedStatus,req}){
@@ -1363,6 +1376,370 @@ async function deferDataIssue({issueId,actor,idempotencyKey,rationale,evidence,e
   }
 }
 
+
+
+async function rejectDataIssue({issueId,actor,idempotencyKey,rationale,evidence,expectedStatus,req}){
+  if(!pool) return {status:503,payload:{error:'database_not_configured'}};
+  if(!rejectIssueEnabled()){
+    return {
+      status:503,
+      payload:{error:'adjudication_reject_disabled',mutationEnabled:false}
+    };
+  }
+
+  const client=await pool.connect();
+  const action='data_issue.reject';
+  const reqId=requestId(req);
+
+  try{
+    await client.query('BEGIN');
+
+    const replayBeforeLock=await existingActionAudit(client,actor.subject,action,idempotencyKey);
+    if(replayBeforeLock){
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:true,
+          mutationEnabled:true,
+          auditEventId:replayBeforeLock.id,
+          issue:replayBeforeLock.after_state
+        }
+      };
+    }
+
+    const issueResult=await client.query(
+      `SELECT
+         id::text,
+         entity_type,
+         entity_id::text,
+         issue_type,
+         severity,
+         summary,
+         detail,
+         status,
+         created_at,
+         resolved_at
+       FROM data_issue
+       WHERE id=$1::uuid
+       FOR UPDATE`,
+      [issueId]
+    );
+
+    const issue=issueResult.rows[0];
+    if(!issue){
+      await client.query('ROLLBACK');
+      return {status:404,payload:{error:'data_issue_not_found'}};
+    }
+
+    const replayAfterLock=await existingActionAudit(client,actor.subject,action,idempotencyKey);
+    if(replayAfterLock){
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:true,
+          mutationEnabled:true,
+          auditEventId:replayAfterLock.id,
+          issue:replayAfterLock.after_state
+        }
+      };
+    }
+
+    if(issue.status!==expectedStatus){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{error:'data_issue_status_conflict',expectedStatus,currentStatus:issue.status}
+      };
+    }
+
+    if(!['open','reviewing','deferred'].includes(issue.status)){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{error:'data_issue_not_rejectable',currentStatus:issue.status}
+      };
+    }
+
+    const updateResult=await client.query(
+      `UPDATE data_issue
+       SET status='rejected',
+           resolved_at=now()
+       WHERE id=$1::uuid
+         AND status=$2
+       RETURNING
+         id::text,
+         entity_type,
+         entity_id::text,
+         issue_type,
+         severity,
+         summary,
+         detail,
+         status,
+         created_at,
+         resolved_at`,
+      [issueId,expectedStatus]
+    );
+
+    const after=updateResult.rows[0];
+    if(!after){
+      await client.query('ROLLBACK');
+      return {status:409,payload:{error:'data_issue_status_conflict',expectedStatus}};
+    }
+
+    const audit=await appendOperatorAuditEvent(client,{
+      actor,
+      action,
+      entityType:'data_issue',
+      entityId:issueId,
+      requestId:reqId,
+      idempotencyKey,
+      beforeState:issue,
+      afterState:after,
+      evidence,
+      rationale,
+      metadata:{gate:'TN7-ADJUDICATION-2',expectedStatus}
+    });
+
+    await client.query('COMMIT');
+
+    return {
+      status:200,
+      payload:{
+        replay:false,
+        mutationEnabled:true,
+        auditEventId:audit.id,
+        occurredAt:audit.occurred_at,
+        issue:after
+      }
+    };
+  }catch(error){
+    try{ await client.query('ROLLBACK'); }catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
+
+async function reopenDataIssue({issueId,actor,idempotencyKey,rationale,evidence,expectedStatus,priorAuditEventId,req}){
+  if(!pool) return {status:503,payload:{error:'database_not_configured'}};
+  if(!reopenIssueEnabled()){
+    return {
+      status:503,
+      payload:{error:'adjudication_reopen_disabled',mutationEnabled:false}
+    };
+  }
+
+  const client=await pool.connect();
+  const action='data_issue.reopen';
+  const reqId=requestId(req);
+
+  try{
+    await client.query('BEGIN');
+
+    const replayBeforeLock=await existingActionAudit(client,actor.subject,action,idempotencyKey);
+    if(replayBeforeLock){
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:true,
+          mutationEnabled:true,
+          auditEventId:replayBeforeLock.id,
+          issue:replayBeforeLock.after_state
+        }
+      };
+    }
+
+    const issueResult=await client.query(
+      `SELECT
+         id::text,
+         entity_type,
+         entity_id::text,
+         issue_type,
+         severity,
+         summary,
+         detail,
+         status,
+         created_at,
+         resolved_at
+       FROM data_issue
+       WHERE id=$1::uuid
+       FOR UPDATE`,
+      [issueId]
+    );
+    const issue=issueResult.rows[0];
+
+    if(!issue){
+      await client.query('ROLLBACK');
+      return {status:404,payload:{error:'data_issue_not_found'}};
+    }
+
+    const replayAfterLock=await existingActionAudit(client,actor.subject,action,idempotencyKey);
+    if(replayAfterLock){
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:true,
+          mutationEnabled:true,
+          auditEventId:replayAfterLock.id,
+          issue:replayAfterLock.after_state
+        }
+      };
+    }
+
+    if(issue.status!==expectedStatus){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{error:'data_issue_status_conflict',expectedStatus,currentStatus:issue.status}
+      };
+    }
+
+    if(!['deferred','rejected'].includes(issue.status)){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{error:'data_issue_not_reopenable',currentStatus:issue.status}
+      };
+    }
+
+    const priorResult=await client.query(
+      `SELECT
+         id::text,
+         actor_subject,
+         action,
+         entity_id::text,
+         before_state,
+         after_state,
+         occurred_at
+       FROM operator_audit_event
+       WHERE id=$1::uuid
+         AND entity_type='data_issue'
+         AND entity_id=$2::uuid
+       LIMIT 1`,
+      [priorAuditEventId,issueId]
+    );
+    const prior=priorResult.rows[0];
+
+    if(!prior || !['data_issue.defer','data_issue.reject'].includes(prior.action)){
+      await client.query('ROLLBACK');
+      return {status:409,payload:{error:'prior_adjudication_not_reversible'}};
+    }
+
+    const latestResult=await client.query(
+      `SELECT id::text,action,occurred_at
+       FROM operator_audit_event
+       WHERE entity_type='data_issue'
+         AND entity_id=$1::uuid
+         AND action IN ('data_issue.defer','data_issue.reject','data_issue.reopen')
+       ORDER BY occurred_at DESC,id DESC
+       LIMIT 1`,
+      [issueId]
+    );
+    const latest=latestResult.rows[0];
+
+    if(!latest || latest.id!==priorAuditEventId){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{
+          error:'prior_adjudication_not_latest',
+          latestAuditEventId:latest?.id || null
+        }
+      };
+    }
+
+    if(prior.after_state?.status!==issue.status){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{
+          error:'prior_adjudication_state_mismatch',
+          priorAfterStatus:prior.after_state?.status || null,
+          currentStatus:issue.status
+        }
+      };
+    }
+
+    const restoreStatus=prior.before_state?.status;
+    if(!['open','reviewing'].includes(restoreStatus)){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{error:'prior_adjudication_restore_state_invalid',restoreStatus:restoreStatus || null}
+      };
+    }
+
+    const updateResult=await client.query(
+      `UPDATE data_issue
+       SET status=$2,
+           resolved_at=NULL
+       WHERE id=$1::uuid
+         AND status=$3
+       RETURNING
+         id::text,
+         entity_type,
+         entity_id::text,
+         issue_type,
+         severity,
+         summary,
+         detail,
+         status,
+         created_at,
+         resolved_at`,
+      [issueId,restoreStatus,expectedStatus]
+    );
+    const after=updateResult.rows[0];
+
+    if(!after){
+      await client.query('ROLLBACK');
+      return {status:409,payload:{error:'data_issue_status_conflict',expectedStatus}};
+    }
+
+    const audit=await appendOperatorAuditEvent(client,{
+      actor,
+      action,
+      entityType:'data_issue',
+      entityId:issueId,
+      requestId:reqId,
+      idempotencyKey,
+      beforeState:issue,
+      afterState:after,
+      evidence,
+      rationale,
+      metadata:{
+        gate:'TN7-ADJUDICATION-2',
+        expectedStatus,
+        reversesAuditEventId:priorAuditEventId,
+        reversedAction:prior.action,
+        restoredStatus:restoreStatus
+      }
+    });
+
+    await client.query('COMMIT');
+
+    return {
+      status:200,
+      payload:{
+        replay:false,
+        mutationEnabled:true,
+        auditEventId:audit.id,
+        occurredAt:audit.occurred_at,
+        reversedAuditEventId:priorAuditEventId,
+        restoredStatus:restoreStatus,
+        issue:after
+      }
+    };
+  }catch(error){
+    try{ await client.query('ROLLBACK'); }catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
 
 
 async function postgisDataIssues(url){
@@ -1674,6 +2051,92 @@ const server=createServer(async(req,res)=>{
         rationale,
         evidence,
         expectedStatus,
+        req
+      });
+      return send(res,result.status,result.payload);
+    }
+
+    const rejectMatch=url.pathname.match(/^\/api\/v1\/operator\/adjudications\/data-issues\/([0-9a-fA-F-]{36})\/reject$/);
+    if(rejectMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const expectedStatus=typeof body.expectedStatus==='string' ? body.expectedStatus.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'adjudication_rationale_required'});
+      }
+      if(!['open','reviewing','deferred'].includes(expectedStatus)){
+        return send(res,400,{error:'expected_status_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'adjudication_evidence_required'});
+      }
+
+      const result=await rejectDataIssue({
+        issueId:rejectMatch[1],
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        expectedStatus,
+        req
+      });
+      return send(res,result.status,result.payload);
+    }
+
+    const reopenMatch=url.pathname.match(/^\/api\/v1\/operator\/adjudications\/data-issues\/([0-9a-fA-F-]{36})\/reopen$/);
+    if(reopenMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const expectedStatus=typeof body.expectedStatus==='string' ? body.expectedStatus.trim() : '';
+      const priorAuditEventId=typeof body.priorAuditEventId==='string' ? body.priorAuditEventId.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'adjudication_rationale_required'});
+      }
+      if(!['deferred','rejected'].includes(expectedStatus)){
+        return send(res,400,{error:'expected_status_required'});
+      }
+      if(!/^[0-9a-fA-F-]{36}$/.test(priorAuditEventId)){
+        return send(res,400,{error:'prior_audit_event_required'});
+      }
+
+      const result=await reopenDataIssue({
+        issueId:reopenMatch[1],
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        expectedStatus,
+        priorAuditEventId,
         req
       });
       return send(res,result.status,result.payload);
