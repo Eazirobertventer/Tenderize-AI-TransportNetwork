@@ -3,16 +3,10 @@ set -euo pipefail
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-DO $
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname='verification_status') THEN
-    CREATE TYPE verification_status AS ENUM (
-      'official','verified','documented','community_verified',
-      'candidate','inferred','conflict','unverified'
-    );
-  END IF;
-END
-$;
+CREATE TYPE verification_status AS ENUM (
+  'official','verified','documented','community_verified',
+  'candidate','inferred','conflict','unverified'
+);
 
 CREATE TABLE IF NOT EXISTS data_issue (
   id uuid PRIMARY KEY,
