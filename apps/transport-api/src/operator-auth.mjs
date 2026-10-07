@@ -158,10 +158,12 @@ export function operatorAuthCapabilities(env=process.env){
   const deferIssueEnabled=env.OPERATOR_DEFER_ISSUE_ENABLED==='true';
   const rejectIssueEnabled=env.OPERATOR_REJECT_ISSUE_ENABLED==='true';
   const reopenIssueEnabled=env.OPERATOR_REOPEN_ISSUE_ENABLED==='true';
+  const dualControlEnabled=env.OPERATOR_DUAL_CONTROL_ENABLED==='true';
   const enabledActions=[];
   if(deferIssueEnabled) enabledActions.push('data_issue.defer');
   if(rejectIssueEnabled) enabledActions.push('data_issue.reject');
   if(reopenIssueEnabled) enabledActions.push('data_issue.reopen');
+  if(dualControlEnabled) enabledActions.push('decision_proposal.create','decision_proposal.approve','decision_proposal.reject','decision_proposal.withdraw');
 
   return {
     configured:config.configured,
@@ -175,6 +177,7 @@ export function operatorAuthCapabilities(env=process.env){
       deferIssueEnabled,
       rejectIssueEnabled,
       reopenIssueEnabled,
+      dualControlEnabled,
       enabledActions
     }
   };
