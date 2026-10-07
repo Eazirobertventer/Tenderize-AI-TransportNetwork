@@ -164,6 +164,7 @@ CREATE TABLE IF NOT EXISTS taxi_route (
   origin_label text,
   destination_label text,
   route_name text,
+  source_route_code text,
   national_route_code text,
   board_route_code text,
   route_type text,
