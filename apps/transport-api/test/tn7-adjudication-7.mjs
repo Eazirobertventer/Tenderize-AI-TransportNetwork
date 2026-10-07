@@ -119,7 +119,7 @@ assert(Boolean(lin) && lin.survivor_rank_id===survivor && lin.proposal_id===pid,
 assert(Number(lin.redirect_counts.relationshipsRedirected)===1 && Number(lin.redirect_counts.overlappingRelationshipsCollapsed)===1,'merge lineage records relationship redirect counts');
 assert((await auditCount('taxi_rank.merge',survivor))===1,'canonical merge audit written once');
 
-const map=await call('/api/v1/ranks/map?province=Gauteng',{method:'GET'});
+const map=await call('/api/v1/ranks?province=Gauteng',{method:'GET'});
 assert(map.status===200 && !map.payload.features.some(f=>f.properties?.id===duplicate),'operational rank map hides tombstone');
 const detail=await call('/api/v1/ranks/'+duplicate,{method:'GET'});
 assert(detail.status===404,'active rank detail hides tombstone');
