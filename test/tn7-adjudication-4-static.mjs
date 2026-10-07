@@ -38,8 +38,8 @@ const checks=[
   [proposals.includes("decision_proposal_stale_before_state"),'alias approval retains stale-state protection'],
   [proposals.includes("dualControl:true"),'alias canonical audit retains dual-control flag'],
   [proposals.includes("registerPromotedAlias"),'alias registry write is inside approval transaction'],
-  [api.includes("proposals/ranks"),'rank alias proposal route exists'],
-  [api.includes("proposals/associations"),'association alias proposal route exists'],
+  [api.includes("createRankAliasProposalMatch"),'rank alias proposal route exists'],
+  [api.includes("createAssociationAliasProposalMatch"),'association alias proposal route exists'],
   [auth.includes("aliasPromotionEnabled"),'auth capabilities expose alias promotion switch'],
   [!web.includes("/api/v1/operator/proposals"),'public Web still does not proxy proposal routes']
 ];
