@@ -100,3 +100,26 @@
 .association-location-note{border-left:3px solid #d97706}
 @media(max-width:1280px){.kpis{grid-template-columns:repeat(3,1fr)}.coverage-grid{grid-template-columns:repeat(9,140px)}}
 @media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}.coverage-head{align-items:flex-start;flex-direction:column}.coverage-head small{text-align:left}.detail-actions{grid-template-columns:1fr}}
+
+
+/* TN7 R2 — operational navigation */
+.explorer-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:9px;border-bottom:1px solid var(--line);background:#f8fbfd;position:sticky;top:0;z-index:4}
+.explorer-tabs button{height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#536879;font-size:10px;font-weight:900;cursor:pointer}
+.explorer-tabs button.active-toggle{background:#eaf2ff;border-color:#b8cff5;color:#0d5fd7}
+.association-finder{display:none}
+.association-finder.visible{display:block}
+.association-finder-item .association-pin-mini{font-size:15px;color:#d97706;text-align:center}
+.association-finder-item>b{background:#fff5df;color:#a35b00}
+.coverage-area-list button.active{border-color:#9bbcf0;background:#edf5ff}
+.network-list{display:flex;flex-direction:column;gap:7px;max-height:330px;overflow:auto}
+.network-row{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:9px 10px;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;cursor:pointer}
+.network-row:hover{background:#f4f8fc;border-color:#c7d7e4}
+.network-row:disabled{cursor:not-allowed;opacity:.55;background:#f8fafb}
+.network-row span{min-width:0;display:flex;flex-direction:column;gap:2px}
+.network-row strong{font-size:10px;color:#203546;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.network-row small{font-size:9px;color:#7b8d9b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.network-row>b{font-size:9px;color:#0d5fd7;background:#eaf2ff;padding:4px 6px;border-radius:999px;white-space:nowrap}
+.route-network-row>b{color:#a35b00;background:#fff5df}
+.detail-actions.three{grid-template-columns:repeat(3,1fr)}
+.route-inspection-actions{grid-template-columns:1fr 1fr}
+@media(max-width:720px){.detail-actions.three,.route-inspection-actions{grid-template-columns:1fr}.network-list{max-height:260px}}
