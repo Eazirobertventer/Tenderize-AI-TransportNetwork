@@ -129,6 +129,167 @@ async function postgisRankFilters(url){
   };
 }
 
+async function postgisCoverage(url){
+  const province=url.searchParams.get('province');
+
+  const national=await pool.query(
+    `SELECT
+       (SELECT count(*)::int FROM taxi_rank) AS ranks,
+       (SELECT count(*)::int FROM taxi_rank WHERE location IS NOT NULL) AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank WHERE location IS NULL) AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_association) AS associations,
+       (SELECT count(*)::int FROM taxi_route) AS routes,
+       (SELECT count(*)::int FROM source_registry) AS sources`
+  );
+
+  const provinces=await pool.query(
+    `WITH names AS (
+       SELECT province FROM taxi_rank WHERE province IS NOT NULL AND trim(province)<>''
+       UNION
+       SELECT province FROM taxi_association WHERE province IS NOT NULL AND trim(province)<>''
+     )
+     SELECT
+       names.province,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province) AS ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province AND r.location IS NOT NULL) AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.province=names.province AND r.location IS NULL) AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_association a WHERE a.province=names.province) AS associations,
+       (SELECT count(*)::int
+          FROM taxi_route tr
+          JOIN taxi_association a ON a.id=tr.association_id
+          WHERE a.province=names.province) AS routes
+     FROM names
+     ORDER BY names.province`
+  );
+
+  let areas=[];
+  if(province){
+    const result=await pool.query(
+      `WITH rank_area AS (
+         SELECT
+           coalesce(nullif(trim(town),''),nullif(trim(municipality),''),'Unknown') AS area,
+           id,
+           location
+         FROM taxi_rank
+         WHERE province=$1
+       )
+       SELECT
+         ra.area,
+         count(DISTINCT ra.id)::int AS ranks,
+         count(DISTINCT ra.id) FILTER (WHERE ra.location IS NOT NULL)::int AS mapped_ranks,
+         count(DISTINCT raa.association_id)::int AS associations,
+         count(DISTINCT tr.id)::int AS routes
+       FROM rank_area ra
+       LEFT JOIN taxi_rank_association raa ON raa.taxi_rank_id=ra.id
+       LEFT JOIN taxi_route tr
+         ON tr.origin_rank_id=ra.id OR tr.destination_rank_id=ra.id
+       GROUP BY ra.area
+       ORDER BY ranks DESC,ra.area`,
+      [province]
+    );
+    areas=result.rows;
+  }
+
+  return {national:national.rows[0],provinces:provinces.rows,areas};
+}
+
+async function postgisAssociationMap(url){
+  const params=[];
+  const where=['1=1'];
+  const province=url.searchParams.get('province');
+  const q=url.searchParams.get('q');
+
+  if(province){
+    params.push(province);
+    where.push(`a.province=${params.length}`);
+  }
+
+  if(q){
+    params.push('%'+q+'%');
+    const i=params.length;
+    where.push(`(a.canonical_name ILIKE ${i} OR coalesce(a.registration_number,'') ILIKE ${i} OR coalesce(a.acronym,'') ILIKE ${i})`);
+  }
+
+  const result=await pool.query(
+    `SELECT
+       a.id::text,
+       a.canonical_name,
+       a.acronym,
+       a.registration_number,
+       a.province,
+       a.municipality,
+       a.address,
+       a.verification_status::text,
+       count(DISTINCT ra.taxi_rank_id)::int AS rank_count,
+       count(DISTINCT tr.id)::int AS route_count,
+       CASE
+         WHEN a.location IS NOT NULL THEN 'authoritative_association_location'
+         WHEN count(DISTINCT r.id) FILTER (WHERE r.location IS NOT NULL)>0 THEN 'linked_rank_centroid'
+         ELSE 'unmapped'
+       END AS location_basis,
+       CASE
+         WHEN a.location IS NOT NULL THEN ST_X(a.location)
+         ELSE ST_X(ST_Centroid(ST_Collect(r.location)) FILTER (WHERE r.location IS NOT NULL))
+       END AS lng,
+       CASE
+         WHEN a.location IS NOT NULL THEN ST_Y(a.location)
+         ELSE ST_Y(ST_Centroid(ST_Collect(r.location)) FILTER (WHERE r.location IS NOT NULL))
+       END AS lat
+     FROM taxi_association a
+     LEFT JOIN taxi_rank_association ra ON ra.association_id=a.id
+     LEFT JOIN taxi_rank r ON r.id=ra.taxi_rank_id
+     LEFT JOIN taxi_route tr ON tr.association_id=a.id
+     WHERE ${where.join(' AND ')}
+     GROUP BY a.id
+     ORDER BY a.canonical_name`,
+    params
+  );
+
+  return {
+    type:'FeatureCollection',
+    features:result.rows
+      .filter(row=>row.lng!=null && row.lat!=null)
+      .map(row=>({
+        type:'Feature',
+        id:row.id,
+        geometry:{type:'Point',coordinates:[Number(row.lng),Number(row.lat)]},
+        properties:{
+          id:row.id,
+          name:row.canonical_name,
+          acronym:row.acronym,
+          registrationNumber:row.registration_number,
+          province:row.province,
+          municipality:row.municipality,
+          address:row.address,
+          verificationStatus:row.verification_status,
+          rankCount:row.rank_count,
+          routeCount:row.route_count,
+          locationBasis:row.location_basis,
+          derivedLocation:row.location_basis==='linked_rank_centroid'
+        }
+      }))
+  };
+}
+
+async function postgisDataQualitySummary(){
+  const result=await pool.query(
+    `SELECT
+       (SELECT count(*)::int FROM data_issue WHERE status IN ('open','reviewing','deferred')) AS open_issues,
+       (SELECT count(*)::int FROM data_issue WHERE status='reviewing') AS reviewing_issues,
+       (SELECT count(*)::int FROM data_issue WHERE severity IN ('error','blocking') AND status IN ('open','reviewing','deferred')) AS high_severity_issues,
+       (SELECT count(*)::int FROM taxi_rank WHERE location IS NULL) AS ranks_missing_location,
+       (SELECT count(*)::int
+          FROM taxi_rank r
+          WHERE NOT EXISTS (SELECT 1 FROM taxi_rank_association ra WHERE ra.taxi_rank_id=r.id)) AS ranks_without_association,
+       (SELECT count(*)::int FROM rank_association_candidate) AS rank_association_candidates,
+       (SELECT count(DISTINCT normalized_label)::int FROM rank_association_candidate) AS unresolved_association_labels,
+       (SELECT count(*)::int FROM route_candidate WHERE association_id IS NULL) AS route_candidates_without_association,
+       (SELECT count(*)::int FROM taxi_route WHERE association_id IS NULL) AS canonical_routes_without_association,
+       (SELECT count(*)::int FROM taxi_route WHERE origin_rank_id IS NULL OR destination_rank_id IS NULL) AS routes_with_unresolved_endpoints`
+  );
+  return {mode:'aggregate_only',mutationEnabled:false,...result.rows[0]};
+}
+
 async function postgisNetworkInventory(){
   const counts=await pool.query(
     `SELECT
@@ -947,6 +1108,21 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/rank-filters'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisRankFilters(url));
+    }
+
+    if(url.pathname==='/api/v1/coverage'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisCoverage(url));
+    }
+
+    if(url.pathname==='/api/v1/associations/map'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisAssociationMap(url));
+    }
+
+    if(url.pathname==='/api/v1/data-quality/summary'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await postgisDataQualitySummary());
     }
 
     if(url.pathname==='/api/v1/network-inventory'){
