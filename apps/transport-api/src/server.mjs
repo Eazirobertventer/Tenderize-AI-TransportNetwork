@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
+import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { authenticateOperatorRequest, operatorAuthCapabilities } from './operator-auth.mjs';
+import { appendOperatorAuditEvent } from './operator-audit.mjs';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 8080);
@@ -1128,6 +1130,240 @@ function operatorAuthOrSend(req,res,roles){
   });
   return null;
 }
+async function readJsonBody(req,{maxBytes=16384}={}){
+  let size=0;
+  const chunks=[];
+  for await (const chunk of req){
+    size+=chunk.length;
+    if(size>maxBytes){
+      const error=new Error('request_body_too_large');
+      error.status=413;
+      throw error;
+    }
+    chunks.push(chunk);
+  }
+
+  if(!chunks.length) return {};
+  const raw=Buffer.concat(chunks).toString('utf8');
+  try{
+    const value=JSON.parse(raw);
+    if(!value || Array.isArray(value) || typeof value!=='object'){
+      const error=new Error('invalid_json_body');
+      error.status=400;
+      throw error;
+    }
+    return value;
+  }catch(error){
+    if(error?.status) throw error;
+    const wrapped=new Error('invalid_json_body');
+    wrapped.status=400;
+    throw wrapped;
+  }
+}
+
+function normalizeIdempotencyKey(req){
+  const raw=req.headers?.['idempotency-key'];
+  if(typeof raw!=='string') return null;
+  const value=raw.trim();
+  if(value.length<8 || value.length>200) return null;
+  if(!/^[A-Za-z0-9._:-]+$/.test(value)) return null;
+  return value;
+}
+
+function requestId(req){
+  const raw=req.headers?.['x-request-id'];
+  if(typeof raw==='string'){
+    const value=raw.trim();
+    if(value && value.length<=200 && /^[A-Za-z0-9._:-]+$/.test(value)) return value;
+  }
+  return randomUUID();
+}
+
+function deferIssueEnabled(){
+  return process.env.OPERATOR_DEFER_ISSUE_ENABLED==='true';
+}
+
+async function existingDeferAudit(client,actorSubject,idempotencyKey){
+  const result=await client.query(
+    `SELECT
+       id::text,
+       entity_id::text,
+       after_state,
+       occurred_at
+     FROM operator_audit_event
+     WHERE actor_subject=$1
+       AND action='data_issue.defer'
+       AND idempotency_key=$2
+     LIMIT 1`,
+    [actorSubject,idempotencyKey]
+  );
+  return result.rows[0] || null;
+}
+
+async function deferDataIssue({issueId,actor,idempotencyKey,rationale,evidence,expectedStatus,req}){
+  if(!pool) return {status:503,payload:{error:'database_not_configured'}};
+  if(!deferIssueEnabled()){
+    return {
+      status:503,
+      payload:{
+        error:'adjudication_defer_disabled',
+        mutationEnabled:false
+      }
+    };
+  }
+
+  const client=await pool.connect();
+  const action='data_issue.defer';
+  const reqId=requestId(req);
+
+  try{
+    await client.query('BEGIN');
+
+    const replayBeforeLock=await existingDeferAudit(client,actor.subject,idempotencyKey);
+    if(replayBeforeLock){
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:true,
+          mutationEnabled:true,
+          auditEventId:replayBeforeLock.id,
+          issue:replayBeforeLock.after_state
+        }
+      };
+    }
+
+    const issueResult=await client.query(
+      `SELECT
+         id::text,
+         entity_type,
+         entity_id::text,
+         issue_type,
+         severity,
+         summary,
+         detail,
+         status,
+         created_at,
+         resolved_at
+       FROM data_issue
+       WHERE id=$1::uuid
+       FOR UPDATE`,
+      [issueId]
+    );
+
+    const issue=issueResult.rows[0];
+    if(!issue){
+      await client.query('ROLLBACK');
+      return {status:404,payload:{error:'data_issue_not_found'}};
+    }
+
+    const replayAfterLock=await existingDeferAudit(client,actor.subject,idempotencyKey);
+    if(replayAfterLock){
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:true,
+          mutationEnabled:true,
+          auditEventId:replayAfterLock.id,
+          issue:replayAfterLock.after_state
+        }
+      };
+    }
+
+    if(issue.status!==expectedStatus){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{
+          error:'data_issue_status_conflict',
+          expectedStatus,
+          currentStatus:issue.status
+        }
+      };
+    }
+
+    if(!['open','reviewing'].includes(issue.status)){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{
+          error:'data_issue_not_deferable',
+          currentStatus:issue.status
+        }
+      };
+    }
+
+    const updateResult=await client.query(
+      `UPDATE data_issue
+       SET status='deferred',
+           resolved_at=NULL
+       WHERE id=$1::uuid
+         AND status=$2
+       RETURNING
+         id::text,
+         entity_type,
+         entity_id::text,
+         issue_type,
+         severity,
+         summary,
+         detail,
+         status,
+         created_at,
+         resolved_at`,
+      [issueId,expectedStatus]
+    );
+
+    const after=updateResult.rows[0];
+    if(!after){
+      await client.query('ROLLBACK');
+      return {
+        status:409,
+        payload:{
+          error:'data_issue_status_conflict',
+          expectedStatus
+        }
+      };
+    }
+
+    const audit=await appendOperatorAuditEvent(client,{
+      actor,
+      action,
+      entityType:'data_issue',
+      entityId:issueId,
+      requestId:reqId,
+      idempotencyKey,
+      beforeState:issue,
+      afterState:after,
+      evidence,
+      rationale,
+      metadata:{
+        gate:'TN7-ADJUDICATION-1',
+        expectedStatus
+      }
+    });
+
+    await client.query('COMMIT');
+
+    return {
+      status:200,
+      payload:{
+        replay:false,
+        mutationEnabled:true,
+        auditEventId:audit.id,
+        occurredAt:audit.occurred_at,
+        issue:after
+      }
+    };
+  }catch(error){
+    try{ await client.query('ROLLBACK'); }catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
+
+
 
 async function postgisDataIssues(url){
   const params=[];
@@ -1401,6 +1637,48 @@ const server=createServer(async(req,res)=>{
   const method=req.method || 'GET';
 
   try{
+    const deferMatch=url.pathname.match(/^\/api\/v1\/operator\/adjudications\/data-issues\/([0-9a-fA-F-]{36})\/defer$/);
+    if(deferMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey){
+        return send(res,400,{error:'idempotency_key_required'});
+      }
+
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const expectedStatus=typeof body.expectedStatus==='string' ? body.expectedStatus.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'adjudication_rationale_required'});
+      }
+
+      if(!['open','reviewing'].includes(expectedStatus)){
+        return send(res,400,{error:'expected_status_required'});
+      }
+
+      const result=await deferDataIssue({
+        issueId:deferMatch[1],
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        expectedStatus,
+        req
+      });
+      return send(res,result.status,result.payload);
+    }
+
     if(url.pathname.startsWith('/api/v1/operator/adjudications/')){
       if(method!=='POST'){
         res.setHeader('allow','POST');
@@ -1431,10 +1709,11 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/operator/me'){
       const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
       if(!auth) return;
+      const capabilities=operatorAuthCapabilities();
       return send(res,200,{
         actor:auth.actor,
-        auth:operatorAuthCapabilities(),
-        mutationEnabled:false
+        auth:capabilities,
+        mutationEnabled:capabilities.mutationEnabled
       });
     }
 
@@ -1445,7 +1724,8 @@ const server=createServer(async(req,res)=>{
       const queue=await postgisOperatorQualityQueue(url);
       return send(res,200,{
         actor:{subject:auth.actor.subject,roles:auth.actor.roles},
-        ...queue
+        ...queue,
+        mutationEnabled:operatorAuthCapabilities().mutationEnabled
       });
     }
 
