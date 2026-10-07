@@ -119,6 +119,41 @@ async function loadDataIssue(client,issueId,{forUpdate=false}={}){
   return result.rows[0] || null;
 }
 
+async function existingDecisionByKey(client,actorSubject,idempotencyKey){
+  const result=await client.query(
+    `SELECT
+       id::text,
+       action,
+       target_entity_type,
+       target_entity_id::text,
+       intended_change,
+       before_state,
+       before_state_hash,
+       evidence,
+       rationale,
+       proposer_subject,
+       proposer_display_name,
+       proposer_role,
+       proposal_idempotency_key,
+       proposed_at,
+       status,
+       decision_actor_subject,
+       decision_actor_display_name,
+       decision_actor_role,
+       decision_rationale,
+       decision_evidence,
+       decision_idempotency_key,
+       decided_at,
+       approved_audit_event_id::text
+     FROM operator_decision_proposal
+     WHERE decision_actor_subject=$1
+       AND decision_idempotency_key=$2
+     LIMIT 1`,
+    [actorSubject,idempotencyKey]
+  );
+  return result.rows[0] || null;
+}
+
 async function existingProposalByCreateKey(client,actorSubject,action,idempotencyKey){
   const result=await client.query(
     `SELECT
@@ -191,6 +226,10 @@ export async function createDataIssueDeferProposal(pool,{
 
     const replayBeforeLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
     if(replayBeforeLock){
+      if(replayBeforeLock.target_entity_id!==issueId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
       await client.query('COMMIT');
       return {status:200,payload:{replay:true,proposal:proposalView(replayBeforeLock)}};
     }
@@ -203,6 +242,10 @@ export async function createDataIssueDeferProposal(pool,{
 
     const replayAfterLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
     if(replayAfterLock){
+      if(replayAfterLock.target_entity_id!==issueId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
       await client.query('COMMIT');
       return {status:200,payload:{replay:true,proposal:proposalView(replayAfterLock)}};
     }
@@ -338,6 +381,12 @@ export async function approveDecisionProposal(pool,{
 
   try{
     await client.query('BEGIN');
+
+    const existingDecision=await existingDecisionByKey(client,actor.subject,idempotencyKey);
+    if(existingDecision && existingDecision.id!==proposalId){
+      await client.query('ROLLBACK');
+      return {status:409,payload:{error:'decision_idempotency_key_conflict'}};
+    }
 
     const proposal=await loadProposal(client,proposalId,{forUpdate:true});
     if(!proposal){
@@ -559,6 +608,12 @@ export async function rejectDecisionProposal(pool,{
   try{
     await client.query('BEGIN');
 
+    const existingDecision=await existingDecisionByKey(client,actor.subject,idempotencyKey);
+    if(existingDecision && existingDecision.id!==proposalId){
+      await client.query('ROLLBACK');
+      return {status:409,payload:{error:'decision_idempotency_key_conflict'}};
+    }
+
     const proposal=await loadProposal(client,proposalId,{forUpdate:true});
     if(!proposal){
       await client.query('ROLLBACK');
@@ -667,6 +722,12 @@ export async function withdrawDecisionProposal(pool,{
 
   try{
     await client.query('BEGIN');
+
+    const existingDecision=await existingDecisionByKey(client,actor.subject,idempotencyKey);
+    if(existingDecision && existingDecision.id!==proposalId){
+      await client.query('ROLLBACK');
+      return {status:409,payload:{error:'decision_idempotency_key_conflict'}};
+    }
 
     const proposal=await loadProposal(client,proposalId,{forUpdate:true});
     if(!proposal){
