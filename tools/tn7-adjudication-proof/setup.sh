@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS taxi_rank_association (
   PRIMARY KEY (taxi_rank_id,association_id)
 );
 
-TRUNCATE rank_association_candidate,source_registry,taxi_rank_association;
+TRUNCATE rank_association_candidate,rank_destination_candidate,taxi_rank_association,source_registry;
 
 INSERT INTO source_registry (id,source_key,source_name,authority,source_class,official) VALUES
 ('31313131-3131-4131-8131-313131313131','proof-source-a','Proof Source A','Proof Authority A','official_gis',true),
