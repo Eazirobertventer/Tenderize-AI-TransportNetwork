@@ -346,10 +346,6 @@ INSERT INTO source_record (
 ) VALUES
 ('c3c3c3c3-c3c3-43c3-83c3-c3c3c3c3c3c3','31313131-3131-4131-8131-313131313131','taxi_rank','91919191-9191-4191-8191-919191919191','merge-old-source','{"name":"Old Central Taxi Rank"}',1.0);
 
-INSERT INTO data_issue (id,entity_type,entity_id,issue_type,severity,summary,status) VALUES
-('c4c4c4c4-c4c4-44c4-84c4-c4c4c4c4c4c4','taxi_rank','91919191-9191-4191-8191-919191919191','merge-review','warning','Issue follows survivor','open'),
-('c5c5c5c5-c5c5-45c5-85c5-c5c5c5c5c5c5','taxi_rank','a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','atomic-merge-review','warning','Atomic merge issue','open');
-
 TRUNCATE data_issue;
 INSERT INTO data_issue (id,entity_type,issue_type,severity,summary,status) VALUES
 ('11111111-1111-4111-8111-111111111111','taxi_rank','proof_open','warning','Open proof issue','open'),
@@ -368,9 +364,11 @@ INSERT INTO data_issue (id,entity_type,issue_type,severity,summary,status) VALUE
 ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','taxi_rank','proof_dual_withdraw','warning','Proposal withdraw proof issue','reviewing'),
 ('ffffffff-ffff-4fff-8fff-ffffffffffff','taxi_rank','proof_dual_atomic','warning','Proposal approval rollback proof issue','open'),
 ('12121212-1212-4212-8212-121212121212','taxi_rank','proof_dual_concurrent','warning','Concurrent dual-approval proof issue','open'),
-('13131313-1313-4313-8313-131313131313','taxi_rank','proof_dual_idempotency_conflict','warning','Proposal idempotency conflict proof issue','open'),
-('c4c4c4c4-c4c4-44c4-84c4-c4c4c4c4c4c4','taxi_rank','91919191-9191-4191-8191-919191919191','merge-review','warning','Issue follows survivor','open',now(),NULL),
-('c5c5c5c5-c5c5-45c5-85c5-c5c5c5c5c5c5','taxi_rank','a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','atomic-merge-review','warning','Atomic merge issue','open',now(),NULL);
+('13131313-1313-4313-8313-131313131313','taxi_rank','proof_dual_idempotency_conflict','warning','Proposal idempotency conflict proof issue','open');
+
+INSERT INTO data_issue (id,entity_type,entity_id,issue_type,severity,summary,status) VALUES
+('c4c4c4c4-c4c4-44c4-84c4-c4c4c4c4c4c4','taxi_rank','91919191-9191-4191-8191-919191919191','merge-review','warning','Issue follows survivor','open'),
+('c5c5c5c5-c5c5-45c5-85c5-c5c5c5c5c5c5','taxi_rank','a2a2a2a2-a2a2-42a2-82a2-a2a2a2a2a2a2','atomic-merge-review','warning','Atomic merge issue','open');
 SQL
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/005_operator_audit.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/006_data_issue_rejected_status.sql
