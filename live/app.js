@@ -3,7 +3,9 @@ let routeData={type:'FeatureCollection',features:[]};
 let endpointEvidenceData={type:'FeatureCollection',features:[]};
 let sourceRouteGeometryData={type:'FeatureCollection',features:[]};
 let routeCandidateData={type:'FeatureCollection',features:[]};
+let associationData={type:'FeatureCollection',features:[]};
 let routesVisible=true;
+let associationsVisible=true;
 let endpointEvidenceVisible=true;
 let sourceRouteGeometryVisible=true;
 let routeCandidatesVisible=true;
@@ -64,6 +66,40 @@ function rankName(p){
 function rankSubtitle(p){
   const place=[p.town,p.municipality,p.province].filter(Boolean).join(' • ') || 'Mapped rank';
   return p.sourceCode && p.sourceCode!==rankName(p) ? p.sourceCode+' • '+place : place;
+}
+
+function googleMapsUrl(lat,lng){
+  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(lat+','+lng);
+}
+
+function streetViewUrl(lat,lng){
+  return 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+encodeURIComponent(lat+','+lng);
+}
+
+function routeEndpointCoordinates(geometry){
+  if(!geometry) return {start:null,end:null};
+  if(geometry.type==='LineString' && Array.isArray(geometry.coordinates) && geometry.coordinates.length){
+    return {start:geometry.coordinates[0],end:geometry.coordinates[geometry.coordinates.length-1]};
+  }
+  if(geometry.type==='MultiLineString' && Array.isArray(geometry.coordinates) && geometry.coordinates.length){
+    const first=geometry.coordinates.find(line=>Array.isArray(line) && line.length);
+    const last=[...geometry.coordinates].reverse().find(line=>Array.isArray(line) && line.length);
+    return {
+      start:first ? first[0] : null,
+      end:last ? last[last.length-1] : null
+    };
+  }
+  return {start:null,end:null};
+}
+
+function coordinateActions(lat,lng,{streetLabel='Street View',mapLabel='Open in Google Maps'}={}){
+  if(!Number.isFinite(lat) || !Number.isFinite(lng)) return '';
+  return `
+    <div class="detail-actions">
+      <a class="button" target="_blank" rel="noopener noreferrer" href="${streetViewUrl(lat,lng)}">${esc(streetLabel)}</a>
+      <a class="button secondary" target="_blank" rel="noopener noreferrer" href="${googleMapsUrl(lat,lng)}">${esc(mapLabel)}</a>
+    </div>
+    <div class="street-note">Street-level imagery availability and capture date are controlled by Google. Use it as field context, not as canonical evidence on its own.</div>`;
 }
 
 function focusRank(feature){
@@ -127,6 +163,154 @@ function renderRankFinder(){
       focusRank(feature);
     });
   });
+}
+
+async function loadQualitySummary(){
+  try{
+    const quality=await getJson('/api/v1/data-quality/summary');
+    const node=document.querySelector('#qualityIssueCount');
+    node.textContent=quality.open_issues ?? '0';
+    node.title=[
+      (quality.ranks_missing_location || 0)+' ranks missing coordinates',
+      (quality.ranks_without_association || 0)+' ranks without association',
+      (quality.route_candidates_without_association || 0)+' route candidates without association'
+    ].join(' • ');
+  }catch{
+    document.querySelector('#qualityIssueCount').textContent='—';
+  }
+}
+
+async function loadCoverage(){
+  const province=document.querySelector('#province').value;
+  const params=new URLSearchParams();
+  if(province) params.set('province',province);
+
+  try{
+    const coverage=await getJson('/api/v1/coverage?' + params.toString());
+    const n=coverage.national || {};
+    document.querySelector('#coverageNational').textContent=
+      (n.mapped_ranks || 0)+' mapped / '+(n.ranks || 0)+' documented ranks • '+
+      (n.associations || 0)+' associations • '+(n.routes || 0)+' routes';
+
+    const grid=document.querySelector('#coverageProvinces');
+    grid.innerHTML=(coverage.provinces || []).map(row=>{
+      const ranks=Number(row.ranks || 0);
+      const mapped=Number(row.mapped_ranks || 0);
+      const pct=ranks ? Math.round(mapped/ranks*100) : 0;
+      const active=province===row.province ? ' active' : '';
+      return '<button class="coverage-card'+active+'" data-coverage-province="'+esc(row.province)+'">'+
+        '<strong>'+esc(row.province)+'</strong>'+
+        '<span>'+mapped+' / '+ranks+' mapped</span>'+
+        '<small>'+Number(row.associations || 0)+' associations • '+Number(row.routes || 0)+' routes • '+pct+'% mapped</small>'+
+        '<i><b style="width:'+pct+'%"></b></i>'+
+      '</button>';
+    }).join('');
+
+    grid.querySelectorAll('[data-coverage-province]').forEach(button=>{
+      button.addEventListener('click',async()=>{
+        document.querySelector('#province').value=button.dataset.coverageProvince;
+        document.querySelector('#city').value='';
+        await loadRankFilters();
+        await Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
+        const features=current.features || [];
+        if(features.length){
+          const bounds=new maplibregl.LngLatBounds();
+          features.forEach(feature=>bounds.extend(feature.geometry.coordinates));
+          if(!bounds.isEmpty()) map.fitBounds(bounds,{padding:70,maxZoom:10,duration:700});
+        }
+      });
+    });
+
+    const areas=document.querySelector('#coverageAreas');
+    if(province && (coverage.areas || []).length){
+      areas.innerHTML='<div class="coverage-area-title">'+esc(province)+' municipalities / cities</div>'+
+        '<div class="coverage-area-list">'+coverage.areas.slice(0,30).map(row=>
+          '<button data-coverage-area="'+esc(row.area)+'"><strong>'+esc(row.area)+'</strong><span>'+
+          Number(row.mapped_ranks || 0)+'/'+Number(row.ranks || 0)+' ranks • '+
+          Number(row.associations || 0)+' associations • '+Number(row.routes || 0)+' routes</span></button>'
+        ).join('')+'</div>';
+      areas.querySelectorAll('[data-coverage-area]').forEach(button=>{
+        button.addEventListener('click',async()=>{
+          document.querySelector('#city').value=button.dataset.coverageArea;
+          await loadRanks();
+          const features=current.features || [];
+          if(features.length){
+            const bounds=new maplibregl.LngLatBounds();
+            features.forEach(feature=>bounds.extend(feature.geometry.coordinates));
+            if(!bounds.isEmpty()) map.fitBounds(bounds,{padding:80,maxZoom:13,duration:650});
+          }
+        });
+      });
+    }else{
+      areas.innerHTML='';
+    }
+  }catch{
+    document.querySelector('#coverageNational').textContent='Coverage API unavailable';
+    document.querySelector('#coverageProvinces').innerHTML='';
+    document.querySelector('#coverageAreas').innerHTML='';
+  }
+}
+
+async function loadAssociations(){
+  const source=map.getSource('associations');
+  if(!associationsVisible){
+    associationData={type:'FeatureCollection',features:[]};
+    if(source) source.setData(associationData);
+    return;
+  }
+
+  const province=document.querySelector('#province').value;
+  const q=document.querySelector('#search').value.trim();
+  const params=new URLSearchParams();
+  if(province) params.set('province',province);
+  if(q) params.set('q',q);
+
+  try{
+    associationData=await getJson('/api/v1/associations/map?' + params.toString());
+  }catch{
+    associationData={type:'FeatureCollection',features:[]};
+  }
+  if(source) source.setData(associationData);
+}
+
+function associationDetail(feature){
+  const p=feature.properties || {};
+  const coordinates=feature.geometry?.coordinates || [];
+  const lng=Number(coordinates[0]);
+  const lat=Number(coordinates[1]);
+  const derived=p.locationBasis==='linked_rank_centroid' || p.derivedLocation===true || p.derivedLocation==='true';
+  const basis=derived
+    ? 'Derived coverage centroid from linked mapped ranks — not an association office location.'
+    : 'Authoritative association coordinate.';
+
+  map.easeTo({center:coordinates,zoom:derived?11.5:15,duration:700});
+
+  document.querySelector('#detail').innerHTML=`
+    <div class="rank">
+      <div class="rank-headline">
+        <span class="badge ${esc(p.verificationStatus || 'documented')}">${esc((p.verificationStatus || 'documented').replaceAll('_',' '))}</span>
+        <span class="rank-code">${esc(p.registrationNumber || p.acronym || 'Registration pending')}</span>
+      </div>
+      <h2>${esc(p.name || 'Taxi association')}</h2>
+      <p>${esc([p.municipality,p.province].filter(Boolean).join(' • ') || 'Location coverage available')}</p>
+
+      <div class="evidence-summary">
+        <div><span>Linked ranks</span><strong>${Number(p.rankCount || 0)}</strong></div>
+        <div><span>Linked routes</span><strong>${Number(p.routeCount || 0)}</strong></div>
+        <div><span>Location basis</span><strong>${derived?'Coverage centroid':'Association location'}</strong></div>
+      </div>
+
+      <div class="source association-location-note">
+        <b>${derived?'Derived geographic coverage':'Association geography'}</b>
+        <span>${esc(basis)}</span>
+      </div>
+
+      ${Number.isFinite(lat) && Number.isFinite(lng) ? (
+        derived
+          ? '<div class="detail-actions"><a class="button secondary" target="_blank" rel="noopener noreferrer" href="'+googleMapsUrl(lat,lng)+'">Open coverage area in Google Maps</a></div>'
+          : coordinateActions(lat,lng,{streetLabel:'Street View association area'})
+      ) : ''}
+    </div>`;
 }
 
 async function loadMeta(){
@@ -319,6 +503,8 @@ async function detail(p){
   const displayName=full?.displayName || p.displayName || p.name;
   const sourceCode=full?.sourceCode || p.sourceCode || p.name;
   const location=[full?.town || p.town,full?.municipality || p.municipality,full?.province || p.province].filter(Boolean).join(' • ') || 'Location pending';
+  const lat=Number(full?.lat);
+  const lng=Number(full?.lng);
 
   const associationHtml=associations.length
     ? associations.map(a=>`
@@ -354,6 +540,7 @@ async function detail(p){
       </div>
       <h2>${esc(displayName)}</h2>
       <p>${esc(location)}</p>
+      ${coordinateActions(lat,lng)}
 
       <div class="evidence-summary">
         <div><span>Association</span><strong>${esc(associations[0]?.name || 'Pending')}</strong></div>
@@ -381,29 +568,46 @@ async function detail(p){
       </div>
     </div>`;
 }
-function routeDetail(p){
+function routeDetail(p,geometry){
   const status=p.verificationStatus || 'unverified';
+  const endpoints=routeEndpointCoordinates(geometry);
+  const startLng=Number(endpoints.start?.[0]);
+  const startLat=Number(endpoints.start?.[1]);
+  const endLng=Number(endpoints.end?.[0]);
+  const endLat=Number(endpoints.end?.[1]);
+  const endpointActions=(Number.isFinite(startLat) && Number.isFinite(startLng)) || (Number.isFinite(endLat) && Number.isFinite(endLng))
+    ? `<div class="section-block">
+        <div class="section-title">Street-level route inspection</div>
+        <div class="detail-actions">
+          ${Number.isFinite(startLat) && Number.isFinite(startLng) ? `<a class="button" target="_blank" rel="noopener noreferrer" href="${streetViewUrl(startLat,startLng)}">Street View start</a>` : ''}
+          ${Number.isFinite(endLat) && Number.isFinite(endLng) ? `<a class="button" target="_blank" rel="noopener noreferrer" href="${streetViewUrl(endLat,endLng)}">Street View end</a>` : ''}
+        </div>
+        <div class="street-note">The displayed line's evidence class still governs what it means. Street View is physical-area context and does not upgrade route evidence.</div>
+      </div>`
+    : '';
+
   document.querySelector('#detail').innerHTML=`
     <div class="rank">
-      <span class="badge ${status}">${status.replaceAll('_',' ')}</span>
+      <span class="badge ${esc(status)}">${esc(status.replaceAll('_',' '))}</span>
       <h2>${esc(p.origin || 'Origin pending')} → ${esc(p.destination || 'Destination pending')}</h2>
       <p>${esc(p.routeType || 'Taxi route')} • ${esc(p.geometryStatus || 'Geometry pending')}</p>
       ${p.association ? `<div class="source"><b>${esc(p.association)}</b><span>${esc(p.associationRegistration || 'Association registration pending')}</span></div>` : ''}
       <div class="source">
         <b>${esc(p.source || 'Tenderize source registry')}</b>
         <span>${p.candidateRoute
-          ? 'This is a TN6-J exact-endpoint route candidate using official source geometry. It is not yet a canonical taxi route and association evidence is still pending.'
+          ? 'This is an exact-endpoint route candidate using official source geometry. It is not yet a canonical taxi route and association evidence may still be pending.'
           : p.notRoutePath
-            ? 'This connector only joins two exactly reconciled NLTIS rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
+            ? 'This connector only joins two exactly reconciled rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
             : 'This line is rendered from source-backed route geometry. It is not inferred from road routing.'}</span>
       </div>
+      ${endpointActions}
     </div>`;
 }
 
 map.on('load',async()=>{
-  await loadMeta();
+  await Promise.all([loadMeta(),loadQualitySummary()]);
   await loadRankFilters();
-  await loadRanks();
+  await Promise.all([loadRanks(),loadCoverage()]);
 
   map.addSource('satellite-imagery',{
     type:'raster',
@@ -516,6 +720,46 @@ map.on('load',async()=>{
     }
   });
 
+  map.addSource('associations',{
+    type:'geojson',
+    data:associationData
+  });
+
+  map.addLayer({
+    id:'association-points',
+    type:'circle',
+    source:'associations',
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],5,7,10,10,14,13],
+      'circle-color':['case',['==',['get','locationBasis'],'authoritative_association_location'],'#0f766e','#d97706'],
+      'circle-stroke-width':3,
+      'circle-stroke-color':'#fff',
+      'circle-opacity':0.92
+    }
+  });
+
+  map.addLayer({
+    id:'association-labels',
+    type:'symbol',
+    source:'associations',
+    minzoom:6.5,
+    layout:{
+      'text-field':['get','name'],
+      'text-size':['interpolate',['linear'],['zoom'],6.5,10,13,12],
+      'text-offset':[0,1.45],
+      'text-anchor':'top',
+      'text-max-width':18,
+      'text-allow-overlap':false
+    },
+    paint:{
+      'text-color':'#7a4b00',
+      'text-halo-color':'rgba(255,255,255,.96)',
+      'text-halo-width':2
+    }
+  });
+
+  await loadAssociations();
+
   map.addSource('ranks',{
     type:'geojson',
     data:current,
@@ -598,6 +842,14 @@ map.on('load',async()=>{
 
   await Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]);
 
+  ['association-points','association-labels'].forEach(layer=>{
+    map.on('click',layer,event=>{
+      const feature=event.features && event.features[0];
+      if(!feature) return;
+      associationDetail(feature);
+    });
+  });
+
   map.on('click','clusters',async event=>{
     const feature=map.queryRenderedFeatures(event.point,{layers:['clusters']})[0];
     if(!feature) return;
@@ -617,11 +869,11 @@ map.on('load',async()=>{
     map.on('click',routeLayer,event=>{
       const feature=event.features && event.features[0];
       if(!feature) return;
-      routeDetail(feature.properties);
+      routeDetail(feature.properties,feature.geometry);
     });
   });
 
-  ['clusters','rank-points','rank-labels','official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(layer=>{
+  ['clusters','rank-points','rank-labels','association-points','association-labels','official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
@@ -648,20 +900,20 @@ document.querySelector('#showAllFilteredRanks').addEventListener('click',()=>{
 document.querySelector('#province').addEventListener('change',async()=>{
   document.querySelector('#city').value='';
   await loadRankFilters();
-  await loadRanks();
+  await Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
 });
 document.querySelector('#city').addEventListener('change',loadRanks);
 let timer;
 document.querySelector('#search').addEventListener('input',()=>{
   clearTimeout(timer);
-  timer=setTimeout(loadRanks,180);
+  timer=setTimeout(()=>Promise.all([loadRanks(),loadAssociations()]),180);
 });
 document.querySelector('#fit').addEventListener('click',()=>{
   document.querySelector('#province').value='';
   document.querySelector('#city').value='';
   document.querySelector('#search').value='';
   map.easeTo({center:[24.4,-29.1],zoom:4.35});
-  loadRanks();
+  Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
 });
 
 
@@ -677,6 +929,21 @@ document.querySelector('#satelliteToggle').addEventListener('click',()=>{
   document.querySelector('#basemapStatus').textContent=satelliteVisible
     ? 'Satellite imagery — verify rank marker against visible facility'
     : 'Street basemap';
+});
+
+document.querySelector('#associationToggle').addEventListener('click',()=>{
+  associationsVisible=!associationsVisible;
+  const button=document.querySelector('#associationToggle');
+  button.textContent=associationsVisible?'Associations on':'Associations off';
+  button.classList.toggle('active-toggle',associationsVisible);
+  button.setAttribute('aria-pressed',String(associationsVisible));
+  if(map.getLayer('association-points')){
+    map.setLayoutProperty('association-points','visibility',associationsVisible?'visible':'none');
+  }
+  if(map.getLayer('association-labels')){
+    map.setLayoutProperty('association-labels','visibility',associationsVisible?'visible':'none');
+  }
+  loadAssociations();
 });
 
 document.querySelector('#routeToggle').addEventListener('click',()=>{
@@ -717,6 +984,6 @@ document.querySelector('#nltisEvidenceToggle').addEventListener('click',()=>{
 document.querySelector('#capeTownRoutes').addEventListener('click',()=>{
   document.querySelector('#province').value='Western Cape';
   map.fitBounds([[18.28,-34.18],[18.98,-33.72]],{padding:40,duration:800});
-  loadRanks();
+  Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
   setTimeout(()=>Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]),850);
 });
