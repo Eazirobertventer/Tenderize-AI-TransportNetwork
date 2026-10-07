@@ -184,7 +184,7 @@ async function postgisCoverage(url){
        LEFT JOIN taxi_route tr
          ON tr.origin_rank_id=ra.id OR tr.destination_rank_id=ra.id
        GROUP BY ra.area
-       ORDER BY ranks DESC,ra.area`,
+       ORDER BY (ra.area='Unknown'),ranks DESC,ra.area`,
       [province]
     );
     areas=result.rows;
