@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS operator_decision_proposal (
     CHECK (status IN ('proposed','approved','rejected','withdrawn')),
   decision_actor_subject text,
   decision_actor_display_name text,
-  decision_actor_role text CHECK (decision_actor_role IS NULL OR decision_actor_role IN ('approver','admin')),
+  decision_actor_role text CHECK (decision_actor_role IS NULL OR decision_actor_role IN ('reviewer','approver','admin')),
   decision_rationale text,
   decision_evidence jsonb,
   decision_idempotency_key text,
