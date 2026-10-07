@@ -13,6 +13,53 @@ CREATE TABLE IF NOT EXISTS data_issue (
   created_at timestamptz NOT NULL DEFAULT now(),
   resolved_at timestamptz
 );
+CREATE TABLE IF NOT EXISTS taxi_association (
+  id uuid PRIMARY KEY,
+  canonical_name text NOT NULL,
+  acronym text,
+  registration_number text,
+  affiliation text,
+  province text,
+  district text,
+  municipality text,
+  address text,
+  verification_status text NOT NULL DEFAULT 'unverified',
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS taxi_rank (
+  id uuid PRIMARY KEY,
+  canonical_name text NOT NULL,
+  aliases text[] NOT NULL DEFAULT '{}',
+  province text,
+  district text,
+  municipality text,
+  suburb text,
+  town text,
+  address text,
+  verification_status text NOT NULL DEFAULT 'unverified',
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+TRUNCATE taxi_rank,taxi_association;
+
+INSERT INTO taxi_rank (
+  id,canonical_name,aliases,province,municipality,town,verification_status
+) VALUES
+('14141414-1414-4414-8414-141414141414','Central Taxi Rank',ARRAY['CTR','Central Rank'],'Gauteng','City A','Central','verified'),
+('15151515-1515-4515-8515-151515151515','West Taxi Rank',ARRAY['West Rank'],'Gauteng','City B','West','verified'),
+('16161616-1616-4616-8616-161616161616','North Taxi Rank',ARRAY[]::text[],'Gauteng','City C','North','verified'),
+('17171717-1717-4717-8717-171717171717','South Taxi Rank',ARRAY[]::text[],'Gauteng','City D','South','verified'),
+('18181818-1818-4818-8818-181818181818','East Taxi Rank',ARRAY[]::text[],'Gauteng','City E','East','verified'),
+('19191919-1919-4919-8919-191919191919','Airport Taxi Rank',ARRAY[]::text[],'Gauteng','City F','Airport','verified');
+
+INSERT INTO taxi_association (
+  id,canonical_name,acronym,registration_number,province,municipality,verification_status
+) VALUES
+('21212121-2121-4212-8212-212121212121','Alpha Taxi Association','ATA','REG-ALPHA','Gauteng','City A','verified'),
+('23232323-2323-4232-8232-232323232323','Beta Taxi Association','BTA','REG-BETA','Gauteng','City B','verified'),
+('24242424-2424-4242-8242-242424242424','Gamma Taxi Association','GTA','REG-GAMMA','Gauteng','City C','verified');
+
 TRUNCATE data_issue;
 INSERT INTO data_issue (id,entity_type,issue_type,severity,summary,status) VALUES
 ('11111111-1111-4111-8111-111111111111','taxi_rank','proof_open','warning','Open proof issue','open'),
@@ -36,5 +83,6 @@ SQL
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/005_operator_audit.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/006_data_issue_rejected_status.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/007_two_person_decision_proposals.sql
-echo "TN7_ADJ3_DB_SETUP_PASS"
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /proof/008_transport_entity_aliases.sql
+echo "TN7_ADJ4_DB_SETUP_PASS"
 sleep 8
