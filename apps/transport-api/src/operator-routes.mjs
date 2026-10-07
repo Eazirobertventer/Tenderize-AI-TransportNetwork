@@ -174,6 +174,19 @@ export async function loadRouteCandidatePromotionSnapshot(client,{
     [associationId,row.origin_rank_id,row.destination_rank_id,row.route_code]
   );
 
+  const existingSourceRecord=await client.query(
+    `SELECT
+       id::text,
+       entity_id::text,
+       external_record_id
+     FROM source_record
+     WHERE source_id=$1::uuid
+       AND entity_type='taxi_route'
+       AND external_record_id=$2
+     LIMIT 1`,
+    [row.source_id,row.external_record_id]
+  );
+
   const promotion=await client.query(
     `SELECT
        id::text,
@@ -262,6 +275,7 @@ export async function loadRouteCandidatePromotionSnapshot(client,{
     originAssociationIds,
     destinationAssociationIds,
     sharedAssociationIds,
+    existingSourceRecord:existingSourceRecord.rows[0] || null,
     duplicates:duplicates.rows.map(item=>({
       id:item.id,
       associationId:item.association_id,
@@ -320,6 +334,14 @@ export function validateRoutePromotionSnapshot(snapshot,associationId){
 
   if(geometry.promotedRouteId || snapshot.existingPromotion){
     return {ok:false,error:'route_candidate_already_promoted'};
+  }
+
+  if(snapshot.existingSourceRecord){
+    return {
+      ok:false,
+      error:'route_candidate_source_record_already_canonical',
+      canonicalRouteId:snapshot.existingSourceRecord.entity_id
+    };
   }
 
   if(!geometry.geometryValid || geometry.geometryEmpty || geometry.geometryNPoints<2){
