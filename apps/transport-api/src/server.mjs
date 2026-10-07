@@ -1198,6 +1198,7 @@ async function existingActionAudit(client,actorSubject,action,idempotencyKey){
        entity_id::text,
        before_state,
        after_state,
+       event_sequence,
        occurred_at
      FROM operator_audit_event
      WHERE actor_subject=$1
@@ -1614,6 +1615,7 @@ async function reopenDataIssue({issueId,actor,idempotencyKey,rationale,evidence,
          entity_id::text,
          before_state,
          after_state,
+         event_sequence,
          occurred_at
        FROM operator_audit_event
        WHERE id=$1::uuid
@@ -1630,12 +1632,12 @@ async function reopenDataIssue({issueId,actor,idempotencyKey,rationale,evidence,
     }
 
     const latestResult=await client.query(
-      `SELECT id::text,action,occurred_at
+      `SELECT id::text,action,event_sequence,occurred_at
        FROM operator_audit_event
        WHERE entity_type='data_issue'
          AND entity_id=$1::uuid
          AND action IN ('data_issue.defer','data_issue.reject','data_issue.reopen')
-       ORDER BY occurred_at DESC,id DESC
+       ORDER BY event_sequence DESC
        LIMIT 1`,
       [issueId]
     );
