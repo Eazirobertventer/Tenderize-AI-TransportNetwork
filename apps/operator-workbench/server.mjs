@@ -30,7 +30,7 @@ function json(res,status,payload){
 async function proxy(req,res,url){
   if(!enabled) return json(res,503,{error:'operator_workbench_disabled'});
   if(!apiBase) return json(res,503,{error:'transport_api_not_configured'});
-  const path=url.pathname.replace(/^\/operator-api/,'/api')+url.search;
+  const path=url.pathname.replace(/^\/operator-api/,'')+url.search;
   if(!allowed.some(pattern=>pattern.test(path))) return json(res,404,{error:'not_found'});
 
   const headers={'user-agent':'TenderizeOperatorWorkbench/0.1'};
