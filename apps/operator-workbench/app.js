@@ -81,6 +81,26 @@ function render(){
   ];
   q('#capabilityGrid').innerHTML=entries.map(([name,on])=>'<div class="cap"><span>'+esc(name)+'</span><b class="'+(on?'':'off')+'">'+(on?'ENABLED':'OFF')+'</b></div>').join('');
 
+  const coverage=d.coverage||{};
+  const national=coverage.national||{};
+  q('#coverageRanks').textContent=national.ranks??0;
+  q('#coverageMapped').textContent=national.mapped_ranks??0;
+  q('#coverageUnassociated').textContent=national.ranks_without_association??0;
+  q('#coverageRouteGaps').textContent=national.routes_with_unresolved_endpoints??0;
+  q('#coverageProvinceList').innerHTML=(coverage.provinces||[]).map(p=>`
+    <div class="coverage-priority-row">
+      <div>
+        <strong>${esc(p.province)}</strong>
+        <span>${Number(p.ranks||0)} ranks • ${Number(p.associations||0)} associations • ${Number(p.routes||0)} routes</span>
+        <small>${Number(p.location_pending_ranks||0)} location pending • ${Number(p.ranks_without_association||0)} without association • ${Number(p.routes_with_unresolved_endpoints||0)} route endpoint gaps</small>
+      </div>
+      <div class="priority-meta">
+        <b class="priority ${esc(p.priorityBand)}">${esc(p.priorityBand)}</b>
+        <strong>${Number(p.priorityScore||0)}</strong>
+        <small>${p.completenessPercent==null?'—':p.completenessPercent+'%'} completeness</small>
+      </div>
+    </div>`).join('') || empty('No province coverage data available.');
+
   q('#actionGrid').innerHTML=(d.actionCatalog||[]).map(a=>`
     <div class="action-card">
       <span>${esc(a.gate)}</span><strong>${esc(a.label)}</strong>
