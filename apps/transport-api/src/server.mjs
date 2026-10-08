@@ -6,7 +6,8 @@ import { appendOperatorAuditEvent } from './operator-audit.mjs';
 import { loadOperatorWorkbench, operatorWorkbenchSchemaAvailable } from './operator-workbench.mjs';
 import { loadNationalCoverageModel, loadCoverageGapFeatures } from './national-coverage.mjs';
 import { loadKznCoverageExecution } from './kzn-coverage.mjs';
-import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';\nimport { loadKznDeterministicAdjudicationBatch, createKznDeterministicProposalBatch } from './kzn-deterministic-adjudication.mjs';
+import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';
+import { loadKznDeterministicAdjudicationBatch, createKznDeterministicProposalBatch } from './kzn-deterministic-adjudication.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
