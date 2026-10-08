@@ -6,6 +6,7 @@ import { appendOperatorAuditEvent } from './operator-audit.mjs';
 import { loadOperatorWorkbench, operatorWorkbenchSchemaAvailable } from './operator-workbench.mjs';
 import { loadNationalCoverageModel, loadCoverageGapFeatures } from './national-coverage.mjs';
 import { loadKznCoverageExecution } from './kzn-coverage.mjs';
+import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2694,6 +2695,12 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/coverage/kzn/execution'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await loadKznCoverageExecution(pool));
+    }
+
+    if(url.pathname==='/api/v1/coverage/kzn/gazette-queue'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const limit=Number(url.searchParams.get('limit')||250);
+      return send(res,200,await loadKznGazetteEvidenceQueue(pool,{limit}));
     }
 
     if(url.pathname==='/api/v1/associations/map'){
