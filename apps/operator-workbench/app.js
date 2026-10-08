@@ -110,6 +110,28 @@ function render(){
       <p>${esc(item.reason.replaceAll('_',' '))} • ${Number((item.routeCandidates||[]).length)} candidate match(es) • ${Number((item.canonicalRoutes||[]).length)} canonical route match(es)</p>
     </div>`).join('') || empty('No verified KZN gazette evidence rows loaded.');
 
+  const gazette=d.kznGazetteQueue||{};
+  const gazetteEvidence=gazette.evidence||{};
+  const gazetteQueue=gazette.queue||{};
+  q('#kznGazetteTotal').textContent=gazetteEvidence.total??0;
+  q('#kznGazetteReady').textContent=gazetteEvidence.readyForControlledReview??0;
+  q('#kznGazetteIndexed').textContent=gazetteEvidence.origins?.indexed_gazette_text??0;
+  q('#kznGazetteReturned').textContent=gazetteQueue.returned??0;
+
+  q('#kznGazetteBucketGrid').innerHTML=Object.entries(gazetteEvidence.buckets||{}).map(([name,count])=>
+    '<div class="cap"><span>'+esc(name.replaceAll('_',' '))+'</span><b>'+Number(count||0)+'</b></div>'
+  ).join('') || empty('No gazette evidence buckets available.');
+
+  q('#kznGazetteQueueList').innerHTML=(gazetteQueue.items||[]).map(item=>`
+    <div class="row">
+      <div>
+        <strong>${esc(item.routeCode)} • ${esc(item.association)}</strong>
+        <div class="meta">${esc(item.evidenceOrigin||'gazette')} • ${esc(item.rankNarrative||'No route narrative')}</div>
+      </div>
+      <span class="pill ${esc(item.bucket)}">${esc(item.bucket.replaceAll('_',' '))}</span>
+      <p>${esc(item.reason.replaceAll('_',' '))} • ${Number((item.associationMatches||[]).length)} association match(es) • ${Number((item.routeCandidates||[]).length)} candidate match(es)</p>
+    </div>`).join('') || empty('No KZN gazette evidence queue rows loaded.');
+
   q('#coverageProvinceList').innerHTML=(coverage.provinces||[]).map(p=>`
     <div class="coverage-priority-row">
       <div>
