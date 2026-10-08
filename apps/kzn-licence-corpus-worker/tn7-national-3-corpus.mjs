@@ -248,7 +248,7 @@ try{
   await client.query('ROLLBACK');
 
   console.log(JSON.stringify({
-    event:'tn7_national_3_kzn_corpus_expansion',
+    event:'tn7_national_3_kzn_corpus_summary',
     databaseWrites:false,
     canonicalMutation:false,
     documentsAttempted:sources.length,
@@ -256,20 +256,23 @@ try{
     documentsFailed:failures.length,
     documents,
     failures,
-    corpus:{
-      evidenceRows:rows.length,
-      uniqueAssociationLabels:associationLabels.size,
-      uniqueRouteIdentifiers:routeIdentifiers.size,
-      uniqueNormalizedRankMentions:rankMentions.size
-    },
+    evidenceRows:rows.length,
+    uniqueAssociationLabels:associationLabels.size,
+    uniqueRouteIdentifiers:routeIdentifiers.size,
+    uniqueNormalizedRankMentions:rankMentions.size,
     buckets:bucketCounts,
-    evidenceQueue:{
-      totalClassified:queue.length,
-      returned:boundedQueue.length,
-      boundedLimit:250,
-      items:boundedQueue
-    }
+    totalClassified:queue.length,
+    returned:boundedQueue.length,
+    boundedLimit:250
   }));
+
+  for(let i=0;i<boundedQueue.length;i++){
+    console.log(JSON.stringify({
+      event:'tn7_national_3_evidence_queue_item',
+      queueIndex:i+1,
+      ...boundedQueue[i]
+    }));
+  }
 }catch(error){
   await client.query('ROLLBACK').catch(()=>{});
   console.error(JSON.stringify({
