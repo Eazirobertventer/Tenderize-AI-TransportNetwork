@@ -40,7 +40,12 @@ const checks=[
   ['operator UI token stored session-only',js.includes("sessionStorage.setItem('tn.operator.token'")],
   ['operator UI supports approve',js.includes("decide('approve')")],
   ['operator UI supports reject',js.includes("decide('reject')")],
-  ['operator UI supports withdraw',js.includes("decide('withdraw')")]
+  ['operator UI supports withdraw',js.includes("decide('withdraw')")],
+  ['workbench proxies direct issue adjudications',server.includes('(defer|reject|reopen)')],
+  ['operator UI executes direct issue actions',js.includes('runIssueAction(issueId,action)')],
+  ['operator UI launches dual-control proposals',js.includes('launchProposal(action)')],
+  ['operator UI launches rank merge',js.includes("action==='taxi_rank.merge'")],
+  ['operator UI launches association merge',js.includes("action==='taxi_association.merge'")]
 ];
 
 for(const [name,ok] of checks){
