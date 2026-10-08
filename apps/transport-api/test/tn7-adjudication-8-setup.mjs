@@ -28,20 +28,20 @@ for(const [id,name] of ranks){
 const associations=[
  ['aaaaaaaa-0001-4001-8001-000000000001','Alpha Taxi Association','ALPHA','REG-ALPHA',ARRAY['Alpha Legacy']],
  ['aaaaaaaa-0002-4002-8002-000000000002','Old Alpha Taxi Association','OLD',null,ARRAY['Old Alpha Legacy']],
- ['aaaaaaaa-0003-4003-8003-000000000003','Independent Association','IND',null,ARRAY[]],
- ['aaaaaaaa-0004-4004-8004-000000000004','Registration Survivor','RS','REG-ONE',ARRAY[]],
- ['aaaaaaaa-0005-4005-8005-000000000005','Registration Duplicate','RD','REG-TWO',ARRAY[]],
- ['aaaaaaaa-0006-4006-8006-000000000006','Route Survivor','RTS',null,ARRAY[]],
- ['aaaaaaaa-0007-4007-8007-000000000007','Route Duplicate','RTD',null,ARRAY[]],
- ['aaaaaaaa-0008-4008-8008-000000000008','Stale Survivor','SS',null,ARRAY[]],
- ['aaaaaaaa-0009-4009-8009-000000000009','Stale Duplicate','SD',null,ARRAY[]],
- ['aaaaaaaa-0010-4010-8010-000000000010','Concurrent Survivor','CS',null,ARRAY[]],
- ['aaaaaaaa-0011-4011-8011-000000000011','Concurrent Duplicate','CD',null,ARRAY[]],
- ['aaaaaaaa-0012-4012-8012-000000000012','Atomic Survivor','AS',null,ARRAY[]],
- ['aaaaaaaa-0013-4013-8013-000000000013','Atomic Duplicate','AD',null,ARRAY[]],
- ['aaaaaaaa-0014-4014-8014-000000000014','Alias Survivor','ALS',null,ARRAY[]],
+ ['aaaaaaaa-0003-4003-8003-000000000003','Independent Association','IND',null,[]],
+ ['aaaaaaaa-0004-4004-8004-000000000004','Registration Survivor','RS','REG-ONE',[]],
+ ['aaaaaaaa-0005-4005-8005-000000000005','Registration Duplicate','RD','REG-TWO',[]],
+ ['aaaaaaaa-0006-4006-8006-000000000006','Route Survivor','RTS',null,[]],
+ ['aaaaaaaa-0007-4007-8007-000000000007','Route Duplicate','RTD',null,[]],
+ ['aaaaaaaa-0008-4008-8008-000000000008','Stale Survivor','SS',null,[]],
+ ['aaaaaaaa-0009-4009-8009-000000000009','Stale Duplicate','SD',null,[]],
+ ['aaaaaaaa-0010-4010-8010-000000000010','Concurrent Survivor','CS',null,[]],
+ ['aaaaaaaa-0011-4011-8011-000000000011','Concurrent Duplicate','CD',null,[]],
+ ['aaaaaaaa-0012-4012-8012-000000000012','Atomic Survivor','AS',null,[]],
+ ['aaaaaaaa-0013-4013-8013-000000000013','Atomic Duplicate','AD',null,[]],
+ ['aaaaaaaa-0014-4014-8014-000000000014','Alias Survivor','ALS',null,[]],
  ['aaaaaaaa-0015-4015-8015-000000000015','Alias Duplicate','ALD',null,ARRAY['Collision Association']],
- ['aaaaaaaa-0016-4016-8016-000000000016','Collision Association','COL',null,ARRAY[]]
+ ['aaaaaaaa-0016-4016-8016-000000000016','Collision Association','COL',null,[]]
 ];
 for(const a of associations){
   await pool.query(`INSERT INTO taxi_association(id,canonical_name,acronym,registration_number,aliases,province,verification_status)
