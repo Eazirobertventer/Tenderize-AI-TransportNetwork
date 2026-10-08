@@ -4,10 +4,12 @@ let endpointEvidenceData={type:'FeatureCollection',features:[]};
 let sourceRouteGeometryData={type:'FeatureCollection',features:[]};
 let routeCandidateData={type:'FeatureCollection',features:[]};
 let associationData={type:'FeatureCollection',features:[]};
+let coverageGapData={type:'FeatureCollection',features:[]};
 let associationHighlightRanks={type:'FeatureCollection',features:[]};
 let associationHighlightRoutes={type:'FeatureCollection',features:[]};
 let routesVisible=true;
 let associationsVisible=true;
+let coverageGapsVisible=true;
 let endpointEvidenceVisible=true;
 let sourceRouteGeometryVisible=true;
 let routeCandidatesVisible=true;
@@ -336,7 +338,7 @@ async function loadCoverage(){
         document.querySelector('#city').value='';
         setExplorerMode('ranks');
         await loadRankFilters();
-        await Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
+        await Promise.all([loadRanks(),loadAssociations(),loadCoverage(),loadCoverageGaps()]);
         const features=current.features || [];
         if(features.length){
           const bounds=new maplibregl.LngLatBounds();
@@ -365,7 +367,7 @@ async function loadCoverage(){
             citySelect.value='';
           }
           setExplorerMode('associations');
-          await Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
+          await Promise.all([loadRanks(),loadAssociations(),loadCoverage(),loadCoverageGaps()]);
           const features=current.features || [];
           if(features.length){
             const bounds=new maplibregl.LngLatBounds();
@@ -382,6 +384,29 @@ async function loadCoverage(){
     document.querySelector('#coverageProvinces').innerHTML='';
     document.querySelector('#coverageAreas').innerHTML='';
   }
+}
+
+async function loadCoverageGaps(){
+  const source=map.getSource('coverage-gaps');
+  if(!coverageGapsVisible){
+    coverageGapData={type:'FeatureCollection',features:[]};
+    if(source) source.setData(coverageGapData);
+    return;
+  }
+
+  const province=document.querySelector('#province').value;
+  const city=document.querySelector('#city').value;
+  const municipality=selectedCoverageArea || city;
+  const params=new URLSearchParams();
+  if(province) params.set('province',province);
+  if(municipality) params.set('municipality',municipality);
+
+  try{
+    coverageGapData=await getJson('/api/v1/coverage/gaps?' + params.toString());
+  }catch{
+    coverageGapData={type:'FeatureCollection',features:[]};
+  }
+  if(source) source.setData(coverageGapData);
 }
 
 async function loadAssociations(){
@@ -1008,7 +1033,29 @@ map.on('load',async()=>{
     }
   });
 
-  map.addSource('associations',{
+  map.addSource('coverage-gaps',{
+    type:'geojson',
+    data:coverageGapData
+  });
+
+  map.addLayer({
+    id:'coverage-gap-points',
+    type:'circle',
+    source:'coverage-gaps',
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],5,6,10,8,15,11],
+      'circle-color':['match',['get','primaryGap'],
+        'missing_association','#dc2626',
+        'active_issue','#d97706',
+        'association_candidate','#7c3aed',
+        '#64748b'],
+      'circle-stroke-width':2,
+      'circle-stroke-color':'#fff',
+      'circle-opacity':0.92
+    }
+  });
+
+    map.addSource('associations',{
     type:'geojson',
     data:associationData
   });
@@ -1046,7 +1093,7 @@ map.on('load',async()=>{
     }
   });
 
-  await loadAssociations();
+  await Promise.all([loadAssociations(),loadCoverageGaps()]);
 
   map.addSource('ranks',{
     type:'geojson',
@@ -1151,7 +1198,18 @@ map.on('load',async()=>{
     });
   });
 
-  map.on('click','clusters',async event=>{
+  map.on('click','coverage-gap-points',event=>{
+    const feature=event.features && event.features[0];
+    if(!feature) return;
+    const canonical=(current.features||[]).find(item=>String(item.id||item.properties?.id)===String(feature.id||feature.properties?.id));
+    if(canonical) focusRank(canonical);
+    else{
+      const p=feature.properties||{};
+      document.querySelector('#detail').innerHTML='<div class="rank"><span class="badge candidate">coverage gap</span><h2>'+esc(p.name||'Taxi rank')+'</h2><p>'+esc([p.municipality,p.province].filter(Boolean).join(' • '))+'</p><div class="source"><b>Gap classes</b><span>'+esc((p.gapClasses||[]).join(' • '))+'</span></div></div>';
+    }
+  });
+
+    map.on('click','clusters',async event=>{
     const feature=map.queryRenderedFeatures(event.point,{layers:['clusters']})[0];
     if(!feature) return;
     const zoom=await map.getSource('ranks').getClusterExpansionZoom(feature.properties.cluster_id);
@@ -1174,7 +1232,7 @@ map.on('load',async()=>{
     });
   });
 
-  ['clusters','rank-points','rank-labels','association-points','association-labels','association-highlight-ranks','association-highlight-routes','official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(layer=>{
+  ['clusters','rank-points','rank-labels','coverage-gap-points','association-points','association-labels','association-highlight-ranks','association-highlight-routes','official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
@@ -1222,13 +1280,13 @@ document.querySelector('#province').addEventListener('change',async()=>{
 document.querySelector('#city').addEventListener('change',async()=>{
   selectedCoverageArea=document.querySelector('#city').value;
   clearAssociationHighlight();
-  await Promise.all([loadRanks(),loadAssociations()]);
+  await Promise.all([loadRanks(),loadAssociations(),loadCoverageGaps()]);
   if(selectedCoverageArea) setExplorerMode('associations');
 });
 let timer;
 document.querySelector('#search').addEventListener('input',()=>{
   clearTimeout(timer);
-  timer=setTimeout(()=>Promise.all([loadRanks(),loadAssociations()]),180);
+  timer=setTimeout(()=>Promise.all([loadRanks(),loadAssociations(),loadCoverageGaps()]),180);
 });
 document.querySelector('#fit').addEventListener('click',()=>{
   selectedCoverageArea='';
@@ -1244,6 +1302,18 @@ document.querySelector('#fit').addEventListener('click',()=>{
 
 document.querySelector('#satelliteToggle').addEventListener('click',()=>{
   setSatelliteMode(!satelliteVisible);
+});
+
+document.querySelector('#coverageGapToggle').addEventListener('click',()=>{
+  coverageGapsVisible=!coverageGapsVisible;
+  const button=document.querySelector('#coverageGapToggle');
+  button.textContent=coverageGapsVisible?'Coverage gaps on':'Coverage gaps off';
+  button.classList.toggle('active-toggle',coverageGapsVisible);
+  button.setAttribute('aria-pressed',String(coverageGapsVisible));
+  if(map.getLayer('coverage-gap-points')){
+    map.setLayoutProperty('coverage-gap-points','visibility',coverageGapsVisible?'visible':'none');
+  }
+  loadCoverageGaps();
 });
 
 document.querySelector('#associationToggle').addEventListener('click',()=>{
