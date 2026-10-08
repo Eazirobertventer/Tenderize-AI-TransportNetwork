@@ -9,6 +9,7 @@ import {
   createRankAssociationAssignmentProposal,
   createRoutePromotionProposal,
   createTaxiRankMergeProposal,
+  createTaxiAssociationMergeProposal,
   approveDecisionProposal,
   rejectDecisionProposal,
   withdrawDecisionProposal,
@@ -153,7 +154,7 @@ async function postgisCoverage(url){
        (SELECT count(*)::int FROM taxi_rank r WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS ranks,
        (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NOT NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS mapped_ranks,
        (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS location_pending_ranks,
-       (SELECT count(*)::int FROM taxi_association) AS associations,
+       (SELECT count(*)::int FROM taxi_association a WHERE coalesce(to_jsonb(a)->>'merged_into_association_id','')='') AS associations,
        (SELECT count(*)::int FROM taxi_route) AS routes,
        (SELECT count(*)::int FROM source_registry) AS sources`
   );
@@ -162,7 +163,7 @@ async function postgisCoverage(url){
     `WITH names AS (
        SELECT province FROM taxi_rank r WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')='' AND province IS NOT NULL AND trim(province)<>''
        UNION
-       SELECT province FROM taxi_association WHERE province IS NOT NULL AND trim(province)<>''
+       SELECT province FROM taxi_association a WHERE coalesce(to_jsonb(a)->>'merged_into_association_id','')='' AND province IS NOT NULL AND trim(province)<>''
      )
      SELECT
        names.province,
@@ -212,7 +213,7 @@ async function postgisCoverage(url){
 
 async function postgisAssociationMap(url){
   const params=[];
-  const where=['1=1'];
+  const where=["coalesce(to_jsonb(a)->>'merged_into_association_id','')=''"];
   const province=url.searchParams.get('province');
   const q=url.searchParams.get('q');
   const area=url.searchParams.get('area');
@@ -336,6 +337,7 @@ async function postgisAssociationDetail(id){
      LEFT JOIN taxi_rank r ON r.id=ra.taxi_rank_id
      LEFT JOIN taxi_route tr ON tr.association_id=a.id
      WHERE a.id=$1::uuid
+       AND coalesce(to_jsonb(a)->>'merged_into_association_id','')=''
      GROUP BY a.id`,
     [id]
   );
@@ -983,7 +985,7 @@ async function postgisNltisEndpointEvidence(url){
 
 async function postgisAssociations(url){
   const params=[];
-  const where=['1=1'];
+  const where=["coalesce(to_jsonb(a)->>'merged_into_association_id','')=''"];
   const province=url.searchParams.get('province');
   const q=url.searchParams.get('q');
 
@@ -2031,6 +2033,48 @@ const server=createServer(async(req,res)=>{
   const method=req.method || 'GET';
 
   try{
+    if(url.pathname==='/api/v1/operator/proposals/association-merges'){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const survivorAssociationId=typeof body.survivorAssociationId==='string' ? body.survivorAssociationId.trim() : '';
+      const duplicateAssociationId=typeof body.duplicateAssociationId==='string' ? body.duplicateAssociationId.trim() : '';
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(!/^[0-9a-fA-F-]{36}$/.test(survivorAssociationId) || !/^[0-9a-fA-F-]{36}$/.test(duplicateAssociationId)){
+        return send(res,400,{error:'association_merge_ids_required'});
+      }
+      if(rationale.length<10 || rationale.length>2000){
+        return send(res,400,{error:'proposal_rationale_required'});
+      }
+      if(Object.keys(evidence).length===0){
+        return send(res,400,{error:'proposal_evidence_required'});
+      }
+
+      const result=await createTaxiAssociationMergeProposal(pool,{
+        survivorAssociationId,
+        duplicateAssociationId,
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
     if(url.pathname==='/api/v1/operator/proposals/rank-merges'){
       if(method!=='POST'){
         res.setHeader('allow','POST');
