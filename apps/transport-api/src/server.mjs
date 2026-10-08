@@ -6,7 +6,7 @@ import { appendOperatorAuditEvent } from './operator-audit.mjs';
 import { loadOperatorWorkbench, operatorWorkbenchSchemaAvailable } from './operator-workbench.mjs';
 import { loadNationalCoverageModel, loadCoverageGapFeatures } from './national-coverage.mjs';
 import { loadKznCoverageExecution } from './kzn-coverage.mjs';
-import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';
+import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';\nimport { loadKznDeterministicAdjudicationBatch, createKznDeterministicProposalBatch } from './kzn-deterministic-adjudication.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2613,6 +2613,49 @@ const server=createServer(async(req,res)=>{
         actor:auth.actor,
         auth:capabilities,
         mutationEnabled:capabilities.mutationEnabled
+      });
+    }
+
+    const national4ProposalBatchMatch=url.pathname.match(/^\\/api\\/v1\\/operator\\/coverage\\/kzn\\/deterministic-batch\\/proposals$/);
+    if(national4ProposalBatchMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence) ? body.evidence : {};
+      const limit=Math.min(Math.max(Number(body.limit)||13,1),13);
+      if(rationale.length<10 || rationale.length>2000) return send(res,400,{error:'proposal_rationale_required'});
+      const result=await createKznDeterministicProposalBatch(pool,{
+        actor:auth.actor,
+        batchIdempotencyKey:idempotencyKey,
+        rationale,
+        evidence,
+        limit,
+        requestId:requestId(req)
+      });
+      return send(res,200,result);
+    }
+
+    const national4PlanMatch=url.pathname.match(/^\\/api\\/v1\\/operator\\/coverage\\/kzn\\/deterministic-batch$/);
+    if(national4PlanMatch){
+      if(method!=='GET' && method!=='HEAD'){
+        res.setHeader('allow','GET, HEAD');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      const limit=Math.min(Math.max(Number(url.searchParams.get('limit'))||13,1),13);
+      return send(res,200,{
+        actor:{subject:auth.actor.subject,displayName:auth.actor.displayName,roles:auth.actor.roles},
+        ...(await loadKznDeterministicAdjudicationBatch(pool,{limit}))
       });
     }
 
