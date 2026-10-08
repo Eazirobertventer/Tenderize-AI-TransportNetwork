@@ -1,4 +1,5 @@
 import { loadNationalCoverageModel } from './national-coverage.mjs';
+import { loadKznCoverageExecution } from './kzn-coverage.mjs';
 
 export async function operatorWorkbenchSchemaAvailable(pool){
   if(!pool) return false;
@@ -127,7 +128,8 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
     recentAudit,
     rankCandidates,
     routeCandidates,
-    nationalCoverage
+    nationalCoverage,
+    kznExecution
   ]=await Promise.all([
     pool.query(
       `SELECT
@@ -199,7 +201,8 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
        LIMIT $1`,
       [bounded]
     ),
-    loadNationalCoverageModel(pool)
+    loadNationalCoverageModel(pool),
+    loadKznCoverageExecution(pool)
   ]);
 
   const enabled=new Set(capabilities?.adjudication?.enabledActions || []);
@@ -230,6 +233,7 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
       recent:recentProposals.rows.map(proposalView)
     },
     coverage:nationalCoverage,
+    kznExecution,
     audit:{
       recent:recentAudit.rows.map(row=>({
         id:row.id,
