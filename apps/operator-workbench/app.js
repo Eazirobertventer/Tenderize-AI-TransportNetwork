@@ -87,6 +87,29 @@ function render(){
   q('#coverageMapped').textContent=national.mapped_ranks??0;
   q('#coverageUnassociated').textContent=national.ranks_without_association??0;
   q('#coverageRouteGaps').textContent=national.routes_with_unresolved_endpoints??0;
+  const kzn=d.kznExecution||{};
+  const kznSummary=kzn.summary||{};
+  q('#kznRanks').textContent=kznSummary.ranks??0;
+  q('#kznNoAssociation').textContent=kznSummary.ranks_without_association??0;
+  q('#kznRouteCandidates').textContent=kznSummary.route_candidates??0;
+  q('#kznRouteAssociationGap').textContent=kznSummary.route_candidates_without_association??0;
+
+  const routeBuckets=kzn.routeCandidateBuckets||{};
+  q('#kznBucketGrid').innerHTML=Object.entries(routeBuckets).map(([name,count])=>
+    '<div class="cap"><span>'+esc(name.replaceAll('_',' '))+'</span><b>'+Number(count||0)+'</b></div>'
+  ).join('') || empty('No KZN route-candidate evidence buckets available.');
+
+  const verified=kzn.verifiedGazette||{};
+  q('#kznExecutionList').innerHTML=(verified.items||[]).map(item=>`
+    <div class="row">
+      <div>
+        <strong>${esc(item.routeCode)} • ${esc(item.association)}</strong>
+        <div class="meta">${esc(item.rankNarrative||'No rank narrative')} • ${esc(item.source||'KZN gazette')}</div>
+      </div>
+      <span class="pill ${esc(item.bucket)}">${esc(item.bucket.replaceAll('_',' '))}</span>
+      <p>${esc(item.reason.replaceAll('_',' '))} • ${Number((item.routeCandidates||[]).length)} candidate match(es) • ${Number((item.canonicalRoutes||[]).length)} canonical route match(es)</p>
+    </div>`).join('') || empty('No verified KZN gazette evidence rows loaded.');
+
   q('#coverageProvinceList').innerHTML=(coverage.provinces||[]).map(p=>`
     <div class="coverage-priority-row">
       <div>
