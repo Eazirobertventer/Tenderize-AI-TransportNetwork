@@ -12,6 +12,7 @@
     <div class="brand"><b>TN</b><span>Operator<br/>Workbench</span></div>
     <nav>
       <button class="active" data-view="overview">Overview</button>
+      <button data-view="coverage">Coverage</button>
       <button data-view="issues">Issues</button>
       <button data-view="proposals">Proposals</button>
       <button data-view="audit">Audit</button>
@@ -55,6 +56,19 @@
         <section class="panel"><div class="panel-head"><div><span>Decision queue</span><strong>Pending proposals</strong></div><button data-view="proposals">Open queue</button></div><div id="overviewProposals" class="list"></div></section>
         <section class="panel"><div class="panel-head"><div><span>Control state</span><strong>Adjudication capabilities</strong></div></div><div id="capabilityGrid" class="cap-grid"></div></section>
       </div>
+    </section>
+
+    <section id="coverage" class="view">
+      <div class="cards coverage-cards">
+        <article><span>National ranks</span><strong id="coverageRanks">—</strong><small>canonical active ranks</small></article>
+        <article><span>Mapped</span><strong id="coverageMapped">—</strong><small>coordinate available</small></article>
+        <article><span>No association</span><strong id="coverageUnassociated">—</strong><small>canonical association gap</small></article>
+        <article><span>Route endpoint gaps</span><strong id="coverageRouteGaps">—</strong><small>canonical unresolved endpoints</small></article>
+      </div>
+      <section class="panel">
+        <div class="panel-head"><div><span>National backlog</span><strong>Province prioritisation</strong></div><small>Operational priority only — not evidence confidence</small></div>
+        <div id="coverageProvinceList" class="coverage-priority-list"></div>
+      </section>
     </section>
 
     <section id="issues" class="view">
