@@ -1,5 +1,6 @@
 import { loadNationalCoverageModel } from './national-coverage.mjs';
 import { loadKznCoverageExecution } from './kzn-coverage.mjs';
+import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';
 
 export async function operatorWorkbenchSchemaAvailable(pool){
   if(!pool) return false;
@@ -129,7 +130,8 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
     rankCandidates,
     routeCandidates,
     nationalCoverage,
-    kznExecution
+    kznExecution,
+    kznGazetteQueue
   ]=await Promise.all([
     pool.query(
       `SELECT
@@ -202,7 +204,8 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
       [bounded]
     ),
     loadNationalCoverageModel(pool),
-    loadKznCoverageExecution(pool)
+    loadKznCoverageExecution(pool),
+    loadKznGazetteEvidenceQueue(pool,{limit:120})
   ]);
 
   const enabled=new Set(capabilities?.adjudication?.enabledActions || []);
@@ -234,6 +237,7 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
     },
     coverage:nationalCoverage,
     kznExecution,
+    kznGazetteQueue,
     audit:{
       recent:recentAudit.rows.map(row=>({
         id:row.id,
