@@ -1,3 +1,17 @@
+export async function operatorWorkbenchSchemaAvailable(pool){
+  if(!pool) return false;
+  const result=await pool.query(
+    `SELECT
+       to_regclass('operator_audit_event') IS NOT NULL AS audit,
+       to_regclass('operator_decision_proposal') IS NOT NULL AS proposals,
+       to_regclass('transport_entity_alias') IS NOT NULL AS aliases,
+       to_regclass('taxi_rank_merge_lineage') IS NOT NULL AS rank_merges,
+       to_regclass('taxi_association_merge_lineage') IS NOT NULL AS association_merges`
+  );
+  const row=result.rows[0]||{};
+  return Boolean(row.audit && row.proposals && row.aliases && row.rank_merges && row.association_merges);
+}
+
 function proposalView(row){
   return {
     id:row.id,
