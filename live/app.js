@@ -383,16 +383,31 @@ async function detail(p){
 }
 function routeDetail(p){
   const status=p.verificationStatus || 'unverified';
+  const associationEvidence=p.associationEvidence || null;
+  const originAssoc=associationEvidence?.originAssociations || [];
+  const destinationAssoc=associationEvidence?.destinationAssociations || [];
+  const evidenceHtml=associationEvidence
+    ? `<div class="source association-evidence">
+         <b>Endpoint association evidence</b>
+         <span>Origin: ${originAssoc.length ? originAssoc.map(esc).join(', ') : 'none'}</span>
+         <span>Destination: ${destinationAssoc.length ? destinationAssoc.map(esc).join(', ') : 'none'}</span>
+         <span><strong>Evidence only — not route ownership.</strong></span>
+       </div>`
+    : '';
+
   document.querySelector('#detail').innerHTML=`
     <div class="rank">
       <span class="badge ${status}">${status.replaceAll('_',' ')}</span>
       <h2>${esc(p.origin || 'Origin pending')} → ${esc(p.destination || 'Destination pending')}</h2>
       <p>${esc(p.routeType || 'Taxi route')} • ${esc(p.geometryStatus || 'Geometry pending')}</p>
       ${p.association ? `<div class="source"><b>${esc(p.association)}</b><span>${esc(p.associationRegistration || 'Association registration pending')}</span></div>` : ''}
+      ${evidenceHtml}
       <div class="source">
         <b>${esc(p.source || 'Tenderize source registry')}</b>
         <span>${p.candidateRoute
-          ? 'This is a TN6-J exact-endpoint route candidate using official source geometry. It is not yet a canonical taxi route and association evidence is still pending.'
+          ? (associationEvidence
+              ? 'This is a TN6-J exact-endpoint route candidate using official source geometry. TN6-L has endpoint association evidence, but no route association has been assigned.'
+              : 'This is a TN6-J exact-endpoint route candidate using official source geometry. It is not yet a canonical taxi route and association evidence is still pending.')
           : p.notRoutePath
             ? 'This connector only joins two exactly reconciled NLTIS rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
             : 'This line is rendered from source-backed route geometry. It is not inferred from road routing.'}</span>
