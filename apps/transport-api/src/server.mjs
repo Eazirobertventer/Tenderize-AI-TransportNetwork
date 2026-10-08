@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { authenticateOperatorRequest, operatorAuthCapabilities } from './operator-auth.mjs';
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
+import { loadOperatorWorkbench } from './operator-workbench.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2609,6 +2610,30 @@ const server=createServer(async(req,res)=>{
         actor:auth.actor,
         auth:capabilities,
         mutationEnabled:capabilities.mutationEnabled
+      });
+    }
+
+    if(url.pathname==='/api/v1/operator/workbench'){
+      if(method!=='GET' && method!=='HEAD'){
+        res.setHeader('allow','GET, HEAD');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      const capabilities=operatorAuthCapabilities();
+      const rawLimit=Number(url.searchParams.get('limit') || 100);
+      const workbench=await loadOperatorWorkbench(pool,{
+        capabilities,
+        limit:rawLimit
+      });
+      return send(res,200,{
+        actor:{
+          subject:auth.actor.subject,
+          displayName:auth.actor.displayName,
+          roles:auth.actor.roles
+        },
+        ...workbench
       });
     }
 
