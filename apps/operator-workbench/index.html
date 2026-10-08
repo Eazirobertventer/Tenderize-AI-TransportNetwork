@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Tenderize Operator Adjudication Workbench</title>
+  <link rel="stylesheet" href="./styles.css"/>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><b>TN</b><span>Operator<br/>Workbench</span></div>
+    <nav>
+      <button class="active" data-view="overview">Overview</button>
+      <button data-view="issues">Issues</button>
+      <button data-view="proposals">Proposals</button>
+      <button data-view="audit">Audit</button>
+      <button data-view="actions">Actions</button>
+    </nav>
+    <div class="identity">
+      <small>Trusted operator</small>
+      <strong id="actorName">Not signed in</strong>
+      <span id="actorRoles">—</span>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <span class="eyebrow">TN7 • ADJUDICATION CONTROL PLANE</span>
+        <h1>Integrated Adjudication Workbench</h1>
+        <p>Evidence review, dual-control proposals, canonical decisions and immutable audit trace.</p>
+      </div>
+      <div class="authbox">
+        <input id="token" type="password" placeholder="Operator bearer token"/>
+        <button id="connect">Connect</button>
+        <button id="disconnect" class="secondary">Clear</button>
+      </div>
+    </header>
+
+    <section class="statusbar">
+      <span id="connectionDot"></span>
+      <b id="connectionState">Disconnected</b>
+      <small id="mutationState">Mutation state unknown</small>
+    </section>
+
+    <section id="overview" class="view active">
+      <div class="cards">
+        <article><span>Active issues</span><strong id="activeIssues">—</strong><small>open / reviewing / deferred</small></article>
+        <article><span>High severity</span><strong id="highSeverity">—</strong><small>error / blocking</small></article>
+        <article><span>Pending proposals</span><strong id="pendingCount">—</strong><small>awaiting second-person decision</small></article>
+        <article><span>Recent audit</span><strong id="auditCount">—</strong><small>immutable events loaded</small></article>
+      </div>
+      <div class="grid2">
+        <section class="panel"><div class="panel-head"><div><span>Decision queue</span><strong>Pending proposals</strong></div><button data-view="proposals">Open queue</button></div><div id="overviewProposals" class="list"></div></section>
+        <section class="panel"><div class="panel-head"><div><span>Control state</span><strong>Adjudication capabilities</strong></div></div><div id="capabilityGrid" class="cap-grid"></div></section>
+      </div>
+    </section>
+
+    <section id="issues" class="view">
+      <section class="panel"><div class="panel-head"><div><span>Quality queue</span><strong>Data issues</strong></div><select id="issueFilter"><option value="">All states</option><option>open</option><option>reviewing</option><option>deferred</option><option>rejected</option></select></div><div id="issueList" class="list"></div></section>
+    </section>
+
+    <section id="proposals" class="view">
+      <section class="panel"><div class="panel-head"><div><span>Dual control</span><strong>Pending proposals</strong></div><button id="refresh">Refresh</button></div><div id="proposalList" class="list"></div></section>
+    </section>
+
+    <section id="audit" class="view">
+      <section class="panel"><div class="panel-head"><div><span>Immutable trace</span><strong>Recent audit events</strong></div></div><div id="auditList" class="list audit-list"></div></section>
+    </section>
+
+    <section id="actions" class="view">
+      <section class="panel"><div class="panel-head"><div><span>ADJ1–ADJ8</span><strong>Controlled action catalogue</strong></div></div><div id="actionGrid" class="action-grid"></div></section>
+    </section>
+  </main>
+</div>
+
+<div id="decisionModal" class="modal hidden">
+  <div class="modal-card">
+    <button class="close" id="closeModal">×</button>
+    <span class="eyebrow">SECOND-PERSON DECISION</span>
+    <h2 id="modalTitle">Proposal decision</h2>
+    <p id="modalMeta"></p>
+    <label>Decision rationale<textarea id="decisionRationale" minlength="10" maxlength="2000" placeholder="State the evidence reviewed and the reason for this decision."></textarea></label>
+    <label>Evidence note<textarea id="decisionEvidence" placeholder="Optional structured note or reference."></textarea></label>
+    <div class="modal-actions">
+      <button id="approveProposal">Approve</button>
+      <button id="rejectProposal" class="danger">Reject</button>
+      <button id="withdrawProposal" class="secondary">Withdraw</button>
+    </div>
+    <div id="decisionResult" class="result"></div>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
