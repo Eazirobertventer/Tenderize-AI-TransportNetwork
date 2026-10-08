@@ -10,7 +10,7 @@ const {Pool}=pg;
 
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL required');
 
-const sources=JSON.parse(await readFile(new URL('./sources.json',import.meta.url),'utf8'));
+const sources=JSON.parse(await readFile(new URL('./tn7-national-3-sources.json',import.meta.url),'utf8'));
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:false,max:2});
 const client=await pool.connect();
 
