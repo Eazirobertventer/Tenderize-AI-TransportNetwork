@@ -13,3 +13,15 @@
 .priority{display:inline-flex;border-radius:999px;padding:4px 6px;font-size:8px;text-transform:uppercase;font-weight:900;background:#edf4ff;color:var(--blue)}
 .priority.critical{background:#fdeaea;color:#9f3030}.priority.high{background:#fff0dc;color:#a65e00}.priority.medium{background:#fff8dd;color:#8a6b00}.priority.low{background:#edf4ff;color:#0d5fd7}.priority.complete{background:#e9f7f0;color:#1f7654}
 .coverage-cards{margin-bottom:12px}
+
+.kzn-execution-panel{margin-top:12px}
+.kzn-cards{margin:0;border:0;border-radius:0;box-shadow:none;border-bottom:1px solid var(--line)}
+.kzn-cards article{box-shadow:none;border-radius:0;border-top:0;border-left:0;border-bottom:0}
+.kzn-bucket-grid{padding:10px;display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:8px;border-bottom:1px solid var(--line)}
+.panel-head.subhead{border-top:0}
+.pill.route_candidate_evidence_ready,.pill.canonical_route_evidence_ready{background:#e9f7f0;color:#1f7654}
+.pill.review_required{background:#fff0dc;color:#a65e00}
+.pill.unresolved{background:#f1f4f6;color:#687986}
+.pill.already_canonical,.pill.candidate_already_assigned{background:#edf4ff;color:#0d5fd7}
+@media(max-width:1050px){.kzn-bucket-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.side nav{grid-template-columns:repeat(3,1fr)}.kzn-bucket-grid{grid-template-columns:1fr}}
