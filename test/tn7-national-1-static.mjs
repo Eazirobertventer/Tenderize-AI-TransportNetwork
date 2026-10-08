@@ -17,6 +17,8 @@ const provinces=[
 
 const checks=[
  ['all nine provinces named',provinces.every(p=>national.includes("'"+p+"'"))],
+ ['full-corpus national totals',national.includes('const nationalResult=await pool.query')],
+ ['unscoped national residual exposed',national.includes('unscoped:{')],
  ['national gap model mode',national.includes("mode:'coverage_gap_model'")],
  ['canonical mutation explicitly disabled',national.includes('canonicalMutationEnabled:false')],
  ['priority disclaimer present',national.includes('not canonical confidence or evidence truth')],
