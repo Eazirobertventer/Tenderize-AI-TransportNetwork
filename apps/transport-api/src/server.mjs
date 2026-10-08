@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { authenticateOperatorRequest, operatorAuthCapabilities } from './operator-auth.mjs';
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
-import { loadOperatorWorkbench } from './operator-workbench.mjs';
+import { loadOperatorWorkbench, operatorWorkbenchSchemaAvailable } from './operator-workbench.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2622,6 +2622,13 @@ const server=createServer(async(req,res)=>{
       const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
       if(!auth) return;
       const capabilities=operatorAuthCapabilities();
+      if(!(await operatorWorkbenchSchemaAvailable(pool))){
+        return send(res,503,{
+          error:'operator_workbench_schema_unavailable',
+          mutationEnabled:false,
+          capabilities:capabilities.adjudication
+        });
+      }
       const rawLimit=Number(url.searchParams.get('limit') || 100);
       const workbench=await loadOperatorWorkbench(pool,{
         capabilities,
