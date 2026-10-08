@@ -3,6 +3,7 @@ import pg from 'pg';
 const {Pool}=pg;
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:false,max:2});
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL required');
+await pool.query('DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;');
 
 for(let i=1;i<=12;i++){
   const p='db/'+String(i).padStart(3,'0')+'_';
@@ -26,8 +27,8 @@ for(const [id,name] of ranks){
 }
 
 const associations=[
- ['aaaaaaaa-0001-4001-8001-000000000001','Alpha Taxi Association','ALPHA','REG-ALPHA',ARRAY['Alpha Legacy']],
- ['aaaaaaaa-0002-4002-8002-000000000002','Old Alpha Taxi Association','OLD',null,ARRAY['Old Alpha Legacy']],
+ ['aaaaaaaa-0001-4001-8001-000000000001','Alpha Taxi Association','ALPHA','REG-ALPHA',['Alpha Legacy']],
+ ['aaaaaaaa-0002-4002-8002-000000000002','Old Alpha Taxi Association','OLD',null,['Old Alpha Legacy']],
  ['aaaaaaaa-0003-4003-8003-000000000003','Independent Association','IND',null,[]],
  ['aaaaaaaa-0004-4004-8004-000000000004','Registration Survivor','RS','REG-ONE',[]],
  ['aaaaaaaa-0005-4005-8005-000000000005','Registration Duplicate','RD','REG-TWO',[]],
@@ -40,7 +41,7 @@ const associations=[
  ['aaaaaaaa-0012-4012-8012-000000000012','Atomic Survivor','AS',null,[]],
  ['aaaaaaaa-0013-4013-8013-000000000013','Atomic Duplicate','AD',null,[]],
  ['aaaaaaaa-0014-4014-8014-000000000014','Alias Survivor','ALS',null,[]],
- ['aaaaaaaa-0015-4015-8015-000000000015','Alias Duplicate','ALD',null,ARRAY['Collision Association']],
+ ['aaaaaaaa-0015-4015-8015-000000000015','Alias Duplicate','ALD',null,['Collision Association']],
  ['aaaaaaaa-0016-4016-8016-000000000016','Collision Association','COL',null,[]]
 ];
 for(const a of associations){
