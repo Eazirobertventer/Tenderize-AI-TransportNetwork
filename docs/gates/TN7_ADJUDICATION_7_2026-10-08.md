@@ -6,13 +6,9 @@ Date: 2026-10-08
 
 **PASS — controlled canonical taxi-rank merge is proven behind the ADJ3 two-person approval foundation.**
 
-Validated implementation head:
+Validated runtime head:
 
-`9631e32cd1763a27c47c2a527e56ebfecfb7cbc9`
-
-Preview-guard correction head:
-
-`db30f3d523a91641a9af41fb5db80a7b8326d730`
+`3a892f7f6cebd102dab4e91218575a7f60be8f3f`
 
 Branch:
 
@@ -24,51 +20,32 @@ Draft PR:
 
 ## Scope
 
-ADJ7 supports **taxi-rank merge only**.
-
-It does not yet support:
-
-- taxi-association merge;
-- route merge;
-- automatic primary-entity selection.
+ADJ7 implements **taxi-rank merge only**.
 
 The operator explicitly chooses:
 
 - survivor rank;
 - duplicate rank.
 
-Proposal endpoint:
+The duplicate row is not deleted. It becomes a durable, immutable tombstone that points to the survivor.
+
+Association merge, route merge and automatic survivor selection remain unsupported.
+
+## Proposal endpoint
 
 `POST /api/v1/operator/proposals/rank-merges`
 
-Approval uses the generic ADJ3 two-person route:
+Proposal roles:
+
+- reviewer;
+- approver;
+- admin.
+
+Approval remains:
 
 `POST /api/v1/operator/proposals/:proposalId/approve`
 
-## Durable tombstone model
-
-The duplicate taxi-rank row is **not deleted**.
-
-After merge it becomes a durable tombstone with:
-
-- `merged_into_rank_id`;
-- `merged_at`;
-- `merge_proposal_id`;
-- `merge_audit_event_id`.
-
-A database trigger makes a merged tombstone immutable:
-
-- UPDATE blocked;
-- DELETE blocked.
-
-This preserves:
-
-- original UUID;
-- source candidates;
-- source records;
-- historical provenance.
-
-Operational rank/map/detail reads hide merged tombstones.
+A different Approver/Admin subject is required by the ADJ3 dual-control foundation.
 
 ## Migration 011
 
@@ -76,35 +53,43 @@ Committed migration:
 
 `db/011_taxi_rank_merge_foundation.sql`
 
-Adds:
+Adds merge fields to `taxi_rank`:
 
-- merge-state fields to `taxi_rank`;
-- merge-state consistency constraint;
-- `taxi_rank_merge_lineage`;
-- durable before/after merge snapshots;
-- redirect-count metadata;
-- immutable merged-rank trigger.
+- `merged_into_rank_id`;
+- `merged_at`;
+- `merge_proposal_id`;
+- `merge_audit_event_id`.
 
-The lineage record links:
+Adds durable lineage table:
+
+`taxi_rank_merge_lineage`
+
+Lineage records:
 
 - survivor rank;
 - duplicate rank;
-- two-person proposal;
+- proposal;
 - canonical merge audit;
-- complete survivor pre-state;
-- complete duplicate pre-state;
-- canonical after-state;
-- redirect counts.
+- survivor pre-state;
+- duplicate pre-state;
+- post-merge state;
+- redirect counts;
+- merge timestamp.
+
+Merged tombstones are protected by a database trigger:
+
+- UPDATE blocked;
+- DELETE blocked.
 
 ## Frozen merge graph
 
-The proposal SHA-256 snapshot includes both ranks plus their affected graph:
+The proposal SHA-256 snapshot covers both ranks and all merge-relevant state:
 
-- rank canonical identity and aliases;
-- coordinates/location hash;
+- canonical identity and aliases;
+- location/location hash;
 - Google Place identity;
-- canonical association relationships;
-- canonical routes using either rank as endpoint;
+- canonical rank↔association relationships;
+- canonical routes using either rank;
 - rank-association source candidates;
 - rank-destination source candidates;
 - route candidates;
@@ -114,118 +99,54 @@ The proposal SHA-256 snapshot includes both ranks plus their affected graph:
 - pending rank proposals;
 - existing merge lineage.
 
-A graph change after proposal creation makes approval stale.
+Any material graph change makes approval stale.
 
-## Source-evidence preservation
+## Source-provenance policy
 
-ADJ7 does **not** rewrite source evidence to the survivor UUID.
+Canonical operational edges move to the survivor.
 
-These remain anchored to the duplicate tombstone:
+Historical source evidence remains attached to the duplicate tombstone UUID:
 
 - `rank_association_candidate`;
 - `rank_destination_candidate`;
 - rank `source_record`.
 
-This preserves source lineage exactly as observed.
-
-Canonical operational edges move to the survivor.
-
-## Canonical redirection
-
-Successful merge can transactionally redirect:
-
-- promoted/non-promoted alias identity registry;
-- canonical taxi-rank ↔ association relationships;
-- canonical route origin endpoints;
-- canonical route destination endpoints;
-- active rank data issues.
-
-Duplicate rank canonical name and aliases are transferred to the survivor where normalized identities are not already present.
-
-Overlapping survivor/duplicate association relationships are collapsed only when safe.
+This preserves source lineage as originally observed.
 
 ## Conflict policy
 
-ADJ7 fails closed on non-deterministic merge state.
+Merge fails closed for:
 
-### Same entity
+- survivor == duplicate;
+- survivor already a tombstone;
+- duplicate already merged;
+- other pending rank-targeted proposals;
+- conflicting non-null Google Place IDs;
+- third-party canonical-name/alias collision;
+- promoted duplicate-side association relationship requiring lineage rewrite;
+- route that would become survivor→survivor;
+- projected duplicate canonical route after endpoint redirection.
 
-Survivor == duplicate:
+## Deterministic merge behavior
 
-`409 rank_merge_same_entity`
+A valid merge can:
 
-### Existing tombstone
+- transfer duplicate canonical name and safe aliases to survivor;
+- redirect promoted alias registry rows;
+- collapse overlapping rank↔association pairs;
+- redirect non-overlapping association relationships;
+- redirect canonical route origin/destination endpoints;
+- redirect active rank data issues;
+- mark duplicate as immutable tombstone;
+- create durable merge lineage.
 
-A survivor or duplicate already merged elsewhere blocks the operation.
+Route geometry is not regenerated.
 
-### Pending proposal conflict
+## Operational visibility
 
-Any other pending proposal targeting either rank blocks merge.
+Operational rank map/count/detail surfaces hide merged tombstones.
 
-### Conflicting Google Place identity
-
-If both ranks have different non-null Google Place IDs:
-
-`409 rank_merge_google_place_conflict`
-
-### Third-party alias collision
-
-Duplicate canonical name/aliases are checked against all other active rank canonical names, aliases and promoted aliases.
-
-Collision:
-
-`409 rank_merge_alias_collision`
-
-### Promoted association-relationship conflict
-
-If the duplicate carries a relationship with durable promotion lineage, merge fails closed rather than silently rewriting that lineage:
-
-`409 rank_merge_promoted_relationship_conflict`
-
-### Route self-loop conflict
-
-If merging the duplicate into survivor would turn an existing survivor↔duplicate route into a route whose origin equals destination:
-
-`409 rank_merge_route_self_loop_conflict`
-
-### Projected route duplicate
-
-If endpoint redirection would create duplicate canonical routes for the same association + ordered endpoints:
-
-`409 rank_merge_route_duplicate_conflict`
-
-## Concurrency
-
-The merge pair obtains a PostgreSQL transaction advisory lock over the sorted survivor/duplicate UUID pair.
-
-This serializes competing proposals/approvals for the same two ranks.
-
-## Canonical transaction
-
-Successful approval executes one PostgreSQL transaction:
-
-1. lock proposal;
-2. enforce independent Approver/Admin;
-3. lock survivor/duplicate merge scope;
-4. lock both rank rows;
-5. reload all affected canonical/source graph state;
-6. apply conflict policy;
-7. verify frozen before-state SHA-256;
-8. write immutable `taxi_rank.merge` canonical audit;
-9. transfer safe aliases;
-10. redirect promoted alias registry rows;
-11. collapse safe duplicate association pairs;
-12. redirect remaining canonical association edges;
-13. redirect route origin/destination edges;
-14. redirect active rank data issues;
-15. mark duplicate as immutable tombstone;
-16. write durable merge-lineage row;
-17. refresh rank connectivity if present;
-18. approve proposal and link canonical audit;
-19. write proposal-approval audit;
-20. commit.
-
-Any failure rolls all effects back.
+Filtering uses a schema-compatible `to_jsonb(...)->>'merged_into_rank_id'` pattern, so the current preview remains safe before migration 011 is applied.
 
 ## Static gate
 
@@ -233,7 +154,7 @@ Service:
 
 `tn7-adj7-static-check`
 
-Static deployment:
+Deployment:
 
 `2616b92b-f47e-4515-bbdd-f28061960fc1`
 
@@ -241,36 +162,25 @@ Result:
 
 **TN7_ADJ7_STATIC_PASS 27/27**
 
-Proven statically:
+## Runtime evidence integrity
 
-- tombstone survivor link;
-- merge lineage;
-- tombstone immutability;
-- proposal/audit lineage fields;
-- advisory merge locking;
-- pending-proposal conflict;
-- Google identity conflict;
-- alias collision protection;
-- promoted-relationship conflict;
-- route self-loop conflict;
-- projected route duplicate conflict;
-- association-edge redirect;
-- route endpoint redirect;
-- issue redirect;
-- promoted-alias redirect;
-- source candidate/evidence snapshotting;
-- two-person merge proposal;
-- canonical merge audit;
-- stale-state protection;
-- dual-control metadata;
-- protected merge endpoint;
-- tombstone-aware operational rank reads;
-- rank-merge capability switch;
-- public Web exclusion.
+An earlier smoke attempt reached deploy state twice against one disposable database.
 
-## Exact PostGIS migration proof
+That run was explicitly **discarded** and none of its assertions were accepted.
 
-Disposable PostGIS:
+For the authoritative runtime gate:
+
+1. the ambiguous smoke service was deleted;
+2. the disposable API/setup/database were deleted;
+3. a completely fresh PostGIS, setup runner and merge API were provisioned;
+4. migrations were applied once;
+5. exactly one smoke deployment was launched.
+
+The evidence below comes only from that clean stack.
+
+## Exact PostGIS setup proof
+
+Fresh disposable PostGIS:
 
 `tn7-adj7-db`
 
@@ -280,7 +190,7 @@ Setup service:
 
 Deployment:
 
-`786e983d-898f-4eb9-aa86-0e3497b1a8a5`
+`e4dd3d40-539f-4f4c-ab51-ece4d0393c1d`
 
 Result:
 
@@ -296,18 +206,7 @@ Exact migrations applied in order:
 6. `010_route_candidate_promotions.sql`
 7. `011_taxi_rank_merge_foundation.sql`
 
-Disposable graph included:
-
-- 21 ranks before merge-specific additions were counted in setup;
-- 3 associations;
-- canonical relationship edges;
-- canonical route edges;
-- source candidate evidence;
-- source records;
-- active data issues;
-- valid/conflict/atomic/concurrency merge pairs.
-
-No production PostGIS migration was executed.
+No production migration was executed.
 
 ## Isolated merge API
 
@@ -317,20 +216,20 @@ Service:
 
 Deployment:
 
-`29b5c8a7-dc5e-464f-8411-9e429457a02e`
+`b78abae1-8ae8-4f32-8e53-9f94f505b2e1`
 
 Status:
 
 **SUCCESS**
 
-Enabled only in the disposable environment:
+Enabled only in this disposable environment:
 
 - `OPERATOR_DUAL_CONTROL_ENABLED=true`
 - `OPERATOR_RANK_MERGE_ENABLED=true`
 
-Direct one-person mutation switches remained off.
+All other direct mutation switches remained off.
 
-## Runtime merge proof
+## Authoritative runtime proof
 
 Service:
 
@@ -338,122 +237,99 @@ Service:
 
 Deployment:
 
-`1456fd39-4fde-44d3-9a3f-9d9a61d41189`
+`5b96e243-488f-4303-bd20-252ac760a8c9`
+
+Status:
+
+**SUCCESS**
 
 Result:
 
 **TN7_ADJ7_RUNTIME_PASS**
 
-### Access / basic validation
+### Validation and conflict proof
 
-- anonymous merge proposal → **401**
-- same rank survivor/duplicate → rejected
-- Reviewer cannot approve merge → **403**
+Runtime assertions passed for:
 
-### Google Place conflict
+- anonymous merge proposal rejected;
+- same survivor/duplicate rejected;
+- conflicting Google Place identities blocked;
+- third-party alias collision blocked;
+- route self-loop projection blocked;
+- Reviewer unable to approve merge.
 
-Different non-null Google Place IDs:
+### Successful merge proof
 
-**blocked**
+Independent Approver executed a valid merge.
 
-### Alias collision
+Proven:
 
-Duplicate alias colliding with an unrelated third rank canonical identity:
-
-**blocked**
-
-### Route self-loop conflict
-
-A canonical route directly between survivor and duplicate would collapse to a self-loop:
-
-**blocked**
-
-### Successful merge
-
-Reviewer proposed a valid rank merge.
-
-Different Approver approved.
-
-Result:
-
-- duplicate tombstone points to survivor;
-- tombstone links proposal + canonical merge audit;
-- duplicate canonical name transferred to survivor aliases;
-- duplicate aliases transferred safely;
-- overlapping association relationship collapsed;
-- non-overlap association relationship redirected;
+- duplicate becomes tombstone pointing to survivor;
+- tombstone links proposal and canonical merge audit;
+- duplicate canonical name + aliases transfer to survivor;
+- overlapping association link collapses;
+- non-overlapping association link redirects;
 - duplicate has no active canonical association edges;
-- canonical route endpoint redirected to survivor;
+- canonical route endpoint redirects to survivor;
 - duplicate has no canonical route edges;
-- active rank data issue redirected to survivor;
-- source candidate remains on duplicate tombstone UUID;
-- source record remains on duplicate tombstone UUID;
-- durable merge-lineage row written;
-- redirect counts retained;
-- canonical `taxi_rank.merge` audit written once.
+- active rank issue redirects to survivor;
+- duplicate has no active data issues;
+- source candidate/source-record evidence remains anchored to duplicate tombstone UUID;
+- durable merge lineage links survivor, duplicate and proposal;
+- lineage stores redirect counts;
+- canonical merge audit exists exactly once;
+- operational rank map hides tombstone;
+- active rank detail returns 404 for tombstone.
 
-### Operational tombstone behavior
+### Idempotent replay
 
-After merge:
-
-- operational rank feed hides duplicate tombstone;
-- active rank-detail endpoint returns **404** for duplicate tombstone.
-
-### Idempotent approval replay
-
-Same approval key:
+Same Approver + same approval key:
 
 - safe replay;
-- canonical merge audit remains exactly one row.
+- no second canonical merge audit.
 
 ### Tombstone immutability
 
-Direct SQL UPDATE of merged duplicate:
+Direct SQL UPDATE of merged tombstone:
 
 **blocked**
 
-Direct SQL DELETE of merged duplicate:
+Direct SQL DELETE of merged tombstone:
 
 **blocked**
 
-### Stale graph protection
+### Stale-state proof
 
-Merge proposal created.
+A merge proposal was created.
 
-An active data issue belonging to duplicate changed afterward.
+Frozen graph state was changed afterward.
 
-Approval:
+Approval was rejected as stale and the duplicate remained active.
 
-**409 decision_proposal_stale_before_state**
+### Concurrent proposal proof
 
-Duplicate remained active.
-
-### Concurrent proposal serialization
-
-Two Reviewers submitted merge proposals concurrently for the same survivor/duplicate pair.
+Two Reviewers attempted proposals for the same survivor/duplicate pair concurrently.
 
 Result:
 
-- exactly one proposal created;
-- exactly one competing proposal rejected;
-- winning proposal could be independently approved;
-- duplicate became tombstone exactly once.
+- exactly one pending proposal survives;
+- competing proposal conflicts;
+- the serialized winning proposal can be approved;
+- duplicate becomes tombstone once.
 
-### Atomic rollback
+### Atomic rollback proof
 
-A fresh merge proposal was created.
+A final proposal-approval audit failure was deliberately induced.
 
-Disposable audit constraint forced final `decision_proposal.approve` audit to fail after merge work began.
+All merge side effects rolled back:
 
-Result:
-
-- tombstone marking rolled back;
-- relationship redirects rolled back;
-- route redirect rolled back;
-- data-issue redirect rolled back;
-- merge-lineage insert rolled back;
-- canonical merge audit rolled back;
-- proposal approval state rolled back.
+- tombstone marking;
+- association relationship redirection;
+- route redirection;
+- data-issue redirection;
+- merge-lineage insertion;
+- canonical merge audit;
+- proposal approval state.
 
 Proof marker:
 
@@ -461,56 +337,72 @@ Proof marker:
 
 ### Audit ordering
 
-All audit events remained monotonic.
-
 Result:
 
 **TN7_ADJ7_AUDIT_SEQUENCE_PASS 9**
 
-Disposable active counts after successful proof merges:
+Disposable active-count marker:
 
-- active ranks: **33**
-- routes: **5**
+`TN7_ADJ7_ACTIVE_COUNTS {"ranks":33,"routes":5}`
+
+These are disposable fixture counts, not production counts.
 
 ## Normal TN7 preview
 
-Current normal preview code includes the merge implementation, but every mutation switch remains absent.
+Current-head API:
 
-Normal preview API/Web were healthy on the implementation branch before the guard-only test commit.
+`3c3d932a-b93b-4fde-b7f1-0abffe5c7a4b`
+
+Status:
+
+**SUCCESS**
+
+Current-head Web:
+
+`fcdc3a24-a7e6-4a7f-8fa5-cd82feb7b6bc`
+
+Status:
+
+**SUCCESS**
+
+Normal preview has none of these mutation switches enabled:
+
+- defer;
+- reject;
+- reopen;
+- dual control;
+- alias promotion;
+- association assignment;
+- route promotion;
+- rank merge.
 
 ## Preview fail-closed proof
 
-The first guard run used the non-existent path `/api/v1/ranks/map`; the API correctly interpreted `map` as a rank UUID and rejected it. The guard was corrected to use the real operational rank feed:
+Guard service:
 
-`GET /api/v1/ranks`
-
-Corrected guard commit:
-
-`db30f3d523a91641a9af41fb5db80a7b8326d730`
-
-Guard runner:
-
-`tn7-adj7-preview-guard-r2`
+`tn7-adj7-preview-guard`
 
 Deployment:
 
-`3f048fff-5626-4b71-8a18-b35c1fcaf948`
+`16021b0e-0352-4ad3-811c-9da447977c7d`
+
+Status:
+
+**SUCCESS**
 
 Result:
 
 **TN7_ADJ7_PREVIEW_GUARD_PASS**
 
-Proof:
+Proven:
 
-- preview inventory available;
-- valid Reviewer rank-merge proposal → **503 rank_merge_disabled**;
-- valid Approver proposal approval → **503 dual_control_disabled**;
-- operator capabilities report mutation disabled;
-- rank-merge capability absent;
-- public Web merge proposal POST → **405**;
-- public Web proposal GET → **404**;
-- operational rank feed remains healthy;
-- live inventory unchanged:
+- valid Reviewer rank-merge proposal → **503 rank_merge_disabled**
+- valid Approver proposal approval → **503 dual_control_disabled**
+- capabilities report rank merge disabled;
+- zero enabled mutation actions;
+- public Web merge POST → **405**
+- public Web proposal GET → **404**
+- live TN7 preview counts unchanged:
   - ranks: **744**
   - associations: **35**
   - routes: **1,761**
@@ -520,209 +412,36 @@ Proof:
 
 **No production mutation.**
 
-Migrations unapplied to production PostGIS:
+Migrations 005 through 011 remain unapplied to production PostGIS.
 
-- 005
-- 006
-- 007
-- 008
-- 009
-- 010
-- 011
+No production taxi rank was merged.
 
-No production rank was merged.
-
-No production canonical relationship/route was redirected.
-
-No production tombstone was created.
+No production route or association edge was redirected.
 
 TN6 production services remain unchanged.
 
 ## Scope boundary
 
-ADJ7 supports rank merge only.
-
-Association merge remains unsupported.
-
-This gate deliberately preserves source evidence on the duplicate tombstone rather than rewriting historical observations.
-
-## Next recommended gate
-
-**TN7-ADJUDICATION-8 — Controlled Association Merge Foundation**
-
-Only proceed after treating association merge as a separate graph operation.
-
-Recommended scope:
-
-- survivor + duplicate association;
-- freeze canonical names/acronyms/aliases;
-- rank relationships;
-- canonical routes;
-- association source records;
-- open issues;
-- source association evidence;
-- conflict detection for registration numbers and overlapping route/rank semantics;
-- safe alias/acronym transfer;
-- transactional relationship/route redirection;
-- durable association tombstone and merge lineage;
-- two-person approval;
-- concurrency lock;
-- stale-state protection;
-- full rollback proof;
-- default-off preview/production switch.
-
-
----
-
-## Current-head runtime reacceptance
-
-ADJ7 was re-run after the interrupted session against the current implementation head:
-
-`9631e32cd1763a27c47c2a527e56ebfecfb7cbc9`
-
-This section supersedes the earlier deployment IDs for current-head acceptance while retaining the earlier run above as historical evidence.
-
-### Static gate
-
-Deployment:
-
-`2616b92b-f47e-4515-bbdd-f28061960fc1`
-
-Result:
-
-**TN7_ADJ7_STATIC_PASS 27/27**
-
-### Exact PostGIS setup
-
-Disposable database:
-
-`tn7-adj7-db`
-
-Setup deployment:
-
-`976621e5-d978-493f-9f29-83d871d271aa`
-
-Result:
-
-**TN7_ADJ7_DB_SETUP_PASS**
-
-Exact migrations applied:
-
-`005 → 006 → 007 → 008 → 009 → 010 → 011`
-
-### Isolated merge API
-
-Deployment:
-
-`683f2b3b-a54c-4096-a6bc-de93a31fcd33`
-
-Head:
-
-`9631e32cd1763a27c47c2a527e56ebfecfb7cbc9`
-
-Status:
-
-**SUCCESS**
-
-Enabled only in the disposable environment:
-
-- `OPERATOR_DUAL_CONTROL_ENABLED=true`
-- `OPERATOR_RANK_MERGE_ENABLED=true`
-
-### Authoritative runtime merge proof
-
-Deployment:
-
-`91b2991d-91df-4694-9f31-5ad0f52e5f49`
-
-Result:
-
-**TN7_ADJ7_RUNTIME_PASS**
-
-Re-proven on the current head:
-
-- anonymous merge rejected;
-- same-entity merge rejected;
-- Google Place conflict rejected;
-- third-party alias collision rejected;
-- projected route self-loop rejected;
-- valid two-person merge succeeds;
-- tombstone points to survivor;
-- proposal/audit lineage retained;
-- duplicate names/aliases transferred;
-- overlapping association relationship collapsed;
-- non-overlap relationship redirected;
-- canonical route endpoint redirected;
-- active rank issue redirected;
-- source evidence remains anchored to duplicate tombstone UUID;
-- operational rank map hides tombstone;
-- active tombstone detail returns 404;
-- approval replay is idempotent;
-- tombstone UPDATE/DELETE blocked;
-- stale graph approval rejected;
-- concurrent pair proposals serialize to one pending proposal;
-- winning proposal can be independently approved;
-- forced final approval-audit failure rolls back tombstone, relationships, routes, issues, lineage, canonical merge audit and proposal state.
-
-Proof markers:
-
-- **TN7_ADJ7_ATOMIC_MERGE_ROLLBACK_PASS**
-- **TN7_ADJ7_AUDIT_SEQUENCE_PASS 9**
-- **TN7_ADJ7_RUNTIME_PASS**
-
-Disposable active state after proof merges:
-
-- active ranks: **33**
-- canonical routes: **5**
-
-### Normal TN7 preview on current head
-
-API deployment:
-
-`1d6c48b1-4f8a-416f-ba52-a9701256c42a`
-
-Web deployment:
-
-`879843d1-225e-41af-ba61-b252f31ed07b`
-
-Both:
-
-**SUCCESS**
-
-Normal preview variables contain none of the mutation switches, including:
-
-- `OPERATOR_DUAL_CONTROL_ENABLED`
-- `OPERATOR_RANK_MERGE_ENABLED`
-
-### Current-head preview guard
-
-Deployment:
-
-`2907cdea-1ed2-4aa8-aeb3-17f7e25382ff`
-
-Result:
-
-**TN7_ADJ7_PREVIEW_GUARD_PASS**
-
-Proof:
-
-- operational rank feed remains schema-compatible without migration 011;
-- valid Reviewer rank-merge proposal → **503 rank_merge_disabled**;
-- valid Approver proposal approval → **503 dual_control_disabled**;
-- operator capabilities report rank merge disabled;
-- zero enabled mutation actions;
-- public Web merge proposal POST → **405**;
-- public Web proposal GET → **404**;
-- live inventory unchanged:
-  - ranks: **744**
-  - associations: **35**
-  - routes: **1,761**
-  - rank-association candidates: **29**
-
-### Current production status
-
-**No production mutation.**
-
-Migration 011 remains unapplied to production PostGIS.
-
-No production rank was merged, tombstoned, redirected or deleted.
+ADJ7 does not enable:
+
+- association merge;
+- route merge;
+- automatic survivor selection;
+- source-evidence rewriting;
+- destructive deletion of merged rank identities.
+
+## Next recommended phase
+
+Before enabling any high-impact adjudication against non-disposable data:
+
+1. integrate proposal/merge diffs into the authenticated Data Quality Workbench;
+2. provide side-by-side survivor vs duplicate inspection:
+   - map/satellite context;
+   - aliases;
+   - associations;
+   - routes;
+   - source evidence;
+   - open issues;
+   - conflicts;
+3. run a dedicated migrations 005→011 staging/readiness gate;
+4. keep every production mutation switch disabled until that gate passes.
