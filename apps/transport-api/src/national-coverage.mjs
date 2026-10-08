@@ -180,6 +180,36 @@ export async function loadNationalCoverageModel(pool,{province=null}={}){
   const provinces=provinceRows.rows.map(normalizeRow)
     .sort((a,b)=>b.priorityScore-a.priorityScore || a.province.localeCompare(b.province));
 
+  const nationalResult=await pool.query(
+    `SELECT
+       (SELECT count(*)::int FROM taxi_rank r WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NOT NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS mapped_ranks,
+       (SELECT count(*)::int FROM taxi_rank r WHERE r.location IS NULL AND coalesce(to_jsonb(r)->>'merged_into_rank_id','')='') AS location_pending_ranks,
+       (SELECT count(*)::int FROM taxi_association a WHERE coalesce(to_jsonb(a)->>'merged_into_association_id','')='') AS associations,
+       (SELECT count(*)::int FROM taxi_route) AS routes,
+       (SELECT count(*)::int
+          FROM taxi_rank r
+          WHERE coalesce(to_jsonb(r)->>'merged_into_rank_id','')=''
+            AND NOT EXISTS (SELECT 1 FROM taxi_rank_association ra WHERE ra.taxi_rank_id=r.id)
+       ) AS ranks_without_association,
+       (SELECT count(*)::int FROM data_issue WHERE status IN ('open','reviewing','deferred')) AS active_issues,
+       (SELECT count(*)::int FROM rank_association_candidate) AS rank_association_candidates,
+       (SELECT count(*)::int FROM route_candidate WHERE association_id IS NULL) AS route_candidates_without_association,
+       (SELECT count(*)::int FROM taxi_route WHERE association_id IS NULL) AS canonical_routes_without_association,
+       (SELECT count(*)::int FROM taxi_route WHERE origin_rank_id IS NULL OR destination_rank_id IS NULL) AS routes_with_unresolved_endpoints,
+       (SELECT count(*)::int
+          FROM source_record sr
+          JOIN source_registry s ON s.id=sr.source_id
+          WHERE s.official=true OR s.source_class IN ('official_gis','provincial_transport')
+       ) AS official_source_records,
+       (SELECT count(*)::int
+          FROM source_record sr
+          JOIN source_registry s ON s.id=sr.source_id
+          WHERE NOT s.official
+            AND s.source_class IN ('nltis_olas','municipal_itp','santaco','nta','community','commercial_directory')
+       ) AS documented_source_records`
+  );
+
   let municipalities=[];
   if(province){
     const result=await pool.query(
@@ -274,15 +304,7 @@ export async function loadNationalCoverageModel(pool,{province=null}={}){
       .sort((a,b)=>b.priorityScore-a.priorityScore || a.municipality.localeCompare(b.municipality));
   }
 
-  const national=normalizeRow(provinces.reduce((acc,row)=>{
-    for(const key of [
-      'ranks','mapped_ranks','location_pending_ranks','associations','routes',
-      'ranks_without_association','active_issues','rank_association_candidates',
-      'route_candidates_without_association','canonical_routes_without_association',
-      'routes_with_unresolved_endpoints','official_source_records','documented_source_records'
-    ]) acc[key]=(acc[key]||0)+num(row[key]);
-    return acc;
-  },{province:'National'}));
+  const national=normalizeRow({...nationalResult.rows[0],province:'National'});
 
   return {
     mode:'coverage_gap_model',
@@ -290,7 +312,12 @@ export async function loadNationalCoverageModel(pool,{province=null}={}){
     priorityDisclaimer:'Priority ranks operational backlog opportunity only; it is not canonical confidence or evidence truth.',
     national,
     provinces,
-    municipalities
+    municipalities,
+    unscoped:{
+      rankGap:Number(national.ranks)-provinces.reduce((sum,row)=>sum+Number(row.ranks||0),0),
+      routeGap:Number(national.routes)-provinces.reduce((sum,row)=>sum+Number(row.routes||0),0),
+      routeCandidateAssociationGap:Number(national.route_candidates_without_association)-provinces.reduce((sum,row)=>sum+Number(row.route_candidates_without_association||0),0)
+    }
   };
 }
 
