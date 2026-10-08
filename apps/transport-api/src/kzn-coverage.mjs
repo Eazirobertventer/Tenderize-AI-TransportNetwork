@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const root=resolve(new URL('.',import.meta.url).pathname);
-const verifiedEvidencePath=resolve(root,'../../kzn-licence-corpus-worker/verified-route-association-evidence.json');
+const verifiedEvidencePath=resolve(root,'../data/kzn-verified-route-association-evidence.json');
 
 function normalize(value=''){
   return String(value)
