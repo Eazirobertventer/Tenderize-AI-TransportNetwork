@@ -17,7 +17,8 @@ const allowed=[
   /^\/api\/v1\/operator\/proposals\/ranks\/[0-9a-fA-F-]{36}\/aliases$/,
   /^\/api\/v1\/operator\/proposals\/associations\/[0-9a-fA-F-]{36}\/aliases$/,
   /^\/api\/v1\/operator\/proposals\/rank-association-candidates\/[0-9a-fA-F-]{36}\/assign$/,
-  /^\/api\/v1\/operator\/proposals\/route-candidates\/[0-9a-fA-F-]{36}\/promote$/
+  /^\/api\/v1\/operator\/proposals\/route-candidates\/[0-9a-fA-F-]{36}\/promote$/,
+  /^\/api\/v1\/operator\/adjudications\/data-issues\/[0-9a-fA-F-]{36}\/(defer|reject|reopen)$/
 ];
 
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
