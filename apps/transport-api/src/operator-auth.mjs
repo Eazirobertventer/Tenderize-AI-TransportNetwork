@@ -163,6 +163,7 @@ export function operatorAuthCapabilities(env=process.env){
   const associationAssignmentEnabled=env.OPERATOR_ASSOCIATION_ASSIGNMENT_ENABLED==='true';
   const routePromotionEnabled=env.OPERATOR_ROUTE_PROMOTION_ENABLED==='true';
   const rankMergeEnabled=env.OPERATOR_RANK_MERGE_ENABLED==='true';
+  const associationMergeEnabled=env.OPERATOR_ASSOCIATION_MERGE_ENABLED==='true';
   const enabledActions=[];
   if(deferIssueEnabled) enabledActions.push('data_issue.defer');
   if(rejectIssueEnabled) enabledActions.push('data_issue.reject');
@@ -172,6 +173,7 @@ export function operatorAuthCapabilities(env=process.env){
   if(dualControlEnabled && associationAssignmentEnabled) enabledActions.push('taxi_rank_association.assign');
   if(dualControlEnabled && routePromotionEnabled) enabledActions.push('taxi_route.promote');
   if(dualControlEnabled && rankMergeEnabled) enabledActions.push('taxi_rank.merge');
+  if(dualControlEnabled && associationMergeEnabled) enabledActions.push('taxi_association.merge');
 
   return {
     configured:config.configured,
@@ -190,6 +192,7 @@ export function operatorAuthCapabilities(env=process.env){
       associationAssignmentEnabled,
       routePromotionEnabled,
       rankMergeEnabled,
+      associationMergeEnabled,
       enabledActions
     }
   };
