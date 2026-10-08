@@ -16,6 +16,8 @@ const publicApiPaths = [
   '/api/v1/source-route-geometries',
   '/api/v1/route-candidates',
   '/api/v1/coverage',
+  '/api/v1/coverage/national',
+  '/api/v1/coverage/gaps',
   '/api/v1/associations/map',
   '/api/v1/data-quality/summary'
 ];
