@@ -1,3 +1,5 @@
+import { loadNationalCoverageModel } from './national-coverage.mjs';
+
 export async function operatorWorkbenchSchemaAvailable(pool){
   if(!pool) return false;
   const result=await pool.query(
@@ -124,7 +126,8 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
     recentProposals,
     recentAudit,
     rankCandidates,
-    routeCandidates
+    routeCandidates,
+    nationalCoverage
   ]=await Promise.all([
     pool.query(
       `SELECT
@@ -195,7 +198,8 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
        ORDER BY rc.last_seen_at DESC,rc.id
        LIMIT $1`,
       [bounded]
-    )
+    ),
+    loadNationalCoverageModel(pool)
   ]);
 
   const enabled=new Set(capabilities?.adjudication?.enabledActions || []);
@@ -225,6 +229,7 @@ export async function loadOperatorWorkbench(pool,{capabilities,limit=100}={}){
       pending:pendingProposals.rows.map(proposalView),
       recent:recentProposals.rows.map(proposalView)
     },
+    coverage:nationalCoverage,
     audit:{
       recent:recentAudit.rows.map(row=>({
         id:row.id,
