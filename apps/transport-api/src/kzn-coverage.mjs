@@ -209,7 +209,9 @@ export async function loadKznCoverageExecution(pool){
       ORDER BY rc.route_code,rc.id
     `,[routeCodes.map(x=>x.toLowerCase())]),
     pool.query(`
-      SELECT tr.id::text,tr.association_id::text,tr.source_route_code,tr.national_route_code,tr.board_route_code,
+      SELECT tr.id::text,tr.association_id::text,
+             (to_jsonb(tr)->>'source_route_code') AS source_route_code,
+             tr.national_route_code,tr.board_route_code,
              tr.origin_rank_id::text,tr.destination_rank_id::text,
              o.canonical_name origin_name,d.canonical_name destination_name,
              a.canonical_name association_name
@@ -217,7 +219,7 @@ export async function loadKznCoverageExecution(pool){
       LEFT JOIN taxi_rank o ON o.id=tr.origin_rank_id
       LEFT JOIN taxi_rank d ON d.id=tr.destination_rank_id
       LEFT JOIN taxi_association a ON a.id=tr.association_id
-      WHERE lower(coalesce(tr.source_route_code,''))=ANY($1::text[])
+      WHERE lower(coalesce(to_jsonb(tr)->>'source_route_code',''))=ANY($1::text[])
          OR lower(coalesce(tr.national_route_code,''))=ANY($1::text[])
          OR lower(coalesce(tr.board_route_code,''))=ANY($1::text[])
       ORDER BY tr.id
