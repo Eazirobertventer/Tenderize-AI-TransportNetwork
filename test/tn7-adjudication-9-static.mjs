@@ -12,6 +12,8 @@ const checks=[
   ['authenticated workbench endpoint',api.includes("/api/v1/operator/workbench")],
   ['workbench requires operator auth',api.includes("operatorAuthOrSend(req,res,['reviewer','approver','admin'])")],
   ['workbench contract mode',workbench.includes("mode:'operator_workbench'")],
+  ['schema availability guard',workbench.includes('operatorWorkbenchSchemaAvailable')],
+  ['schema-unavailable fails closed',api.includes('operator_workbench_schema_unavailable')],
   ['ADJ1 action surfaced',workbench.includes("action:'data_issue.defer'")],
   ['ADJ2 reject surfaced',workbench.includes("action:'data_issue.reject'")],
   ['ADJ2 reopen surfaced',workbench.includes("action:'data_issue.reopen'")],
