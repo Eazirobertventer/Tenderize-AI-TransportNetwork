@@ -445,7 +445,9 @@ export async function applyTaxiAssociationMerge(client,{snapshot,proposalId,audi
   const movedIssues=await client.query(
     `UPDATE data_issue
      SET entity_id=$1::uuid
-     WHERE entity_type='taxi_association' AND entity_id=$2::uuid
+     WHERE entity_type='taxi_association'
+       AND entity_id=$2::uuid
+       AND status IN ('open','reviewing','deferred')
      RETURNING id::text`,
     [survivorId,duplicateId]
   );
