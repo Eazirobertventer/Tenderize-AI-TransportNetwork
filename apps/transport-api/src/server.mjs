@@ -4,6 +4,7 @@ import pg from 'pg';
 import { authenticateOperatorRequest, operatorAuthCapabilities } from './operator-auth.mjs';
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
 import { loadOperatorWorkbench, operatorWorkbenchSchemaAvailable } from './operator-workbench.mjs';
+import { loadNationalCoverageModel, loadCoverageGapFeatures } from './national-coverage.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2674,6 +2675,19 @@ const server=createServer(async(req,res)=>{
     if(url.pathname==='/api/v1/coverage'){
       if(!pool) return send(res,503,{error:'database_not_configured'});
       return send(res,200,await postgisCoverage(url));
+    }
+
+    if(url.pathname==='/api/v1/coverage/national'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const province=url.searchParams.get('province');
+      return send(res,200,await loadNationalCoverageModel(pool,{province}));
+    }
+
+    if(url.pathname==='/api/v1/coverage/gaps'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const province=url.searchParams.get('province');
+      const municipality=url.searchParams.get('municipality');
+      return send(res,200,await loadCoverageGapFeatures(pool,{province,municipality}));
     }
 
     if(url.pathname==='/api/v1/associations/map'){
