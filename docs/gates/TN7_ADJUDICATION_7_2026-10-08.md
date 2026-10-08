@@ -8,7 +8,7 @@ Date: 2026-10-08
 
 Validated implementation head:
 
-`7d060227e5ea89b13a17d9e0bb1d3588b93bb090`
+`9631e32cd1763a27c47c2a527e56ebfecfb7cbc9`
 
 Preview-guard correction head:
 
@@ -570,3 +570,159 @@ Recommended scope:
 - stale-state protection;
 - full rollback proof;
 - default-off preview/production switch.
+
+
+---
+
+## Current-head runtime reacceptance
+
+ADJ7 was re-run after the interrupted session against the current implementation head:
+
+`9631e32cd1763a27c47c2a527e56ebfecfb7cbc9`
+
+This section supersedes the earlier deployment IDs for current-head acceptance while retaining the earlier run above as historical evidence.
+
+### Static gate
+
+Deployment:
+
+`2616b92b-f47e-4515-bbdd-f28061960fc1`
+
+Result:
+
+**TN7_ADJ7_STATIC_PASS 27/27**
+
+### Exact PostGIS setup
+
+Disposable database:
+
+`tn7-adj7-db`
+
+Setup deployment:
+
+`976621e5-d978-493f-9f29-83d871d271aa`
+
+Result:
+
+**TN7_ADJ7_DB_SETUP_PASS**
+
+Exact migrations applied:
+
+`005 → 006 → 007 → 008 → 009 → 010 → 011`
+
+### Isolated merge API
+
+Deployment:
+
+`683f2b3b-a54c-4096-a6bc-de93a31fcd33`
+
+Head:
+
+`9631e32cd1763a27c47c2a527e56ebfecfb7cbc9`
+
+Status:
+
+**SUCCESS**
+
+Enabled only in the disposable environment:
+
+- `OPERATOR_DUAL_CONTROL_ENABLED=true`
+- `OPERATOR_RANK_MERGE_ENABLED=true`
+
+### Authoritative runtime merge proof
+
+Deployment:
+
+`91b2991d-91df-4694-9f31-5ad0f52e5f49`
+
+Result:
+
+**TN7_ADJ7_RUNTIME_PASS**
+
+Re-proven on the current head:
+
+- anonymous merge rejected;
+- same-entity merge rejected;
+- Google Place conflict rejected;
+- third-party alias collision rejected;
+- projected route self-loop rejected;
+- valid two-person merge succeeds;
+- tombstone points to survivor;
+- proposal/audit lineage retained;
+- duplicate names/aliases transferred;
+- overlapping association relationship collapsed;
+- non-overlap relationship redirected;
+- canonical route endpoint redirected;
+- active rank issue redirected;
+- source evidence remains anchored to duplicate tombstone UUID;
+- operational rank map hides tombstone;
+- active tombstone detail returns 404;
+- approval replay is idempotent;
+- tombstone UPDATE/DELETE blocked;
+- stale graph approval rejected;
+- concurrent pair proposals serialize to one pending proposal;
+- winning proposal can be independently approved;
+- forced final approval-audit failure rolls back tombstone, relationships, routes, issues, lineage, canonical merge audit and proposal state.
+
+Proof markers:
+
+- **TN7_ADJ7_ATOMIC_MERGE_ROLLBACK_PASS**
+- **TN7_ADJ7_AUDIT_SEQUENCE_PASS 9**
+- **TN7_ADJ7_RUNTIME_PASS**
+
+Disposable active state after proof merges:
+
+- active ranks: **33**
+- canonical routes: **5**
+
+### Normal TN7 preview on current head
+
+API deployment:
+
+`1d6c48b1-4f8a-416f-ba52-a9701256c42a`
+
+Web deployment:
+
+`879843d1-225e-41af-ba61-b252f31ed07b`
+
+Both:
+
+**SUCCESS**
+
+Normal preview variables contain none of the mutation switches, including:
+
+- `OPERATOR_DUAL_CONTROL_ENABLED`
+- `OPERATOR_RANK_MERGE_ENABLED`
+
+### Current-head preview guard
+
+Deployment:
+
+`2907cdea-1ed2-4aa8-aeb3-17f7e25382ff`
+
+Result:
+
+**TN7_ADJ7_PREVIEW_GUARD_PASS**
+
+Proof:
+
+- operational rank feed remains schema-compatible without migration 011;
+- valid Reviewer rank-merge proposal → **503 rank_merge_disabled**;
+- valid Approver proposal approval → **503 dual_control_disabled**;
+- operator capabilities report rank merge disabled;
+- zero enabled mutation actions;
+- public Web merge proposal POST → **405**;
+- public Web proposal GET → **404**;
+- live inventory unchanged:
+  - ranks: **744**
+  - associations: **35**
+  - routes: **1,761**
+  - rank-association candidates: **29**
+
+### Current production status
+
+**No production mutation.**
+
+Migration 011 remains unapplied to production PostGIS.
+
+No production rank was merged, tombstoned, redirected or deleted.
