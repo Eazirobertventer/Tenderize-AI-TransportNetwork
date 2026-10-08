@@ -25,7 +25,7 @@ try{
   await client.query('BEGIN READ ONLY');
 
   const associationRows=await client.query(
-    `SELECT id::text,canonical_name,acronym,aliases
+    `SELECT id::text,canonical_name,acronym,coalesce(to_jsonb(taxi_association)->'aliases','[]'::jsonb) AS aliases
      FROM taxi_association
      WHERE coalesce(to_jsonb(taxi_association)->>'merged_into_association_id','')=''
      ORDER BY canonical_name`
