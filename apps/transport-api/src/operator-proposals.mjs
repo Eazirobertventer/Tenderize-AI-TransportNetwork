@@ -32,6 +32,12 @@ import {
   validateTaxiRankMergeSnapshot,
   applyTaxiRankMerge
 } from './operator-rank-merges.mjs';
+import {
+  associationMergeEnabled,
+  buildTaxiAssociationMergeSnapshot,
+  validateTaxiAssociationMergeSnapshot,
+  applyTaxiAssociationMerge
+} from './operator-association-merges.mjs';
 
 function actorRole(actor){
   if(actor?.roles?.includes('admin')) return 'admin';
@@ -1001,6 +1007,127 @@ export async function createTaxiRankMergeProposal(pool,{
   }
 }
 
+export async function createTaxiAssociationMergeProposal(pool,{
+  survivorAssociationId,
+  duplicateAssociationId,
+  actor,
+  idempotencyKey,
+  rationale,
+  evidence,
+  requestId=randomUUID()
+}){
+  if(!pool) return {status:503,payload:{error:'database_not_configured'}};
+  if(!dualControlEnabled() || !associationMergeEnabled()){
+    return {status:503,payload:{error:'association_merge_disabled',mutationEnabled:false}};
+  }
+
+  const action='taxi_association.merge';
+  const role=actorRole(actor);
+  const client=await pool.connect();
+
+  try{
+    await client.query('BEGIN');
+
+    const replayBeforeLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayBeforeLock){
+      if(replayBeforeLock.intended_change?.survivorAssociationId!==survivorAssociationId ||
+         replayBeforeLock.intended_change?.duplicateAssociationId!==duplicateAssociationId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayBeforeLock)}};
+    }
+
+    const snapshot=await buildTaxiAssociationMergeSnapshot(client,{
+      survivorAssociationId,
+      duplicateAssociationId,
+      lock:true
+    });
+    const validation=validateTaxiAssociationMergeSnapshot(snapshot);
+    if(!validation.ok){
+      await client.query('ROLLBACK');
+      return {status:409,payload:validation};
+    }
+
+    const replayAfterLock=await existingProposalByCreateKey(client,actor.subject,action,idempotencyKey);
+    if(replayAfterLock){
+      if(replayAfterLock.intended_change?.survivorAssociationId!==survivorAssociationId ||
+         replayAfterLock.intended_change?.duplicateAssociationId!==duplicateAssociationId){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'proposal_idempotency_key_conflict'}};
+      }
+      await client.query('COMMIT');
+      return {status:200,payload:{replay:true,proposal:proposalView(replayAfterLock)}};
+    }
+
+    const beforeState=canonicalize(snapshot);
+    const beforeStateHash=canonicalStateHash(beforeState);
+    const intendedChange={
+      survivorAssociationId,
+      duplicateAssociationId,
+      action:'merge_duplicate_into_survivor',
+      tombstoneDuplicate:true
+    };
+
+    const insert=await client.query(
+      `INSERT INTO operator_decision_proposal (
+         action,target_entity_type,target_entity_id,intended_change,before_state,before_state_hash,
+         evidence,rationale,proposer_subject,proposer_display_name,proposer_role,proposal_idempotency_key
+       ) VALUES (
+         $1,'taxi_association',$2::uuid,$3::jsonb,$4::jsonb,$5,$6::jsonb,$7,$8,$9,$10,$11
+       )
+       RETURNING
+         id::text,action,target_entity_type,target_entity_id::text,intended_change,before_state,before_state_hash,
+         evidence,rationale,proposer_subject,proposer_display_name,proposer_role,proposal_idempotency_key,
+         proposed_at,status,decision_actor_subject,decision_actor_display_name,decision_actor_role,
+         decision_rationale,decision_evidence,decision_idempotency_key,decided_at,approved_audit_event_id::text`,
+      [
+        action,
+        survivorAssociationId,
+        JSON.stringify(intendedChange),
+        JSON.stringify(beforeState),
+        beforeStateHash,
+        JSON.stringify(evidence || {}),
+        rationale,
+        actor.subject,
+        actor.displayName,
+        role,
+        idempotencyKey
+      ]
+    );
+    const proposal=insert.rows[0];
+
+    await appendOperatorAuditEvent(client,{
+      actor,
+      action:'decision_proposal.create',
+      entityType:'operator_decision_proposal',
+      entityId:proposal.id,
+      requestId,
+      idempotencyKey,
+      beforeState:null,
+      afterState:proposalView(proposal),
+      evidence,
+      rationale,
+      metadata:{
+        gate:'TN7-ADJUDICATION-8',
+        proposedAction:action,
+        survivorAssociationId,
+        duplicateAssociationId,
+        beforeStateHash
+      }
+    });
+
+    await client.query('COMMIT');
+    return {status:201,payload:{replay:false,proposal:proposalView(proposal)}};
+  }catch(error){
+    try{await client.query('ROLLBACK');}catch{}
+    throw error;
+  }finally{
+    client.release();
+  }
+}
+
 export async function approveDecisionProposal(pool,{
   proposalId,
   actor,
@@ -1060,8 +1187,11 @@ export async function approveDecisionProposal(pool,{
     const isTaxiRankMergeProposal=
       proposal.action==='taxi_rank.merge' &&
       proposal.target_entity_type==='taxi_rank';
+    const isTaxiAssociationMergeProposal=
+      proposal.action==='taxi_association.merge' &&
+      proposal.target_entity_type==='taxi_association';
 
-    if(!isDeferProposal && !isAliasProposal && !isRankAssociationProposal && !isRoutePromotionProposal && !isTaxiRankMergeProposal){
+    if(!isDeferProposal && !isAliasProposal && !isRankAssociationProposal && !isRoutePromotionProposal && !isTaxiRankMergeProposal && !isTaxiAssociationMergeProposal){
       await client.query('ROLLBACK');
       return {status:422,payload:{error:'decision_proposal_action_not_supported'}};
     }
@@ -1761,6 +1891,142 @@ export async function approveDecisionProposal(pool,{
           proposal:proposalView(approved),
           canonicalMutation:{
             action:'taxi_rank.merge',
+            auditEventId:canonicalAudit.id,
+            survivor:merge.survivor,
+            duplicateTombstone:merge.duplicate,
+            redirectCounts:merge.counts,
+            lineage:merge.lineage
+          }
+        }
+      };
+    }
+
+    if(isTaxiAssociationMergeProposal){
+      if(!associationMergeEnabled()){
+        await client.query('ROLLBACK');
+        return {status:503,payload:{error:'association_merge_disabled',mutationEnabled:false}};
+      }
+
+      const survivorAssociationId=proposal.intended_change?.survivorAssociationId;
+      const duplicateAssociationId=proposal.intended_change?.duplicateAssociationId;
+      if(!survivorAssociationId || !duplicateAssociationId || survivorAssociationId!==proposal.target_entity_id){
+        await client.query('ROLLBACK');
+        return {status:409,payload:{error:'decision_proposal_association_merge_payload_invalid'}};
+      }
+
+      const snapshot=await buildTaxiAssociationMergeSnapshot(client,{
+        survivorAssociationId,
+        duplicateAssociationId,
+        lock:true,
+        excludeProposalId:proposal.id
+      });
+      const validation=validateTaxiAssociationMergeSnapshot(snapshot);
+      if(!validation.ok){
+        await client.query('ROLLBACK');
+        return {status:409,payload:validation};
+      }
+
+      const currentState=canonicalize(snapshot);
+      const currentHash=canonicalStateHash(currentState);
+      if(currentHash!==proposal.before_state_hash){
+        await client.query('ROLLBACK');
+        return {
+          status:409,
+          payload:{
+            error:'decision_proposal_stale_before_state',
+            proposedBeforeStateHash:proposal.before_state_hash,
+            currentBeforeStateHash:currentHash
+          }
+        };
+      }
+
+      const canonicalAudit=await appendOperatorAuditEvent(client,{
+        actor,
+        action:'taxi_association.merge',
+        entityType:'taxi_association',
+        entityId:survivorAssociationId,
+        requestId,
+        idempotencyKey:'proposal:'+proposal.id+':'+idempotencyKey,
+        beforeState:currentState,
+        afterState:{
+          survivorAssociationId,
+          duplicateAssociationId,
+          duplicateBecomesTombstone:true
+        },
+        evidence:{
+          proposalId:proposal.id,
+          proposalEvidence:proposal.evidence,
+          approvalEvidence:evidence
+        },
+        rationale:proposal.rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-8',
+          dualControl:true,
+          proposerSubject:proposal.proposer_subject,
+          approverSubject:actor.subject,
+          proposalBeforeStateHash:proposal.before_state_hash,
+          survivorAssociationId,
+          duplicateAssociationId
+        }
+      });
+
+      const merge=await applyTaxiAssociationMerge(client,{
+        snapshot,
+        proposalId:proposal.id,
+        auditEventId:canonicalAudit.id
+      });
+
+      const updateProposal=await client.query(
+        `UPDATE operator_decision_proposal
+         SET status='approved',
+             decision_actor_subject=$2,
+             decision_actor_display_name=$3,
+             decision_actor_role=$4,
+             decision_rationale=$5,
+             decision_evidence=$6::jsonb,
+             decision_idempotency_key=$7,
+             decided_at=now(),
+             approved_audit_event_id=$8::uuid
+         WHERE id=$1::uuid AND status='proposed'
+         RETURNING
+           id::text,action,target_entity_type,target_entity_id::text,intended_change,before_state,before_state_hash,
+           evidence,rationale,proposer_subject,proposer_display_name,proposer_role,proposal_idempotency_key,
+           proposed_at,status,decision_actor_subject,decision_actor_display_name,decision_actor_role,
+           decision_rationale,decision_evidence,decision_idempotency_key,decided_at,approved_audit_event_id::text`,
+        [proposalId,actor.subject,actor.displayName,role,rationale,JSON.stringify(evidence || {}),idempotencyKey,canonicalAudit.id]
+      );
+      const approved=updateProposal.rows[0];
+
+      await appendOperatorAuditEvent(client,{
+        actor,
+        action:'decision_proposal.approve',
+        entityType:'operator_decision_proposal',
+        entityId:proposalId,
+        requestId,
+        idempotencyKey,
+        beforeState:proposalView(proposal),
+        afterState:proposalView(approved),
+        evidence,
+        rationale,
+        metadata:{
+          gate:'TN7-ADJUDICATION-8',
+          canonicalAuditEventId:canonicalAudit.id,
+          mergeLineageId:merge.lineage.id,
+          survivorAssociationId,
+          duplicateAssociationId,
+          redirectCounts:merge.counts,
+          proposedAction:proposal.action
+        }
+      });
+
+      await client.query('COMMIT');
+      return {
+        status:200,
+        payload:{
+          replay:false,
+          proposal:proposalView(approved),
+          canonicalMutation:{
+            action:'taxi_association.merge',
             auditEventId:canonicalAudit.id,
             survivor:merge.survivor,
             duplicateTombstone:merge.duplicate,
