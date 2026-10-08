@@ -44,12 +44,19 @@ function render(){
   const issues=d.queues?.dataIssues||[];
   const filter=q('#issueFilter').value;
   const filtered=filter?issues.filter(i=>i.status===filter):issues;
-  q('#issueList').innerHTML=filtered.length?filtered.map(i=>`
-    <div class="row">
+  q('#issueList').innerHTML=filtered.length?filtered.map(i=>{
+    const caps=d.capabilities||{};
+    const actions=[];
+    if(['open','reviewing'].includes(i.status) && caps.deferIssueEnabled) actions.push('<button data-issue-action="defer" data-issue-id="'+esc(i.id)+'">Defer</button>');
+    if(['open','reviewing','deferred'].includes(i.status) && caps.rejectIssueEnabled) actions.push('<button data-issue-action="reject" data-issue-id="'+esc(i.id)+'">Reject</button>');
+    if(['deferred','rejected'].includes(i.status) && caps.reopenIssueEnabled) actions.push('<button data-issue-action="reopen" data-issue-id="'+esc(i.id)+'">Reopen</button>');
+    return `<div class="row">
       <div><strong>${esc(i.summary)}</strong><div class="meta">${esc(i.entity_type)} • ${esc(i.issue_type)} • ${esc(i.entity_id||'unscoped')}</div></div>
       ${pill(i.status)}
       <p>${esc(i.severity)} severity • created ${new Date(i.created_at).toLocaleString()}</p>
-    </div>`).join(''):empty('No issues match this filter.');
+      ${actions.length?'<div class="row-actions">'+actions.join('')+'</div>':''}
+    </div>`;
+  }).join(''):empty('No issues match this filter.');
 
   const audit=d.audit?.recent||[];
   q('#auditList').innerHTML=audit.length?audit.map(a=>`
@@ -78,6 +85,7 @@ function render(){
     <div class="action-card">
       <span>${esc(a.gate)}</span><strong>${esc(a.label)}</strong>
       <small>${esc(a.action)} • ${a.dualControl?'two-person':'direct controlled'} • ${a.enabled?'enabled':'disabled'}</small>
+      ${a.dualControl?'<button class="launch" data-launch-action="'+esc(a.action)+'" '+(a.enabled?'':'disabled')+'>Create proposal</button>':''}
     </div>`).join('');
 }
 function proposalRow(p){
@@ -145,3 +153,72 @@ q('#refresh').onclick=load;
 q('#issueFilter').onchange=render;
 q('#token').value=state.token;
 if(state.token) load();
+
+
+function latestIssueDecisionAudit(issueId){
+  return (state.data?.audit?.recent||[]).find(a=>
+    a.entityId===issueId && ['data_issue.defer','data_issue.reject'].includes(a.action)
+  );
+}
+
+async function runIssueAction(issueId,action){
+  const issue=(state.data?.queues?.dataIssues||[]).find(i=>i.id===issueId);
+  if(!issue) return;
+  const rationale=window.prompt('Decision rationale (minimum 10 characters):','Evidence reviewed in operator workbench.');
+  if(!rationale || rationale.trim().length<10) return;
+  const body={
+    rationale:rationale.trim(),
+    evidence:{workbench:true,reviewedAt:new Date().toISOString()},
+    expectedStatus:issue.status
+  };
+  if(action==='reopen'){
+    const prior=latestIssueDecisionAudit(issueId);
+    if(!prior){window.alert('No defer/reject audit event is loaded for this issue. Refresh first.');return}
+    body.priorAuditEventId=prior.id;
+  }
+  try{
+    await api('/api/v1/operator/adjudications/data-issues/'+issueId+'/'+action,{
+      method:'POST',key:key('workbench-issue-'+action),body
+    });
+    await load();
+  }catch(e){window.alert(e.payload?.error||e.message)}
+}
+
+async function launchProposal(action){
+  const rationale=window.prompt('Proposal rationale (minimum 10 characters):','Evidence reviewed in operator workbench.');
+  if(!rationale || rationale.trim().length<10) return;
+  const evidence={workbench:true,reviewedAt:new Date().toISOString()};
+  let path='',body={rationale:rationale.trim(),evidence};
+
+  if(action==='taxi_rank.alias.add'){
+    const id=window.prompt('Canonical rank UUID:'); const alias=window.prompt('Alias to promote:');
+    if(!id||!alias) return; path='/api/v1/operator/proposals/ranks/'+id.trim()+'/aliases'; body.alias=alias.trim();
+  }else if(action==='taxi_association.alias.add'){
+    const id=window.prompt('Canonical association UUID:'); const alias=window.prompt('Alias to promote:');
+    if(!id||!alias) return; path='/api/v1/operator/proposals/associations/'+id.trim()+'/aliases'; body.alias=alias.trim();
+  }else if(action==='taxi_rank_association.assign'){
+    const candidateId=window.prompt('Rank-association candidate UUID:'); const associationId=window.prompt('Canonical association UUID:');
+    if(!candidateId||!associationId) return; path='/api/v1/operator/proposals/rank-association-candidates/'+candidateId.trim()+'/assign'; body.associationId=associationId.trim();
+  }else if(action==='taxi_route.promote'){
+    const candidateId=window.prompt('Route candidate UUID:'); const associationId=window.prompt('Canonical association UUID:');
+    if(!candidateId||!associationId) return; path='/api/v1/operator/proposals/route-candidates/'+candidateId.trim()+'/promote'; body.associationId=associationId.trim();
+  }else if(action==='taxi_rank.merge'){
+    const survivorRankId=window.prompt('Survivor rank UUID:'); const duplicateRankId=window.prompt('Duplicate rank UUID:');
+    if(!survivorRankId||!duplicateRankId) return; path='/api/v1/operator/proposals/rank-merges'; body.survivorRankId=survivorRankId.trim();body.duplicateRankId=duplicateRankId.trim();
+  }else if(action==='taxi_association.merge'){
+    const survivorAssociationId=window.prompt('Survivor association UUID:'); const duplicateAssociationId=window.prompt('Duplicate association UUID:');
+    if(!survivorAssociationId||!duplicateAssociationId) return; path='/api/v1/operator/proposals/association-merges'; body.survivorAssociationId=survivorAssociationId.trim();body.duplicateAssociationId=duplicateAssociationId.trim();
+  }else return;
+
+  try{
+    await api(path,{method:'POST',key:key('workbench-proposal'),body});
+    await load(); showView('proposals');
+  }catch(e){window.alert(e.payload?.error||e.message)}
+}
+
+document.addEventListener('click',e=>{
+  const issueButton=e.target.closest('[data-issue-action]');
+  if(issueButton) runIssueAction(issueButton.dataset.issueId,issueButton.dataset.issueAction);
+  const launch=e.target.closest('[data-launch-action]');
+  if(launch && !launch.disabled) launchProposal(launch.dataset.launchAction);
+});
