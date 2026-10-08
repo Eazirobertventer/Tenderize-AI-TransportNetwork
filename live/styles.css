@@ -123,3 +123,5 @@
 .detail-actions.three{grid-template-columns:repeat(3,1fr)}
 .route-inspection-actions{grid-template-columns:1fr 1fr}
 @media(max-width:720px){.detail-actions.three,.route-inspection-actions{grid-template-columns:1fr}.network-list{max-height:260px}}
+
+.coverage-gap-marker{width:10px!important;height:10px!important;background:#dc2626!important;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #dc2626}
