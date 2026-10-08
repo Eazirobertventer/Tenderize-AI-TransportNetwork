@@ -85,7 +85,7 @@ assert(webPost.status===405,'public Web rank merge POST blocked');
 const webGet=await request(web,'/api/v1/operator/proposals/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',{bearer:reviewer});
 assert(webGet.status===404,'public Web proposal GET blocked');
 
-const map=await request(api,'/api/v1/ranks/map');
+const map=await request(api,'/api/v1/ranks');
 assert(map.status===200,'preview rank map remains healthy');
 
 const after=await request(api,'/api/v1/network-inventory');
