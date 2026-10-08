@@ -6,7 +6,7 @@ const {Pool}=pg;
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL required');
 
 const root=resolve(new URL('.',import.meta.url).pathname);
-const evidencePath=resolve(root,'../../kzn-licence-corpus-worker/verified-route-association-evidence.json');
+const evidencePath=resolve(root,'../data/kzn-verified-route-association-evidence.json');
 const evidence=JSON.parse(await readFile(evidencePath,'utf8'));
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:false,max:2});
 const client=await pool.connect();
