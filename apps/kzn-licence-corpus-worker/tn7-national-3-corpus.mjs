@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import pg from 'pg';
 import { parseGazetteText } from './parser.mjs';
@@ -266,12 +267,76 @@ try{
     boundedLimit:250
   }));
 
-  for(let i=0;i<boundedQueue.length;i++){
-    console.log(JSON.stringify({
-      event:'tn7_national_3_evidence_queue_item',
-      queueIndex:i+1,
-      ...boundedQueue[i]
-    }));
+  const resultPayload={
+    databaseWrites:false,
+    canonicalMutation:false,
+    documentsAttempted:sources.length,
+    documentsSucceeded:documents.length,
+    documentsFailed:failures.length,
+    documents,
+    failures,
+    corpus:{
+      evidenceRows:rows.length,
+      uniqueAssociationLabels:associationLabels.size,
+      uniqueRouteIdentifiers:routeIdentifiers.size,
+      uniqueNormalizedRankMentions:rankMentions.size
+    },
+    buckets:bucketCounts,
+    evidenceQueue:{
+      totalClassified:queue.length,
+      returned:boundedQueue.length,
+      boundedLimit:250,
+      items:boundedQueue
+    }
+  };
+
+  console.log(JSON.stringify({
+    event:'tn7_national_3_kzn_corpus_summary',
+    ...resultPayload,
+    evidenceQueue:{...resultPayload.evidenceQueue,items:undefined}
+  }));
+
+  if(process.env.SERVE_RESULT==='true'){
+    const port=Number(process.env.PORT||3000);
+    createServer((req,res)=>{
+      const url=new URL(req.url||'/','http://localhost');
+      res.setHeader('content-type','application/json; charset=utf-8');
+      res.setHeader('cache-control','no-store');
+      if(url.pathname==='/health'){
+        res.end(JSON.stringify({ok:true,event:'tn7_national_3_corpus_result',documentsSucceeded:documents.length}));
+        return;
+      }
+      if(url.pathname==='/summary'){
+        res.end(JSON.stringify({...resultPayload,evidenceQueue:{...resultPayload.evidenceQueue,items:undefined}}));
+        return;
+      }
+      if(url.pathname==='/queue'){
+        const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||50),1),250);
+        const offset=Math.max(Number(url.searchParams.get('offset')||0),0);
+        res.end(JSON.stringify({
+          total:boundedQueue.length,
+          offset,
+          limit,
+          items:boundedQueue.slice(offset,offset+limit)
+        }));
+        return;
+      }
+      res.statusCode=404;
+      res.end(JSON.stringify({error:'not_found'}));
+    }).listen(port,'0.0.0.0',()=>console.log(JSON.stringify({
+      event:'tn7_national_3_result_server_ready',
+      port,
+      documentsSucceeded:documents.length,
+      queueItems:boundedQueue.length
+    })));
+  }else{
+    for(let i=0;i<boundedQueue.length;i++){
+      console.log(JSON.stringify({
+        event:'tn7_national_3_evidence_queue_item',
+        queueIndex:i+1,
+        ...boundedQueue[i]
+      }));
+    }
   }
 }catch(error){
   await client.query('ROLLBACK').catch(()=>{});
