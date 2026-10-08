@@ -5,6 +5,7 @@ import { authenticateOperatorRequest, operatorAuthCapabilities } from './operato
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
 import { loadOperatorWorkbench, operatorWorkbenchSchemaAvailable } from './operator-workbench.mjs';
 import { loadNationalCoverageModel, loadCoverageGapFeatures } from './national-coverage.mjs';
+import { loadKznCoverageExecution } from './kzn-coverage.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2688,6 +2689,11 @@ const server=createServer(async(req,res)=>{
       const province=url.searchParams.get('province');
       const municipality=url.searchParams.get('municipality');
       return send(res,200,await loadCoverageGapFeatures(pool,{province,municipality}));
+    }
+
+    if(url.pathname==='/api/v1/coverage/kzn/execution'){
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      return send(res,200,await loadKznCoverageExecution(pool));
     }
 
     if(url.pathname==='/api/v1/associations/map'){
