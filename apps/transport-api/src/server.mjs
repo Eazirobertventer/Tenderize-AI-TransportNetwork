@@ -8,6 +8,7 @@ import { loadNationalCoverageModel, loadCoverageGapFeatures } from './national-c
 import { loadKznCoverageExecution } from './kzn-coverage.mjs';
 import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';
 import { loadKznDeterministicAdjudicationBatch, createKznDeterministicProposalBatch } from './kzn-deterministic-adjudication.mjs';
+import { loadKznRouteGapRecovery } from './kzn-route-gap-recovery.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2614,6 +2615,21 @@ const server=createServer(async(req,res)=>{
         actor:auth.actor,
         auth:capabilities,
         mutationEnabled:capabilities.mutationEnabled
+      });
+    }
+
+    const national5GapRecoveryMatch=url.pathname.match(/^\/api\/v1\/operator\/coverage\/kzn\/route-gap-recovery$/);
+    if(national5GapRecoveryMatch){
+      if(method!=='GET' && method!=='HEAD'){
+        res.setHeader('allow','GET, HEAD');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      return send(res,200,{
+        actor:{subject:auth.actor.subject,displayName:auth.actor.displayName,roles:auth.actor.roles},
+        ...(await loadKznRouteGapRecovery(pool))
       });
     }
 
