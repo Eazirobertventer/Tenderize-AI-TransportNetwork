@@ -12,6 +12,7 @@ const years=manifest.adapters.map(x=>Number((x.id.match(/(20\d{2})$/)||[])[1])).
 
 const checks=[
   ['generic evidence framework exists',/discoverAdapterDocuments/.test(framework)],
+  ['authoritative static document adapters supported',/static_documents/.test(framework)],
   ['generic normalisation exists',/normalizeEvidenceRows/.test(framework)],
   ['SHA256 provenance checksum exists',/sha256Buffer/.test(framework)],
   ['index discovery parses PDF links',/discoverDocumentLinks/.test(framework)],
@@ -23,7 +24,9 @@ const checks=[
   ['manifest execution is read only',manifest.executionMode==='read_only_evidence'],
   ['manifest caps documents at 500',manifest.maximumDocumentsPerRun===500],
   ['manifest caps queue at 1000',manifest.maximumQueueItems===1000],
-  ['all adapters use index URLs',manifest.adapters.every(x=>x.adapterType==='html_pdf_index' && /^https:\/\//.test(x.indexUrl))],
+  ['adapters use supported discovery modes',manifest.adapters.every(x=>x.adapterType==='html_pdf_index' || x.adapterType==='static_documents')],
+  ['index adapters use HTTPS index URLs',manifest.adapters.filter(x=>x.adapterType==='html_pdf_index').every(x=>/^https:\/\//.test(x.indexUrl))],
+  ['static adapters use HTTPS document URLs',manifest.adapters.filter(x=>x.adapterType==='static_documents').every(x=>(x.documents||[]).length>0 && x.documents.every(d=>/^https:\/\//.test(d.url)))],
   ['corpus uses BEGIN READ ONLY',corpus.includes("BEGIN READ ONLY")],
   ['corpus deduplicates discovered docs',/dedupeDocuments/.test(corpus)],
   ['corpus uses bounded concurrency',/mapLimit/.test(corpus)],
