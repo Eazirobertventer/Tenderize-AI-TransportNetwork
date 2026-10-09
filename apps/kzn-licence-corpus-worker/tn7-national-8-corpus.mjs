@@ -212,6 +212,22 @@ try{
       attempted:parsedDocuments.length,
       succeeded:parsedDocuments.filter(x=>x.ok).length,
       failed:parsedDocuments.filter(x=>!x.ok).length,
+      failureSummary:parsedDocuments
+        .filter(x=>!x.ok)
+        .reduce((acc,x)=>{
+          const key=String(x.error||'unknown_failure').split(':')[0];
+          acc[key]=(acc[key]||0)+1;
+          return acc;
+        },{}),
+      failures:parsedDocuments
+        .filter(x=>!x.ok)
+        .slice(0,25)
+        .map(x=>({
+          documentId:x.documentId,
+          url:x.url,
+          adapterId:x.adapterId,
+          error:x.error||'unknown_failure'
+        })),
       items:parsedDocuments.map(x=>({
         documentId:x.documentId,
         url:x.url,
