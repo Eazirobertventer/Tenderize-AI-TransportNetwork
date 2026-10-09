@@ -2617,7 +2617,7 @@ const server=createServer(async(req,res)=>{
       });
     }
 
-    const national4ProposalBatchMatch=url.pathname.match(/^\\/api\\/v1\\/operator\\/coverage\\/kzn\\/deterministic-batch\\/proposals$/);
+    const national4ProposalBatchMatch=url.pathname.match(/^\/api\/v1\/operator\/coverage\/kzn\/deterministic-batch\/proposals$/);
     if(national4ProposalBatchMatch){
       if(method!=='POST'){
         res.setHeader('allow','POST');
@@ -2644,7 +2644,7 @@ const server=createServer(async(req,res)=>{
       return send(res,200,result);
     }
 
-    const national4PlanMatch=url.pathname.match(/^\\/api\\/v1\\/operator\\/coverage\\/kzn\\/deterministic-batch$/);
+    const national4PlanMatch=url.pathname.match(/^\/api\/v1\/operator\/coverage\/kzn\/deterministic-batch$/);
     if(national4PlanMatch){
       if(method!=='GET' && method!=='HEAD'){
         res.setHeader('allow','GET, HEAD');
