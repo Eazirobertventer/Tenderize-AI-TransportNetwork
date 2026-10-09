@@ -11,6 +11,7 @@ import { loadKznDeterministicAdjudicationBatch, createKznDeterministicProposalBa
 import { loadKznRouteGapRecovery } from './kzn-route-gap-recovery.mjs';
 import { loadKznBhamshelaIdentityResolution } from './kzn-bhamshela-identity.mjs';
 import { loadKznBhamshelaCanonicalisationPlan, createKznBhamshelaNextProposals } from './kzn-bhamshela-canonicalisation.mjs';
+import { loadKznHighVolumeCorpusPlan } from './kzn-corpus-plan.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2662,6 +2663,20 @@ const server=createServer(async(req,res)=>{
         actor:auth.actor,
         auth:capabilities,
         mutationEnabled:capabilities.mutationEnabled
+      });
+    }
+
+    const national8CorpusPlanMatch=url.pathname.match(/^\/api\/v1\/operator\/coverage\/kzn\/corpus-plan$/);
+    if(national8CorpusPlanMatch){
+      if(method!=='GET' && method!=='HEAD'){
+        res.setHeader('allow','GET, HEAD');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      return send(res,200,{
+        actor:{subject:auth.actor.subject,displayName:auth.actor.displayName,roles:auth.actor.roles},
+        ...(await loadKznHighVolumeCorpusPlan())
       });
     }
 
