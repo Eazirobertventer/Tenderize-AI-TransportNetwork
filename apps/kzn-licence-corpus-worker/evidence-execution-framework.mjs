@@ -69,6 +69,29 @@ export async function fetchWithPolicy(url,{
 }
 
 export async function discoverAdapterDocuments(adapter){
+  if(adapter.adapterType==='static_documents'){
+    const documents=(adapter.documents||[])
+      .filter(item=>item && typeof item.url==='string' && item.url.startsWith('https://'))
+      .slice(0,Math.min(Math.max(Number(adapter.maxDocuments)||500,1),1000))
+      .map((item,index)=>({
+        documentId:item.documentId || adapter.id+'-'+String(index+1).padStart(4,'0'),
+        date:item.date||null,
+        url:item.url,
+        province:adapter.province,
+        authority:adapter.authority,
+        sourceClass:adapter.sourceClass,
+        adapterId:adapter.id
+      }));
+    return {
+      adapterId:adapter.id,
+      ok:documents.length>0,
+      indexUrl:null,
+      discoveryMode:'static_documents',
+      documents,
+      error:documents.length ? null : 'static_document_list_empty'
+    };
+  }
+
   const result=await fetchWithPolicy(adapter.indexUrl,{
     timeoutMs:adapter.timeoutMs||60000,
     retries:adapter.retries??2,
