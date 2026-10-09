@@ -11,6 +11,11 @@ import {
   normalizeEvidenceText,
   classifyEvidenceRow
 } from './evidence-execution-framework.mjs';
+import {
+  evidenceCacheEnabled,
+  loadCachedEvidenceArtifact,
+  storeEvidenceArtifact
+} from './artifact-cache.mjs';
 
 const require=createRequire(import.meta.url);
 const pdf=require('pdf-parse');
@@ -105,31 +110,120 @@ try{
   }
 
   const parsedDocuments=await mapLimit(documents,4,async document=>{
-    const fetched=await fetchWithPolicy(document.url,{
-      retries:2,
-      timeoutMs:90000,
-      maxBytes:50*1024*1024
-    });
-    if(!fetched.ok) return {...document,ok:false,error:fetched.error};
+    let acquisition=null;
+    let cacheState={enabled:evidenceCacheEnabled(),hit:false};
+
+    if(evidenceCacheEnabled()){
+      try{
+        const cached=await loadCachedEvidenceArtifact(document.url);
+        if(cached.hit){
+          acquisition={
+            ok:true,
+            buffer:cached.buffer,
+            bytes:cached.bytes,
+            checksum:cached.checksum,
+            contentType:cached.contentType,
+            finalUrl:cached.manifest?.finalUrl||document.url,
+            source:'cache'
+          };
+          cacheState={
+            enabled:true,
+            hit:true,
+            artifactKey:cached.manifest?.artifactKey||null,
+            pointerKey:cached.pointerKey
+          };
+        }
+      }catch(error){
+        cacheState={
+          enabled:true,
+          hit:false,
+          readError:String(error?.message||error)
+        };
+      }
+    }
+
+    if(!acquisition){
+      const fetched=await fetchWithPolicy(document.url,{
+        retries:2,
+        timeoutMs:90000,
+        maxBytes:50*1024*1024
+      });
+      if(!fetched.ok){
+        return {
+          ...document,
+          ok:false,
+          error:fetched.error,
+          acquisitionSource:'remote',
+          cache:cacheState
+        };
+      }
+      acquisition={...fetched,source:'remote'};
+
+      if(evidenceCacheEnabled()){
+        try{
+          const stored=await storeEvidenceArtifact({
+            buffer:fetched.buffer,
+            sourceUrl:document.url,
+            finalUrl:fetched.finalUrl,
+            checksum:fetched.checksum,
+            contentType:fetched.contentType||'application/pdf',
+            bytes:fetched.bytes,
+            authority:document.authority,
+            sourceAdapter:document.adapterId,
+            documentId:document.documentId
+          });
+          cacheState={
+            enabled:true,
+            hit:false,
+            stored:stored.stored,
+            reused:stored.reused,
+            artifactKey:stored.artifactKey,
+            manifestKey:stored.manifestKey,
+            pointerKey:stored.pointerKey
+          };
+        }catch(error){
+          return {
+            ...document,
+            ok:false,
+            error:'cache_persist_failed:'+String(error?.message||error),
+            checksum:fetched.checksum,
+            bytes:fetched.bytes,
+            acquisitionSource:'remote',
+            cache:cacheState
+          };
+        }
+      }
+    }
 
     try{
-      const parsedPdf=await pdf(fetched.buffer);
+      const parsedPdf=await pdf(acquisition.buffer);
       const parsed=parseGazetteText(parsedPdf.text,{
         documentId:document.documentId,
-        date:null,
+        date:document.date||null,
         url:document.url,
         authority:document.authority
       });
       return {
         ...document,
         ok:true,
-        bytes:fetched.bytes,
-        checksum:fetched.checksum,
-        finalUrl:fetched.finalUrl,
-        evidenceRows:normalizeEvidenceRows(parsed.rows,{document,checksum:fetched.checksum})
+        bytes:acquisition.bytes,
+        checksum:acquisition.checksum,
+        contentType:acquisition.contentType||null,
+        finalUrl:acquisition.finalUrl,
+        acquisitionSource:acquisition.source,
+        cache:cacheState,
+        evidenceRows:normalizeEvidenceRows(parsed.rows,{document,checksum:acquisition.checksum})
       };
     }catch(error){
-      return {...document,ok:false,error:'parse_failed:'+String(error?.message||error),checksum:fetched.checksum||null};
+      return {
+        ...document,
+        ok:false,
+        error:'parse_failed:'+String(error?.message||error),
+        checksum:acquisition.checksum||null,
+        bytes:acquisition.bytes||null,
+        acquisitionSource:acquisition.source,
+        cache:cacheState
+      };
     }
   });
 
@@ -202,6 +296,13 @@ try{
     databaseWrites:false,
     canonicalMutation:false,
     automaticPromotion:false,
+    cache:{
+      enabled:evidenceCacheEnabled(),
+      hits:parsedDocuments.filter(x=>x.cache?.hit===true).length,
+      remoteAcquisitions:parsedDocuments.filter(x=>x.acquisitionSource==='remote' && x.ok).length,
+      stored:parsedDocuments.filter(x=>x.cache?.stored===true).length,
+      reused:parsedDocuments.filter(x=>x.cache?.reused===true).length
+    },
     discovery:{
       adapters:manifest.adapters.length,
       adaptersSucceeded:discoveries.filter(x=>x.ok).length,
@@ -236,7 +337,9 @@ try{
         bytes:x.bytes||null,
         checksum:x.checksum||null,
         evidenceRows:(x.evidenceRows||[]).length,
-        error:x.error||null
+        error:x.error||null,
+        acquisitionSource:x.acquisitionSource||null,
+        cache:x.cache||null
       }))
     },
     corpus:{
