@@ -1,0 +1,294 @@
+{
+  "version": 1,
+  "province": "KwaZulu-Natal",
+  "executionMode": "read_only_evidence",
+  "maximumDocumentsPerRun": 500,
+  "maximumQueueItems": 1000,
+  "adapters": [
+    {
+      "id": "saflii-kzn-gazette-2008",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2008/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2008/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2009",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2009/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2010",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2010/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2010/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2011",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2011/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2011/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2012",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2012/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2012/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2013",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2013/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2014",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2014/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2014/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2015",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2015/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2015/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2016",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2016/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2016/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2017",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2017/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2017/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2018",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2018/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2018/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2019",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2019/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2019/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2020",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2020/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2020/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2021",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2021/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2021/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2022",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2022/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2022/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2023",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2023/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2023/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2024",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2024/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2024/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2025",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2025/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2025/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    },
+    {
+      "id": "saflii-kzn-gazette-2026",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
+      "sourceClass": "provincial_transport",
+      "adapterType": "html_pdf_index",
+      "indexUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2026/",
+      "includePatterns": [
+        "/ZAKZPrGaz/2026/[^/]+\\\\.pdf$"
+      ],
+      "excludePatterns": [],
+      "maxDocuments": 250,
+      "retries": 2,
+      "timeoutMs": 60000
+    }
+  ]
+}
