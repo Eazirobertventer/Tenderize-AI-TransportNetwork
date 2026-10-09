@@ -4,8 +4,22 @@ import {
   dedupeDocuments,
   normalizeEvidenceRows,
   normalizeEvidenceText,
-  classifyEvidenceRow
+  classifyEvidenceRow,
+  discoverAdapterDocuments
 } from './evidence-execution-framework.mjs';
+
+const staticDiscovery=await discoverAdapterDocuments({
+  id:'official-static',
+  province:'KwaZulu-Natal',
+  authority:'Test Authority',
+  sourceClass:'provincial_transport',
+  adapterType:'static_documents',
+  documents:[{documentId:'doc-static-1',url:'https://example.org/doc.pdf'}]
+});
+assert.equal(staticDiscovery.ok,true);
+assert.equal(staticDiscovery.discoveryMode,'static_documents');
+assert.equal(staticDiscovery.documents.length,1);
+assert.equal(staticDiscovery.documents[0].documentId,'doc-static-1');
 
 const html=`
 <html><body>
