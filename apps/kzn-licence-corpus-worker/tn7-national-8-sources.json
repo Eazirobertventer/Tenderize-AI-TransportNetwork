@@ -6,6 +6,36 @@
   "maximumQueueItems": 1000,
   "adapters": [
     {
+      "id": "kzn-dot-operating-licence-2025-official",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Department of Transport / Provincial Regulatory Entity",
+      "sourceClass": "provincial_transport",
+      "adapterType": "static_documents",
+      "maxDocuments": 50,
+      "documents": [
+        {
+          "documentId": "LGKZNG06-2025-MAY",
+          "date": "2025-05",
+          "url": "https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG06-2025-MAY.pdf"
+        },
+        {
+          "documentId": "LGKZNG11-2025-JUN",
+          "date": "2025-06",
+          "url": "https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG11-2025-JUN.pdf"
+        },
+        {
+          "documentId": "LGKZNG13-2025-JUL",
+          "date": "2025-07",
+          "url": "https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG13-2025-JUL.pdf"
+        },
+        {
+          "documentId": "LGKZNG24-2025-SEP",
+          "date": "2025-09",
+          "url": "https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG24-2025-SEP.pdf"
+        }
+      ]
+    },
+    {
       "id": "saflii-kzn-gazette-2008",
       "province": "KwaZulu-Natal",
       "authority": "KwaZulu-Natal Provincial Gazette / SAFLII mirror",
