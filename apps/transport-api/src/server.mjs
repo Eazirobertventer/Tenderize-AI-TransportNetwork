@@ -10,6 +10,7 @@ import { loadKznGazetteEvidenceQueue } from './kzn-gazette-queue.mjs';
 import { loadKznDeterministicAdjudicationBatch, createKznDeterministicProposalBatch } from './kzn-deterministic-adjudication.mjs';
 import { loadKznRouteGapRecovery } from './kzn-route-gap-recovery.mjs';
 import { loadKznBhamshelaIdentityResolution } from './kzn-bhamshela-identity.mjs';
+import { loadKznBhamshelaCanonicalisationPlan, createKznBhamshelaNextProposals } from './kzn-bhamshela-canonicalisation.mjs';
 import {
   createDataIssueDeferProposal,
   createAliasProposal,
@@ -2661,6 +2662,46 @@ const server=createServer(async(req,res)=>{
         actor:auth.actor,
         auth:capabilities,
         mutationEnabled:capabilities.mutationEnabled
+      });
+    }
+
+    const national7ProposalMatch=url.pathname.match(/^\/api\/v1\/operator\/coverage\/kzn\/bhamshela-canonicalisation\/proposals$/);
+    if(national7ProposalMatch){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+      const body=await readJsonBody(req);
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence) ? body.evidence : {};
+      if(rationale.length<10 || rationale.length>2000) return send(res,400,{error:'proposal_rationale_required'});
+      const result=await createKznBhamshelaNextProposals(pool,{
+        actor:auth.actor,
+        batchIdempotencyKey:idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,200,result);
+    }
+
+    const national7PlanMatch=url.pathname.match(/^\/api\/v1\/operator\/coverage\/kzn\/bhamshela-canonicalisation$/);
+    if(national7PlanMatch){
+      if(method!=='GET' && method!=='HEAD'){
+        res.setHeader('allow','GET, HEAD');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+      if(!pool) return send(res,503,{error:'database_not_configured'});
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+      return send(res,200,{
+        actor:{subject:auth.actor.subject,displayName:auth.actor.displayName,roles:auth.actor.roles},
+        ...(await loadKznBhamshelaCanonicalisationPlan(pool))
       });
     }
 
