@@ -17,6 +17,7 @@ import {
   createRoutePromotionProposal,
   createTaxiRankMergeProposal,
   createTaxiAssociationMergeProposal,
+  createTaxiAssociationCreateProposal,
   approveDecisionProposal,
   rejectDecisionProposal,
   withdrawDecisionProposal,
@@ -2073,6 +2074,50 @@ const server=createServer(async(req,res)=>{
       const result=await createTaxiAssociationMergeProposal(pool,{
         survivorAssociationId,
         duplicateAssociationId,
+        actor:auth.actor,
+        idempotencyKey,
+        rationale,
+        evidence,
+        requestId:requestId(req)
+      });
+      return send(res,result.status,result.payload);
+    }
+
+    if(url.pathname==='/api/v1/operator/proposals/associations/create'){
+      if(method!=='POST'){
+        res.setHeader('allow','POST');
+        return send(res,405,{error:'method_not_allowed'});
+      }
+
+      const auth=operatorAuthOrSend(req,res,['reviewer','approver','admin']);
+      if(!auth) return;
+
+      const idempotencyKey=normalizeIdempotencyKey(req);
+      if(!idempotencyKey) return send(res,400,{error:'idempotency_key_required'});
+
+      const body=await readJsonBody(req);
+      const canonicalName=typeof body.canonicalName==='string' ? body.canonicalName.trim() : '';
+      const acronym=typeof body.acronym==='string' ? body.acronym.trim() : null;
+      const registrationNumber=typeof body.registrationNumber==='string' ? body.registrationNumber.trim() : null;
+      const affiliation=typeof body.affiliation==='string' ? body.affiliation.trim() : null;
+      const province=typeof body.province==='string' ? body.province.trim() : '';
+      const district=typeof body.district==='string' ? body.district.trim() : null;
+      const municipality=typeof body.municipality==='string' ? body.municipality.trim() : null;
+      const address=typeof body.address==='string' ? body.address.trim() : null;
+      const verificationStatus=body.verificationStatus==='verified' ? 'verified' : 'documented';
+      const rationale=typeof body.rationale==='string' ? body.rationale.trim() : '';
+      const evidence=body.evidence && typeof body.evidence==='object' && !Array.isArray(body.evidence)
+        ? body.evidence
+        : {};
+
+      if(canonicalName.length<2 || canonicalName.length>200) return send(res,400,{error:'canonical_name_required'});
+      if(!province) return send(res,400,{error:'province_required'});
+      if(rationale.length<10 || rationale.length>2000) return send(res,400,{error:'proposal_rationale_required'});
+      if(Object.keys(evidence).length===0) return send(res,400,{error:'proposal_evidence_required'});
+
+      const result=await createTaxiAssociationCreateProposal(pool,{
+        canonicalName,acronym,registrationNumber,affiliation,province,district,municipality,address,
+        verificationStatus,
         actor:auth.actor,
         idempotencyKey,
         rationale,
