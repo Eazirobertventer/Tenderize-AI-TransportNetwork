@@ -29,6 +29,36 @@ function uniqueById(rows=[]){
   });
 }
 
+async function loadRankAssociationCandidateEvidence(db,requested,exactKey){
+  try{
+    return await db.query(
+      `SELECT rac.id::text,rac.taxi_rank_id::text,rac.association_label,
+              rac.verification_status::text,rac.first_seen_at,rac.last_seen_at,
+              r.canonical_name AS rank_name,r.province,r.district,r.municipality,r.town,
+              s.source_key,s.source_name,s.authority
+         FROM rank_association_candidate rac
+         JOIN taxi_rank r ON r.id=rac.taxi_rank_id
+         JOIN source_registry s ON s.id=rac.source_id
+         WHERE normalize_transport_identity_name(rac.association_label)=normalize_transport_identity_name($1)
+         ORDER BY rac.last_seen_at DESC,rac.id`,
+      [requested]
+    );
+  }catch(error){
+    if(error?.code!=='42883' && !String(error?.message||'').includes('normalize_transport_identity_name')) throw error;
+    const fallback=await db.query(
+      `SELECT rac.id::text,rac.taxi_rank_id::text,rac.association_label,
+              rac.verification_status::text,rac.first_seen_at,rac.last_seen_at,
+              r.canonical_name AS rank_name,r.province,r.district,r.municipality,r.town,
+              s.source_key,s.source_name,s.authority
+         FROM rank_association_candidate rac
+         JOIN taxi_rank r ON r.id=rac.taxi_rank_id
+         JOIN source_registry s ON s.id=rac.source_id
+         ORDER BY rac.last_seen_at DESC,rac.id`
+    );
+    return {rows:fallback.rows.filter(row=>basicNormalize(row.association_label)===exactKey)};
+  }
+}
+
 export async function resolveAssociationIdentity(pool,{
   label,
   province=null,
@@ -83,18 +113,7 @@ export async function resolveAssociationIdentity(pool,{
   }
 
   const [candidateEvidence,routeEvidence]=await Promise.all([
-    pool.query(
-      `SELECT rac.id::text,rac.taxi_rank_id::text,rac.association_label,
-              rac.verification_status::text,rac.first_seen_at,rac.last_seen_at,
-              r.canonical_name AS rank_name,r.province,r.district,r.municipality,r.town,
-              s.source_key,s.source_name,s.authority
-         FROM rank_association_candidate rac
-         JOIN taxi_rank r ON r.id=rac.taxi_rank_id
-         JOIN source_registry s ON s.id=rac.source_id
-         WHERE normalize_transport_identity_name(rac.association_label)=normalize_transport_identity_name($1)
-         ORDER BY rac.last_seen_at DESC,rac.id`,
-      [requested]
-    ),
+    loadRankAssociationCandidateEvidence(pool,requested,exactKey),
     linkedRouteCodes.length
       ? pool.query(
           `SELECT rc.id::text,rc.route_code,rc.origin_rank_id::text,rc.destination_rank_id::text,
