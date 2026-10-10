@@ -58,7 +58,11 @@ async function mapLimit(items,limit,fn){
 try{
   await client.query('BEGIN READ ONLY');
 
-  const discoveries=await mapLimit(manifest.adapters,4,discoverAdapterDocuments);
+  const adapterAllowlist=new Set(String(process.env.EVIDENCE_ADAPTER_IDS||'').split(',').map(x=>x.trim()).filter(Boolean));
+  const selectedAdapters=adapterAllowlist.size
+    ? manifest.adapters.filter(adapter=>adapterAllowlist.has(adapter.id))
+    : manifest.adapters;
+  const discoveries=await mapLimit(selectedAdapters,4,discoverAdapterDocuments);
   const documents=dedupeDocuments(discoveries,{maxDocuments:manifest.maximumDocumentsPerRun||500});
 
   const [assocRows,rankRows,candidateRows]=await Promise.all([
@@ -318,7 +322,9 @@ try{
       reused:parsedDocuments.filter(x=>x.cache?.reused===true).length
     },
     discovery:{
-      adapters:manifest.adapters.length,
+      adapters:selectedAdapters.length,
+      configuredAdapters:manifest.adapters.length,
+      adapterAllowlist:[...adapterAllowlist],
       adaptersSucceeded:discoveries.filter(x=>x.ok).length,
       adaptersFailed:discoveries.filter(x=>!x.ok).length,
       discoveredDocuments:documents.length
