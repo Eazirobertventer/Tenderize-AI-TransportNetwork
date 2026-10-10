@@ -14,7 +14,7 @@
       <button class="active" data-view="overview">Overview</button>
       <button data-view="coverage">Coverage</button>
       <button data-view="issues">Issues</button>
-      <button data-view="proposals">Proposals</button>
+      <button data-view="proposals">Proposals</button>\n      <button data-view="recovery">Recovery</button>
       <button data-view="audit">Audit</button>
       <button data-view="actions">Actions</button>
     </nav>
@@ -97,6 +97,23 @@
         </div>
         <div id="kznGazetteBucketGrid" class="kzn-bucket-grid"></div>
         <div id="kznGazetteQueueList" class="list"></div>
+      </section>
+    </section>
+
+    <section id="recovery" class="view">
+      <div class="cards recovery-cards">
+        <article><span>Documentary routes</span><strong id="recoveryRoutes">—</strong><small>identity recovered, geometry missing</small></article>
+        <article><span>Geometry ready</span><strong id="recoveryGeometryReady">—</strong><small>safe route-candidate inputs</small></article>
+        <article><span>Rank source cases</span><strong id="recoveryRanks">—</strong><small>named-rank recovery cases</small></article>
+        <article><span>ADJ5 / ADJ6 ready</span><strong id="recoveryUnlocks">—</strong><small>post-recovery controlled actions</small></article>
+      </div>
+      <section class="panel">
+        <div class="panel-head"><div><span>TN7-NATIONAL-20/22</span><strong>Rank source recovery</strong></div><small>Evidence-only unless an approved proposal exists</small></div>
+        <div id="rankRecoveryList" class="list"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><span>Route geometry backlog</span><strong>Documentary identities awaiting geometry</strong></div><small>No geometry synthesis from prose</small></div>
+        <div id="routeRecoveryList" class="list"></div>
       </section>
     </section>
 
