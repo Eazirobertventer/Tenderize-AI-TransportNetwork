@@ -163,7 +163,7 @@ export async function executeNational15({
     row.proposal?.action==='taxi_association.create' &&
     row.proposal?.targetEntityType==='taxi_association' &&
     row.proposal?.targetEntityId===null &&
-    row.proposal?.status==='pending'
+    row.proposal?.status==='proposed'
   );
 
   return {
@@ -178,7 +178,7 @@ export async function executeNational15({
       targetedCandidates:candidates.length,
       manualHolds:holds.length,
       attempted:results.length,
-      successfulPendingProposals:successful.length,
+      successfulProposedProposals:successful.length,
       created:results.filter(x=>x.status===201).length,
       replayed:results.filter(x=>x.status===200 && x.replay).length,
       failed:results.filter(x=>![200,201].includes(x.status)).length
@@ -210,7 +210,7 @@ if(import.meta.url===`file://${process.argv[1]}`){
     console.log(JSON.stringify({event:'tn7_national_15_result',...result}));
     if(result.execution==='proposal_batch' &&
        (!result.canonicalInventoryUnchanged ||
-        result.summary.successfulPendingProposals!==9 ||
+        result.summary.successfulProposedProposals!==9 ||
         result.summary.failed!==0)){
       process.exitCode=1;
     }
