@@ -6,7 +6,8 @@ const migrations=[
   '../../../db/005_operator_audit.sql',
   '../../../db/007_two_person_decision_proposals.sql',
   '../../../db/008_transport_entity_aliases.sql',
-  '../../../db/013_controlled_association_creation.sql'
+  '../../../db/013_controlled_association_creation.sql',
+  '../../../db/014_operator_audit_event_sequence.sql'
 ];
 
 if(!process.env.DATABASE_URL) throw new Error('DATABASE_URL required');
@@ -41,6 +42,7 @@ try{
       EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='operator_audit_event') AS audit_table,
       EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='operator_decision_proposal') AS proposal_table,
       EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='transport_entity_alias') AS alias_table,
+      EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='operator_audit_event' AND column_name='event_sequence' AND is_nullable='NO') AS audit_event_sequence,
       to_regprocedure('normalize_transport_identity_name(text)') IS NOT NULL AS normalize_function,
       EXISTS(
         SELECT 1 FROM information_schema.columns
