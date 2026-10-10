@@ -75,6 +75,7 @@ export async function storeEvidenceArtifact({
   contentType='application/pdf',
   bytes,
   authority=null,
+  retrievalMirror=null,
   sourceAdapter=null,
   documentId=null,
   retrievedAt=new Date().toISOString(),
@@ -110,6 +111,7 @@ export async function storeEvidenceArtifact({
     sourceUrl,
     finalUrl:finalUrl||sourceUrl,
     authority,
+    retrievalMirror,
     sourceAdapter,
     documentId,
     retrievedAt
