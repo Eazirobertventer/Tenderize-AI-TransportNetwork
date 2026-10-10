@@ -42,7 +42,9 @@ import {
   associationCreationEnabled,
   buildAssociationCreationSnapshot,
   validateAssociationCreationSnapshot,
-  insertCanonicalAssociation
+  insertCanonicalAssociation,
+  validateAssociationCreationSourceLineage,
+  insertAssociationCreationSourceRecords
 } from './operator-association-create.mjs';
 
 function actorRole(actor){
@@ -2055,7 +2057,23 @@ export async function approveDecisionProposal(pool,{
         };
       }
 
+      const lineageValidation=await validateAssociationCreationSourceLineage(client,{
+        proposalId:proposal.id,
+        canonicalName:snapshot.proposed.canonicalName,
+        proposalEvidence:proposal.evidence,
+        approvalEvidence:evidence
+      });
+      if(!lineageValidation.ok){
+        await client.query('ROLLBACK');
+        return {status:409,payload:lineageValidation};
+      }
+
       const association=await insertCanonicalAssociation(client,snapshot);
+      const sourceRecords=await insertAssociationCreationSourceRecords(client,{
+        association,
+        proposalId:proposal.id,
+        lineage:lineageValidation.lineage
+      });
 
       const canonicalAudit=await appendOperatorAuditEvent(client,{
         actor,
@@ -2077,7 +2095,8 @@ export async function approveDecisionProposal(pool,{
           dualControl:true,
           proposerSubject:proposal.proposer_subject,
           approverSubject:actor.subject,
-          proposalBeforeStateHash:proposal.before_state_hash
+          proposalBeforeStateHash:proposal.before_state_hash,
+          sourceRecordIds:sourceRecords.map(row=>row.id)
         }
       });
 
@@ -2130,7 +2149,8 @@ export async function approveDecisionProposal(pool,{
           canonicalMutation:{
             action:'taxi_association.create',
             auditEventId:canonicalAudit.id,
-            association
+            association,
+            sourceRecordIds:sourceRecords.map(row=>row.id)
           }
         }
       };
