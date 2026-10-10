@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Tenderize Operator Adjudication Workbench</title>
+  <link rel="stylesheet" href="./styles.css"/>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><b>TN</b><span>Operator<br/>Workbench</span></div>
+    <nav>
+      <button class="active" data-view="overview">Overview</button>
+      <button data-view="coverage">Coverage</button>
+      <button data-view="issues">Issues</button>
+      <button data-view="proposals">Proposals</button>
+      <button data-view="audit">Audit</button>
+      <button data-view="actions">Actions</button>
+    </nav>
+    <div class="identity">
+      <small>Trusted operator</small>
+      <strong id="actorName">Not signed in</strong>
+      <span id="actorRoles">—</span>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <span class="eyebrow">TN7 • ADJUDICATION CONTROL PLANE</span>
+        <h1>Integrated Adjudication Workbench</h1>
+        <p>Evidence review, dual-control proposals, canonical decisions and immutable audit trace.</p>
+      </div>
+      <div class="authbox">
+        <input id="token" type="password" placeholder="Operator bearer token"/>
+        <button id="connect">Connect</button>
+        <button id="disconnect" class="secondary">Clear</button>
+      </div>
+    </header>
+
+    <section class="statusbar">
+      <span id="connectionDot"></span>
+      <b id="connectionState">Disconnected</b>
+      <small id="mutationState">Mutation state unknown</small>
+    </section>
+
+    <section id="overview" class="view active">
+      <div class="cards">
+        <article><span>Active issues</span><strong id="activeIssues">—</strong><small>open / reviewing / deferred</small></article>
+        <article><span>High severity</span><strong id="highSeverity">—</strong><small>error / blocking</small></article>
+        <article><span>Pending proposals</span><strong id="pendingCount">—</strong><small>awaiting second-person decision</small></article>
+        <article><span>Recent audit</span><strong id="auditCount">—</strong><small>immutable events loaded</small></article>
+      </div>
+      <div class="grid2">
+        <section class="panel"><div class="panel-head"><div><span>Decision queue</span><strong>Pending proposals</strong></div><button data-view="proposals">Open queue</button></div><div id="overviewProposals" class="list"></div></section>
+        <section class="panel"><div class="panel-head"><div><span>Control state</span><strong>Adjudication capabilities</strong></div></div><div id="capabilityGrid" class="cap-grid"></div></section>
+      </div>
+    </section>
+
+    <section id="coverage" class="view">
+      <div class="cards coverage-cards">
+        <article><span>National ranks</span><strong id="coverageRanks">—</strong><small>canonical active ranks</small></article>
+        <article><span>Mapped</span><strong id="coverageMapped">—</strong><small>coordinate available</small></article>
+        <article><span>No association</span><strong id="coverageUnassociated">—</strong><small>canonical association gap</small></article>
+        <article><span>Route endpoint gaps</span><strong id="coverageRouteGaps">—</strong><small>canonical unresolved endpoints</small></article>
+      </div>
+      <section class="panel">
+        <div class="panel-head"><div><span>National backlog</span><strong>Province prioritisation</strong></div><small>Operational priority only — not evidence confidence</small></div>
+        <div id="coverageProvinceList" class="coverage-priority-list"></div>
+      </section>
+      <section class="panel kzn-execution-panel">
+        <div class="panel-head">
+          <div><span>TN7-NATIONAL-2</span><strong>KwaZulu-Natal source execution</strong></div>
+          <small>GIS + gazette evidence • no automatic canonical promotion</small>
+        </div>
+        <div class="cards kzn-cards">
+          <article><span>KZN ranks</span><strong id="kznRanks">—</strong><small>active canonical ranks</small></article>
+          <article><span>No association</span><strong id="kznNoAssociation">—</strong><small>rank association gap</small></article>
+          <article><span>Route candidates</span><strong id="kznRouteCandidates">—</strong><small>exact endpoint evidence</small></article>
+          <article><span>No route association</span><strong id="kznRouteAssociationGap">—</strong><small>candidate association gap</small></article>
+        </div>
+        <div id="kznBucketGrid" class="kzn-bucket-grid"></div>
+        <div class="panel-head subhead"><div><span>Verified gazette join</span><strong>Source evidence execution</strong></div></div>
+        <div id="kznExecutionList" class="list"></div>
+      </section>
+      <section class="panel kzn-execution-panel">
+        <div class="panel-head">
+          <div><span>TN7-NATIONAL-3</span><strong>KZN Gazette Evidence Queue</strong></div>
+          <small>Bounded to 250 • indexed recovery + verified seed • no automatic promotion</small>
+        </div>
+        <div class="cards kzn-cards">
+          <article><span>Evidence rows</span><strong id="kznGazetteTotal">—</strong><small>seed + indexed expansion</small></article>
+          <article><span>Ready for review</span><strong id="kznGazetteReady">—</strong><small>ADJ5 / ADJ6 boundary</small></article>
+          <article><span>Indexed expansion</span><strong id="kznGazetteIndexed">—</strong><small>new NATIONAL-3 rows</small></article>
+          <article><span>Queue returned</span><strong id="kznGazetteReturned">—</strong><small>bounded operator queue</small></article>
+        </div>
+        <div id="kznGazetteBucketGrid" class="kzn-bucket-grid"></div>
+        <div id="kznGazetteQueueList" class="list"></div>
+      </section>
+    </section>
+
+    <section id="issues" class="view">
+      <section class="panel"><div class="panel-head"><div><span>Quality queue</span><strong>Data issues</strong></div><select id="issueFilter"><option value="">All states</option><option>open</option><option>reviewing</option><option>deferred</option><option>rejected</option></select></div><div id="issueList" class="list"></div></section>
+    </section>
+
+    <section id="proposals" class="view">
+      <section class="panel"><div class="panel-head"><div><span>Dual control</span><strong>Pending proposals</strong></div><button id="refresh">Refresh</button></div><div id="proposalList" class="list"></div></section>
+    </section>
+
+    <section id="audit" class="view">
+      <section class="panel"><div class="panel-head"><div><span>Immutable trace</span><strong>Recent audit events</strong></div></div><div id="auditList" class="list audit-list"></div></section>
+    </section>
+
+    <section id="actions" class="view">
+      <section class="panel"><div class="panel-head"><div><span>ADJ1–ADJ8</span><strong>Controlled action catalogue</strong></div></div><div id="actionGrid" class="action-grid"></div></section>
+    </section>
+  </main>
+</div>
+
+<div id="decisionModal" class="modal hidden">
+  <div class="modal-card">
+    <button class="close" id="closeModal">×</button>
+    <span class="eyebrow">SECOND-PERSON DECISION</span>
+    <h2 id="modalTitle">Proposal decision</h2>
+    <p id="modalMeta"></p>
+    <label>Decision rationale<textarea id="decisionRationale" minlength="10" maxlength="2000" placeholder="State the evidence reviewed and the reason for this decision."></textarea></label>
+    <label>Evidence note<textarea id="decisionEvidence" placeholder="Optional structured note or reference."></textarea></label>
+    <div class="modal-actions">
+      <button id="approveProposal">Approve</button>
+      <button id="rejectProposal" class="danger">Reject</button>
+      <button id="withdrawProposal" class="secondary">Withdraw</button>
+    </div>
+    <div id="decisionResult" class="result"></div>
+  </div>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -3,13 +3,23 @@ let routeData={type:'FeatureCollection',features:[]};
 let endpointEvidenceData={type:'FeatureCollection',features:[]};
 let sourceRouteGeometryData={type:'FeatureCollection',features:[]};
 let routeCandidateData={type:'FeatureCollection',features:[]};
+let associationData={type:'FeatureCollection',features:[]};
+let coverageGapData={type:'FeatureCollection',features:[]};
+let associationHighlightRanks={type:'FeatureCollection',features:[]};
+let associationHighlightRoutes={type:'FeatureCollection',features:[]};
 let routesVisible=true;
+let associationsVisible=true;
+let coverageGapsVisible=true;
 let endpointEvidenceVisible=true;
 let sourceRouteGeometryVisible=true;
 let routeCandidatesVisible=true;
 let satelliteVisible=false;
 let rankPopup=null;
 let rankFinderMode='visible';
+let explorerMode='ranks';
+let selectedCoverageArea='';
+let selectedAssociationId=null;
+let selectedRouteGeometry=null;
 
 const map=new maplibregl.Map({
   container:'map',
@@ -66,8 +76,94 @@ function rankSubtitle(p){
   return p.sourceCode && p.sourceCode!==rankName(p) ? p.sourceCode+' • '+place : place;
 }
 
+function googleMapsUrl(lat,lng){
+  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(lat+','+lng);
+}
+
+function streetViewUrl(lat,lng){
+  return 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint='+encodeURIComponent(lat+','+lng);
+}
+
+function routeEndpointCoordinates(geometry){
+  if(!geometry) return {start:null,end:null};
+  if(geometry.type==='LineString' && Array.isArray(geometry.coordinates) && geometry.coordinates.length){
+    return {start:geometry.coordinates[0],end:geometry.coordinates[geometry.coordinates.length-1]};
+  }
+  if(geometry.type==='MultiLineString' && Array.isArray(geometry.coordinates) && geometry.coordinates.length){
+    const first=geometry.coordinates.find(line=>Array.isArray(line) && line.length);
+    const last=[...geometry.coordinates].reverse().find(line=>Array.isArray(line) && line.length);
+    return {
+      start:first ? first[0] : null,
+      end:last ? last[last.length-1] : null
+    };
+  }
+  return {start:null,end:null};
+}
+
+function setSatelliteMode(enabled){
+  satelliteVisible=Boolean(enabled);
+  const button=document.querySelector('#satelliteToggle');
+  if(button){
+    button.textContent=satelliteVisible?'Satellite':'Street';
+    button.classList.toggle('active-toggle',satelliteVisible);
+    button.setAttribute('aria-pressed',String(satelliteVisible));
+  }
+  if(map.getLayer('satellite-imagery')){
+    map.setLayoutProperty('satellite-imagery','visibility',satelliteVisible?'visible':'none');
+  }
+  const status=document.querySelector('#basemapStatus');
+  if(status){
+    status.textContent=satelliteVisible
+      ? 'Satellite imagery — verify rank marker against visible facility; imagery remains physical context only'
+      : 'Street basemap';
+  }
+}
+
+function activateSatelliteAt(lat,lng){
+  if(!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  setSatelliteMode(true);
+  map.easeTo({center:[lng,lat],zoom:17.2,duration:700});
+}
+
+function extendGeometryBounds(bounds,geometry){
+  if(!geometry) return;
+  if(geometry.type==='Point'){
+    const [lng,lat]=geometry.coordinates || [];
+    if(Number.isFinite(lng) && Number.isFinite(lat)) bounds.extend([lng,lat]);
+    return;
+  }
+  const visit=value=>{
+    if(!Array.isArray(value)) return;
+    if(value.length>=2 && Number.isFinite(value[0]) && Number.isFinite(value[1])){
+      bounds.extend([value[0],value[1]]);
+      return;
+    }
+    value.forEach(visit);
+  };
+  visit(geometry.coordinates);
+}
+
+function fitGeometry(geometry,{padding=70,maxZoom=15}={}){
+  if(!geometry) return;
+  const bounds=new maplibregl.LngLatBounds();
+  extendGeometryBounds(bounds,geometry);
+  if(!bounds.isEmpty()) map.fitBounds(bounds,{padding,maxZoom,duration:700});
+}
+
+function coordinateActions(lat,lng,{streetLabel='Street View',mapLabel='Open in Google Maps'}={}){
+  if(!Number.isFinite(lat) || !Number.isFinite(lng)) return '';
+  return `
+    <div class="detail-actions three">
+      <a class="button" target="_blank" rel="noopener noreferrer" href="${streetViewUrl(lat,lng)}">${esc(streetLabel)}</a>
+      <button class="button secondary" type="button" data-satellite-inspect data-lat="${lat}" data-lng="${lng}">Satellite inspect</button>
+      <a class="button secondary" target="_blank" rel="noopener noreferrer" href="${googleMapsUrl(lat,lng)}">${esc(mapLabel)}</a>
+    </div>
+    <div class="street-note">Street View and satellite imagery are field context. Provider imagery availability/date does not change the canonical evidence status.</div>`;
+}
+
 function focusRank(feature){
   if(!feature?.geometry?.coordinates) return;
+  setExplorerMode('ranks');
   const coordinates=feature.geometry.coordinates;
   map.easeTo({center:coordinates,zoom:15.8,duration:850});
   detail(feature.properties);
@@ -107,11 +203,11 @@ function renderRankFinder(){
 
   if(!features.length){
     list.innerHTML='<div class="rank-finder-empty">No mapped ranks match this search.</div>';
-    panel.classList.add('visible');
+    panel.classList.toggle('visible',explorerMode==='ranks');
     return;
   }
 
-  panel.classList.add('visible');
+  panel.classList.toggle('visible',explorerMode==='ranks');
 
   list.innerHTML=features.map((feature,index)=>
     '<button class="rank-finder-item" data-rank-index="'+index+'">'+
@@ -126,6 +222,370 @@ function renderRankFinder(){
       const feature=features[Number(button.dataset.rankIndex)];
       focusRank(feature);
     });
+  });
+}
+
+function setExplorerMode(mode){
+  explorerMode=mode==='associations'?'associations':'ranks';
+  const ranks=document.querySelector('#rankFinder');
+  const associations=document.querySelector('#associationFinder');
+  const rankTab=document.querySelector('#rankExplorerTab');
+  const associationTab=document.querySelector('#associationExplorerTab');
+  if(ranks) ranks.classList.toggle('visible',explorerMode==='ranks');
+  if(associations) associations.classList.toggle('visible',explorerMode==='associations');
+  if(rankTab) rankTab.classList.toggle('active-toggle',explorerMode==='ranks');
+  if(associationTab) associationTab.classList.toggle('active-toggle',explorerMode==='associations');
+}
+
+function renderAssociationFinder(){
+  const panel=document.querySelector('#associationFinder');
+  const list=document.querySelector('#associationFinderList');
+  const count=document.querySelector('#associationFinderCount');
+  if(!panel || !list || !count) return;
+
+  const features=associationData.features || [];
+  count.textContent=String(features.length);
+  panel.classList.toggle('visible',explorerMode==='associations');
+
+  if(!features.length){
+    list.innerHTML='<div class="rank-finder-empty">No mapped association geography matches the current scope.</div>';
+    return;
+  }
+
+  list.innerHTML=features.map((feature,index)=>{
+    const p=feature.properties || {};
+    const derived=p.locationBasis==='linked_rank_centroid' || p.derivedLocation===true || p.derivedLocation==='true';
+    return '<button class="rank-finder-item association-finder-item" data-association-index="'+index+'">'+
+      '<span class="association-pin-mini">'+(derived?'◎':'●')+'</span>'+
+      '<span><strong>'+esc(p.name || 'Taxi association')+'</strong><small>'+
+        esc(p.registrationNumber || p.acronym || 'Registration pending')+' • '+
+        Number(p.rankCount || 0)+' ranks • '+Number(p.routeCount || 0)+' routes'+
+      '</small></span>'+
+      '<b>'+esc(derived?'Coverage':'Location')+'</b>'+
+    '</button>';
+  }).join('');
+
+  list.querySelectorAll('[data-association-index]').forEach(button=>{
+    button.addEventListener('click',()=>{
+      const feature=features[Number(button.dataset.associationIndex)];
+      associationDetail(feature);
+    });
+  });
+}
+
+function clearAssociationHighlight(){
+  selectedAssociationId=null;
+  associationHighlightRanks={type:'FeatureCollection',features:[]};
+  associationHighlightRoutes={type:'FeatureCollection',features:[]};
+  map.getSource('association-highlight-ranks')?.setData(associationHighlightRanks);
+  map.getSource('association-highlight-routes')?.setData(associationHighlightRoutes);
+}
+
+function fitAssociationNetwork(detail,associationFeature){
+  const bounds=new maplibregl.LngLatBounds();
+  if(associationFeature?.geometry) extendGeometryBounds(bounds,associationFeature.geometry);
+  (detail?.ranks?.features || []).forEach(feature=>extendGeometryBounds(bounds,feature.geometry));
+  (detail?.routes?.features || []).forEach(feature=>extendGeometryBounds(bounds,feature.geometry));
+  if(!bounds.isEmpty()) map.fitBounds(bounds,{padding:80,maxZoom:13.5,duration:750});
+}
+
+async function loadQualitySummary(){
+  try{
+    const quality=await getJson('/api/v1/data-quality/summary');
+    const node=document.querySelector('#qualityIssueCount');
+    node.textContent=quality.open_issues ?? '0';
+    node.title=[
+      (quality.ranks_missing_location || 0)+' ranks missing coordinates',
+      (quality.ranks_without_association || 0)+' ranks without association',
+      (quality.route_candidates_without_association || 0)+' route candidates without association'
+    ].join(' • ');
+  }catch{
+    document.querySelector('#qualityIssueCount').textContent='—';
+  }
+}
+
+async function loadCoverage(){
+  const province=document.querySelector('#province').value;
+  const params=new URLSearchParams();
+  if(province) params.set('province',province);
+
+  try{
+    const coverage=await getJson('/api/v1/coverage?' + params.toString());
+    const n=coverage.national || {};
+    document.querySelector('#coverageNational').textContent=
+      (n.mapped_ranks || 0)+' mapped / '+(n.ranks || 0)+' documented ranks • '+
+      (n.associations || 0)+' associations • '+(n.routes || 0)+' routes';
+
+    const grid=document.querySelector('#coverageProvinces');
+    grid.innerHTML=(coverage.provinces || []).map(row=>{
+      const ranks=Number(row.ranks || 0);
+      const mapped=Number(row.mapped_ranks || 0);
+      const pct=ranks ? Math.round(mapped/ranks*100) : 0;
+      const active=province===row.province ? ' active' : '';
+      return '<button class="coverage-card'+active+'" data-coverage-province="'+esc(row.province)+'">'+
+        '<strong>'+esc(row.province)+'</strong>'+
+        '<span>'+mapped+' / '+ranks+' mapped</span>'+
+        '<small>'+Number(row.associations || 0)+' associations • '+Number(row.routes || 0)+' routes • '+pct+'% mapped</small>'+
+        '<i><b style="width:'+pct+'%"></b></i>'+
+      '</button>';
+    }).join('');
+
+    grid.querySelectorAll('[data-coverage-province]').forEach(button=>{
+      button.addEventListener('click',async()=>{
+        selectedCoverageArea='';
+        clearAssociationHighlight();
+        document.querySelector('#province').value=button.dataset.coverageProvince;
+        document.querySelector('#city').value='';
+        setExplorerMode('ranks');
+        await loadRankFilters();
+        await Promise.all([loadRanks(),loadAssociations(),loadCoverage(),loadCoverageGaps()]);
+        const features=current.features || [];
+        if(features.length){
+          const bounds=new maplibregl.LngLatBounds();
+          features.forEach(feature=>bounds.extend(feature.geometry.coordinates));
+          if(!bounds.isEmpty()) map.fitBounds(bounds,{padding:70,maxZoom:10,duration:700});
+        }
+      });
+    });
+
+    const areas=document.querySelector('#coverageAreas');
+    if(province && (coverage.areas || []).length){
+      areas.innerHTML='<div class="coverage-area-title">'+esc(province)+' municipalities / cities</div>'+
+        '<div class="coverage-area-list">'+coverage.areas.slice(0,30).map(row=>
+          '<button class="'+(selectedCoverageArea===row.area?'active':'')+'" data-coverage-area="'+esc(row.area)+'"><strong>'+esc(row.area)+'</strong><span>'+
+          Number(row.mapped_ranks || 0)+'/'+Number(row.ranks || 0)+' ranks • '+
+          Number(row.associations || 0)+' associations • '+Number(row.routes || 0)+' routes</span></button>'
+        ).join('')+'</div>';
+      areas.querySelectorAll('[data-coverage-area]').forEach(button=>{
+        button.addEventListener('click',async()=>{
+          selectedCoverageArea=button.dataset.coverageArea;
+          clearAssociationHighlight();
+          const citySelect=document.querySelector('#city');
+          if([...citySelect.options].some(option=>option.value===selectedCoverageArea)){
+            citySelect.value=selectedCoverageArea;
+          }else{
+            citySelect.value='';
+          }
+          setExplorerMode('associations');
+          await Promise.all([loadRanks(),loadAssociations(),loadCoverage(),loadCoverageGaps()]);
+          const features=current.features || [];
+          if(features.length){
+            const bounds=new maplibregl.LngLatBounds();
+            features.forEach(feature=>bounds.extend(feature.geometry.coordinates));
+            if(!bounds.isEmpty()) map.fitBounds(bounds,{padding:80,maxZoom:13,duration:650});
+          }
+        });
+      });
+    }else{
+      areas.innerHTML='';
+    }
+  }catch{
+    document.querySelector('#coverageNational').textContent='Coverage API unavailable';
+    document.querySelector('#coverageProvinces').innerHTML='';
+    document.querySelector('#coverageAreas').innerHTML='';
+  }
+}
+
+async function loadCoverageGaps(){
+  const source=map.getSource('coverage-gaps');
+  if(!coverageGapsVisible){
+    coverageGapData={type:'FeatureCollection',features:[]};
+    if(source) source.setData(coverageGapData);
+    return;
+  }
+
+  const province=document.querySelector('#province').value;
+  const city=document.querySelector('#city').value;
+  const municipality=selectedCoverageArea || city;
+  const params=new URLSearchParams();
+  if(province) params.set('province',province);
+  if(municipality) params.set('municipality',municipality);
+
+  try{
+    coverageGapData=await getJson('/api/v1/coverage/gaps?' + params.toString());
+  }catch{
+    coverageGapData={type:'FeatureCollection',features:[]};
+  }
+  if(source) source.setData(coverageGapData);
+}
+
+async function loadAssociations(){
+  const source=map.getSource('associations');
+  if(!associationsVisible){
+    associationData={type:'FeatureCollection',features:[]};
+    if(source) source.setData(associationData);
+    return;
+  }
+
+  const province=document.querySelector('#province').value;
+  const city=document.querySelector('#city').value;
+  const q=document.querySelector('#search').value.trim();
+  const area=selectedCoverageArea || city;
+  const params=new URLSearchParams();
+  if(province) params.set('province',province);
+  if(area) params.set('area',area);
+  if(q) params.set('q',q);
+
+  try{
+    associationData=await getJson('/api/v1/associations/map?' + params.toString());
+  }catch{
+    associationData={type:'FeatureCollection',features:[]};
+  }
+  if(source) source.setData(associationData);
+  renderAssociationFinder();
+
+  if(q && associationData.features.length && !(current.features || []).length){
+    setExplorerMode('associations');
+  }
+}
+
+async function associationDetail(feature){
+  const id=feature?.properties?.id || feature?.id;
+  if(!id) return;
+
+  setExplorerMode('associations');
+  selectedAssociationId=String(id);
+
+  let full=null;
+  try{
+    full=await getJson('/api/v1/associations/' + encodeURIComponent(id));
+  }catch{
+    full=null;
+  }
+
+  if(!full){
+    document.querySelector('#detail').innerHTML='<div class="rank"><div class="journey-result">Association detail is temporarily unavailable.</div></div>';
+    return;
+  }
+
+  const a=full.association || {};
+  const coordinates=[
+    Number.isFinite(Number(a.lng)) ? Number(a.lng) : feature?.geometry?.coordinates?.[0],
+    Number.isFinite(Number(a.lat)) ? Number(a.lat) : feature?.geometry?.coordinates?.[1]
+  ];
+  const lng=Number(coordinates[0]);
+  const lat=Number(coordinates[1]);
+  const derived=a.locationBasis==='linked_rank_centroid';
+  const basis=derived
+    ? 'Derived coverage centroid from linked mapped ranks — not an association office location.'
+    : a.locationBasis==='authoritative_association_location'
+      ? 'Authoritative association coordinate.'
+      : 'Association location is not yet mapped.';
+
+  associationHighlightRanks=full.ranks || {type:'FeatureCollection',features:[]};
+  associationHighlightRoutes=full.routes || {type:'FeatureCollection',features:[]};
+  map.getSource('association-highlight-ranks')?.setData(associationHighlightRanks);
+  map.getSource('association-highlight-routes')?.setData(associationHighlightRoutes);
+  fitAssociationNetwork(full,feature);
+
+  const rankItems=full.rankItems || [];
+  const routeItems=full.routeItems || [];
+  const sources=full.sources || [];
+
+  const rankHtml=rankItems.length
+    ? rankItems.slice(0,120).map((rank,index)=>
+        '<button class="network-row" data-association-rank-index="'+index+'" '+(!Number.isFinite(rank.lat)||!Number.isFinite(rank.lng)?'disabled':'')+'>'+
+          '<span><strong>'+esc(rank.name || rank.sourceCode || 'Taxi rank')+'</strong><small>'+
+            esc([rank.town,rank.municipality,rank.province].filter(Boolean).join(' • ') || 'Location pending')+
+          '</small></span>'+
+          '<b>'+ (Number.isFinite(rank.lat)&&Number.isFinite(rank.lng)?'Map':'Pending') +'</b>'+
+        '</button>'
+      ).join('')
+    : '<div class="journey-result">No canonical rank links are recorded for this association.</div>';
+
+  const routeHtml=routeItems.length
+    ? routeItems.slice(0,150).map((route,index)=>
+        '<button class="network-row route-network-row" data-association-route-index="'+index+'">'+
+          '<span><strong>'+esc(route.origin || 'Origin pending')+' → '+esc(route.destination || 'Destination pending')+'</strong><small>'+
+            esc(route.boardRouteCode || route.nationalRouteCode || route.name || 'Route code pending')+' • '+
+            esc(route.verificationStatus || 'unverified')+
+          '</small></span>'+
+          '<b>'+ (route.geometry?'Map':'Evidence') +'</b>'+
+        '</button>'
+      ).join('')
+    : '<div class="journey-result">No canonical routes are linked to this association.</div>';
+
+  const sourceHtml=sources.length
+    ? sources.map(source=>
+        '<div class="evidence-row"><strong>'+esc(source.source_name || source.source_key)+'</strong><span>'+
+          esc(source.authority || 'Authority pending')+
+        '</span></div>'
+      ).join('')
+    : '<div class="journey-result">No association-level source record is currently attached.</div>';
+
+  const locationActions=Number.isFinite(lat) && Number.isFinite(lng)
+    ? derived
+      ? '<div class="detail-actions"><button class="button secondary" type="button" data-satellite-inspect data-lat="'+lat+'" data-lng="'+lng+'">Satellite coverage centre</button><a class="button secondary" target="_blank" rel="noopener noreferrer" href="'+googleMapsUrl(lat,lng)+'">Open coverage in Google Maps</a></div>'
+      : coordinateActions(lat,lng,{streetLabel:'Street View association area'})
+    : '';
+
+  document.querySelector('#detail').innerHTML=`
+    <div class="rank">
+      <div class="rank-headline">
+        <span class="badge ${esc(a.verificationStatus || 'documented')}">${esc((a.verificationStatus || 'documented').replaceAll('_',' '))}</span>
+        <span class="rank-code">${esc(a.registrationNumber || a.acronym || 'Registration pending')}</span>
+      </div>
+      <h2>${esc(a.name || 'Taxi association')}</h2>
+      <p>${esc([a.municipality,a.province].filter(Boolean).join(' • ') || 'Geographic coverage pending')}</p>
+
+      <div class="evidence-summary">
+        <div><span>Linked ranks</span><strong>${Number(a.rankCount || 0)}</strong><small>${Number(full.unmappedRankCount || 0)} location pending</small></div>
+        <div><span>Linked routes</span><strong>${Number(a.routeCount || 0)}</strong><small>${associationHighlightRoutes.features.length} mapped geometries</small></div>
+        <div><span>Location basis</span><strong>${derived?'Coverage centroid':a.locationBasis==='authoritative_association_location'?'Association location':'Unmapped'}</strong></div>
+      </div>
+
+      <div class="source association-location-note">
+        <b>${derived?'Derived geographic coverage':'Association geography'}</b>
+        <span>${esc(basis)}</span>
+      </div>
+      ${locationActions}
+
+      <div class="detail-actions">
+        <button class="button secondary" type="button" data-fit-association>Fit association network</button>
+        <button class="button secondary" type="button" data-clear-association>Clear highlight</button>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Linked ranks</div>
+        <div class="network-list">${rankHtml}</div>
+      </div>
+      <div class="section-block">
+        <div class="section-title">Canonical routes</div>
+        <div class="network-list">${routeHtml}</div>
+      </div>
+      <div class="section-block">
+        <div class="section-title">Source provenance</div>
+        <div class="route-list">${sourceHtml}</div>
+      </div>
+    </div>`;
+
+  const panel=document.querySelector('#detail');
+  panel.querySelectorAll('[data-association-rank-index]').forEach(button=>{
+    button.addEventListener('click',()=>{
+      const rank=rankItems[Number(button.dataset.associationRankIndex)];
+      if(!rank || !Number.isFinite(rank.lat) || !Number.isFinite(rank.lng)) return;
+      focusRank({
+        type:'Feature',
+        id:rank.id,
+        geometry:{type:'Point',coordinates:[rank.lng,rank.lat]},
+        properties:rank
+      });
+    });
+  });
+
+  panel.querySelectorAll('[data-association-route-index]').forEach(button=>{
+    button.addEventListener('click',()=>{
+      const route=routeItems[Number(button.dataset.associationRouteIndex)];
+      if(!route) return;
+      if(route.geometry) fitGeometry(route.geometry,{padding:90,maxZoom:13.5});
+      routeDetail({...route,association:a.name,associationRegistration:a.registrationNumber},route.geometry);
+    });
+  });
+
+  panel.querySelector('[data-fit-association]')?.addEventListener('click',()=>fitAssociationNetwork(full,feature));
+  panel.querySelector('[data-clear-association]')?.addEventListener('click',()=>{
+    clearAssociationHighlight();
+    document.querySelector('#detail').innerHTML='<div class="empty"><div class="target">⌖</div><h2>Association highlight cleared</h2><p>Select another association, rank or route to continue exploring.</p></div>';
   });
 }
 
@@ -319,6 +779,8 @@ async function detail(p){
   const displayName=full?.displayName || p.displayName || p.name;
   const sourceCode=full?.sourceCode || p.sourceCode || p.name;
   const location=[full?.town || p.town,full?.municipality || p.municipality,full?.province || p.province].filter(Boolean).join(' • ') || 'Location pending';
+  const lat=Number(full?.lat);
+  const lng=Number(full?.lng);
 
   const associationHtml=associations.length
     ? associations.map(a=>`
@@ -354,6 +816,7 @@ async function detail(p){
       </div>
       <h2>${esc(displayName)}</h2>
       <p>${esc(location)}</p>
+      ${coordinateActions(lat,lng)}
 
       <div class="evidence-summary">
         <div><span>Association</span><strong>${esc(associations[0]?.name || 'Pending')}</strong></div>
@@ -381,29 +844,50 @@ async function detail(p){
       </div>
     </div>`;
 }
-function routeDetail(p){
+function routeDetail(p,geometry){
+  selectedRouteGeometry=geometry || null;
   const status=p.verificationStatus || 'unverified';
+  const endpoints=routeEndpointCoordinates(geometry);
+  const startLng=Number(endpoints.start?.[0]);
+  const startLat=Number(endpoints.start?.[1]);
+  const endLng=Number(endpoints.end?.[0]);
+  const endLat=Number(endpoints.end?.[1]);
+  const endpointActions=(Number.isFinite(startLat) && Number.isFinite(startLng)) || (Number.isFinite(endLat) && Number.isFinite(endLng))
+    ? `<div class="section-block">
+        <div class="section-title">Street-level route inspection</div>
+        <div class="detail-actions route-inspection-actions">
+          ${Number.isFinite(startLat) && Number.isFinite(startLng) ? `<a class="button" target="_blank" rel="noopener noreferrer" href="${streetViewUrl(startLat,startLng)}">Street View start</a><button class="button secondary" type="button" data-satellite-inspect data-lat="${startLat}" data-lng="${startLng}">Satellite start</button>` : ''}
+          ${Number.isFinite(endLat) && Number.isFinite(endLng) ? `<a class="button" target="_blank" rel="noopener noreferrer" href="${streetViewUrl(endLat,endLng)}">Street View end</a><button class="button secondary" type="button" data-satellite-inspect data-lat="${endLat}" data-lng="${endLng}">Satellite end</button>` : ''}
+        </div>
+        <div class="street-note">The displayed line's evidence class still governs what it means. Street View is physical-area context and does not upgrade route evidence.</div>
+      </div>`
+    : '';
+
   document.querySelector('#detail').innerHTML=`
     <div class="rank">
-      <span class="badge ${status}">${status.replaceAll('_',' ')}</span>
+      <span class="badge ${esc(status)}">${esc(status.replaceAll('_',' '))}</span>
       <h2>${esc(p.origin || 'Origin pending')} → ${esc(p.destination || 'Destination pending')}</h2>
       <p>${esc(p.routeType || 'Taxi route')} • ${esc(p.geometryStatus || 'Geometry pending')}</p>
       ${p.association ? `<div class="source"><b>${esc(p.association)}</b><span>${esc(p.associationRegistration || 'Association registration pending')}</span></div>` : ''}
+      <div class="detail-actions">
+        ${geometry ? '<button class="button secondary" type="button" data-fit-route>Fit route on map</button>' : ''}
+      </div>
       <div class="source">
         <b>${esc(p.source || 'Tenderize source registry')}</b>
         <span>${p.candidateRoute
-          ? 'This is a TN6-J exact-endpoint route candidate using official source geometry. It is not yet a canonical taxi route and association evidence is still pending.'
+          ? 'This is an exact-endpoint route candidate using official source geometry. It is not yet a canonical taxi route and association evidence may still be pending.'
           : p.notRoutePath
-            ? 'This connector only joins two exactly reconciled NLTIS rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
+            ? 'This connector only joins two exactly reconciled rank endpoints. It is evidence of the documented origin/destination pair, not the travelled road path.'
             : 'This line is rendered from source-backed route geometry. It is not inferred from road routing.'}</span>
       </div>
+      ${endpointActions}
     </div>`;
 }
 
 map.on('load',async()=>{
-  await loadMeta();
+  await Promise.all([loadMeta(),loadQualitySummary()]);
   await loadRankFilters();
-  await loadRanks();
+  await Promise.all([loadRanks(),loadCoverage()]);
 
   map.addSource('satellite-imagery',{
     type:'raster',
@@ -516,6 +1000,101 @@ map.on('load',async()=>{
     }
   });
 
+  map.addSource('association-highlight-routes',{
+    type:'geojson',
+    data:associationHighlightRoutes
+  });
+
+  map.addLayer({
+    id:'association-highlight-routes',
+    type:'line',
+    source:'association-highlight-routes',
+    paint:{
+      'line-width':['interpolate',['linear'],['zoom'],6,3.5,12,7],
+      'line-color':'#f59e0b',
+      'line-opacity':0.95
+    }
+  });
+
+  map.addSource('association-highlight-ranks',{
+    type:'geojson',
+    data:associationHighlightRanks
+  });
+
+  map.addLayer({
+    id:'association-highlight-ranks',
+    type:'circle',
+    source:'association-highlight-ranks',
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],6,8,13,14],
+      'circle-color':'#f59e0b',
+      'circle-stroke-width':4,
+      'circle-stroke-color':'#fff'
+    }
+  });
+
+  map.addSource('coverage-gaps',{
+    type:'geojson',
+    data:coverageGapData
+  });
+
+  map.addLayer({
+    id:'coverage-gap-points',
+    type:'circle',
+    source:'coverage-gaps',
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],5,6,10,8,15,11],
+      'circle-color':['match',['get','primaryGap'],
+        'missing_association','#dc2626',
+        'active_issue','#d97706',
+        'association_candidate','#7c3aed',
+        '#64748b'],
+      'circle-stroke-width':2,
+      'circle-stroke-color':'#fff',
+      'circle-opacity':0.92
+    }
+  });
+
+    map.addSource('associations',{
+    type:'geojson',
+    data:associationData
+  });
+
+  map.addLayer({
+    id:'association-points',
+    type:'circle',
+    source:'associations',
+    paint:{
+      'circle-radius':['interpolate',['linear'],['zoom'],5,7,10,10,14,13],
+      'circle-color':['case',['==',['get','locationBasis'],'authoritative_association_location'],'#0f766e','#d97706'],
+      'circle-stroke-width':3,
+      'circle-stroke-color':'#fff',
+      'circle-opacity':0.92
+    }
+  });
+
+  map.addLayer({
+    id:'association-labels',
+    type:'symbol',
+    source:'associations',
+    minzoom:6.5,
+    layout:{
+      'text-field':['get','name'],
+      'text-size':['interpolate',['linear'],['zoom'],6.5,10,13,12],
+      'text-offset':[0,1.45],
+      'text-anchor':'top',
+      'text-max-width':18,
+      'text-allow-overlap':false
+    },
+    paint:{
+      'text-color':'#7a4b00',
+      'text-halo-color':'rgba(255,255,255,.96)',
+      'text-halo-width':2
+    }
+  });
+
+  await Promise.all([loadAssociations(),loadCoverageGaps()]);
+
   map.addSource('ranks',{
     type:'geojson',
     data:current,
@@ -598,7 +1177,39 @@ map.on('load',async()=>{
 
   await Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]);
 
-  map.on('click','clusters',async event=>{
+  map.on('click','association-highlight-ranks',event=>{
+    const feature=event.features && event.features[0];
+    if(feature) focusRank(feature);
+  });
+
+  map.on('click','association-highlight-routes',event=>{
+    const feature=event.features && event.features[0];
+    if(feature){
+      fitGeometry(feature.geometry,{padding:90,maxZoom:13.5});
+      routeDetail(feature.properties,feature.geometry);
+    }
+  });
+
+  ['association-points','association-labels'].forEach(layer=>{
+    map.on('click',layer,event=>{
+      const feature=event.features && event.features[0];
+      if(!feature) return;
+      associationDetail(feature);
+    });
+  });
+
+  map.on('click','coverage-gap-points',event=>{
+    const feature=event.features && event.features[0];
+    if(!feature) return;
+    const canonical=(current.features||[]).find(item=>String(item.id||item.properties?.id)===String(feature.id||feature.properties?.id));
+    if(canonical) focusRank(canonical);
+    else{
+      const p=feature.properties||{};
+      document.querySelector('#detail').innerHTML='<div class="rank"><span class="badge candidate">coverage gap</span><h2>'+esc(p.name||'Taxi rank')+'</h2><p>'+esc([p.municipality,p.province].filter(Boolean).join(' • '))+'</p><div class="source"><b>Gap classes</b><span>'+esc((p.gapClasses||[]).join(' • '))+'</span></div></div>';
+    }
+  });
+
+    map.on('click','clusters',async event=>{
     const feature=map.queryRenderedFeatures(event.point,{layers:['clusters']})[0];
     if(!feature) return;
     const zoom=await map.getSource('ranks').getClusterExpansionZoom(feature.properties.cluster_id);
@@ -617,11 +1228,11 @@ map.on('load',async()=>{
     map.on('click',routeLayer,event=>{
       const feature=event.features && event.features[0];
       if(!feature) return;
-      routeDetail(feature.properties);
+      routeDetail(feature.properties,feature.geometry);
     });
   });
 
-  ['clusters','rank-points','rank-labels','official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(layer=>{
+  ['clusters','rank-points','rank-labels','coverage-gap-points','association-points','association-labels','association-highlight-ranks','association-highlight-routes','official-routes','documented-routes','inferred-routes','source-route-geometries','route-candidates','nltis-endpoint-connectors'].forEach(layer=>{
     map.on('mouseenter',layer,()=>map.getCanvas().style.cursor='pointer');
     map.on('mouseleave',layer,()=>map.getCanvas().style.cursor='');
   });
@@ -630,6 +1241,20 @@ map.on('load',async()=>{
     renderRankFinder();
     return Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]);
   });
+});
+
+document.querySelector('#rankExplorerTab').addEventListener('click',()=>setExplorerMode('ranks'));
+document.querySelector('#associationExplorerTab').addEventListener('click',()=>setExplorerMode('associations'));
+
+document.querySelector('#detail').addEventListener('click',event=>{
+  const satelliteButton=event.target.closest('[data-satellite-inspect]');
+  if(satelliteButton){
+    activateSatelliteAt(Number(satelliteButton.dataset.lat),Number(satelliteButton.dataset.lng));
+    return;
+  }
+  if(event.target.closest('[data-fit-route]') && selectedRouteGeometry){
+    fitGeometry(selectedRouteGeometry,{padding:90,maxZoom:13.5});
+  }
 });
 
 document.querySelector('#showVisibleRanks').addEventListener('click',()=>{
@@ -646,37 +1271,64 @@ document.querySelector('#showAllFilteredRanks').addEventListener('click',()=>{
 });
 
 document.querySelector('#province').addEventListener('change',async()=>{
+  selectedCoverageArea='';
+  clearAssociationHighlight();
   document.querySelector('#city').value='';
   await loadRankFilters();
-  await loadRanks();
+  await Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
 });
-document.querySelector('#city').addEventListener('change',loadRanks);
+document.querySelector('#city').addEventListener('change',async()=>{
+  selectedCoverageArea=document.querySelector('#city').value;
+  clearAssociationHighlight();
+  await Promise.all([loadRanks(),loadAssociations(),loadCoverageGaps()]);
+  if(selectedCoverageArea) setExplorerMode('associations');
+});
 let timer;
 document.querySelector('#search').addEventListener('input',()=>{
   clearTimeout(timer);
-  timer=setTimeout(loadRanks,180);
+  timer=setTimeout(()=>Promise.all([loadRanks(),loadAssociations(),loadCoverageGaps()]),180);
 });
 document.querySelector('#fit').addEventListener('click',()=>{
+  selectedCoverageArea='';
+  clearAssociationHighlight();
+  setExplorerMode('ranks');
   document.querySelector('#province').value='';
   document.querySelector('#city').value='';
   document.querySelector('#search').value='';
   map.easeTo({center:[24.4,-29.1],zoom:4.35});
-  loadRanks();
+  Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
 });
 
 
 document.querySelector('#satelliteToggle').addEventListener('click',()=>{
-  satelliteVisible=!satelliteVisible;
-  const button=document.querySelector('#satelliteToggle');
-  button.textContent=satelliteVisible?'Satellite':'Street';
-  button.classList.toggle('active-toggle',satelliteVisible);
-  button.setAttribute('aria-pressed',String(satelliteVisible));
-  if(map.getLayer('satellite-imagery')){
-    map.setLayoutProperty('satellite-imagery','visibility',satelliteVisible?'visible':'none');
+  setSatelliteMode(!satelliteVisible);
+});
+
+document.querySelector('#coverageGapToggle').addEventListener('click',()=>{
+  coverageGapsVisible=!coverageGapsVisible;
+  const button=document.querySelector('#coverageGapToggle');
+  button.textContent=coverageGapsVisible?'Coverage gaps on':'Coverage gaps off';
+  button.classList.toggle('active-toggle',coverageGapsVisible);
+  button.setAttribute('aria-pressed',String(coverageGapsVisible));
+  if(map.getLayer('coverage-gap-points')){
+    map.setLayoutProperty('coverage-gap-points','visibility',coverageGapsVisible?'visible':'none');
   }
-  document.querySelector('#basemapStatus').textContent=satelliteVisible
-    ? 'Satellite imagery — verify rank marker against visible facility'
-    : 'Street basemap';
+  loadCoverageGaps();
+});
+
+document.querySelector('#associationToggle').addEventListener('click',()=>{
+  associationsVisible=!associationsVisible;
+  const button=document.querySelector('#associationToggle');
+  button.textContent=associationsVisible?'Associations on':'Associations off';
+  button.classList.toggle('active-toggle',associationsVisible);
+  button.setAttribute('aria-pressed',String(associationsVisible));
+  if(map.getLayer('association-points')){
+    map.setLayoutProperty('association-points','visibility',associationsVisible?'visible':'none');
+  }
+  if(map.getLayer('association-labels')){
+    map.setLayoutProperty('association-labels','visibility',associationsVisible?'visible':'none');
+  }
+  loadAssociations();
 });
 
 document.querySelector('#routeToggle').addEventListener('click',()=>{
@@ -717,6 +1369,6 @@ document.querySelector('#nltisEvidenceToggle').addEventListener('click',()=>{
 document.querySelector('#capeTownRoutes').addEventListener('click',()=>{
   document.querySelector('#province').value='Western Cape';
   map.fitBounds([[18.28,-34.18],[18.98,-33.72]],{padding:40,duration:800});
-  loadRanks();
+  Promise.all([loadRanks(),loadAssociations(),loadCoverage()]);
   setTimeout(()=>Promise.all([loadRoutes(),loadEndpointEvidence(),loadSourceRouteGeometries(),loadRouteCandidates()]),850);
 });

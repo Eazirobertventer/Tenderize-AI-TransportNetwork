@@ -5,10 +5,14 @@
   "type": "module",
   "scripts": {
     "extract": "node extract.mjs",
-    "test": "node test-parser.mjs"
+    "test": "node test-parser.mjs",
+    "national8": "node tn7-national-8-corpus.mjs",
+    "test:national8": "node test-national-8-framework.mjs"
   },
   "dependencies": {
-    "pdf-parse": "1.1.1"
+    "pdf-parse": "1.1.1",
+    "pg": "8.16.3",
+    "@aws-sdk/client-s3": "3.922.0"
   },
   "engines": {
     "node": ">=22"
