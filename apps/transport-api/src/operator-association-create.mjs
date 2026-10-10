@@ -149,3 +149,111 @@ export async function insertCanonicalAssociation(client,snapshot){
   );
   return result.rows[0];
 }
+
+
+export async function validateAssociationCreationSourceLineage(client,{
+  proposalId,
+  canonicalName,
+  proposalEvidence,
+  approvalEvidence
+}){
+  const rows=approvalEvidence?.sourceLineage;
+  if(!Array.isArray(rows) || rows.length<2){
+    return {ok:false,error:'association_creation_source_lineage_required'};
+  }
+
+  const proposalUrls=new Set(proposalEvidence?.recurrence?.sourceUrls||[]);
+  const proposalDocs=new Set(proposalEvidence?.recurrence?.documentIds||[]);
+  const proposalDates=new Set(proposalEvidence?.recurrence?.distinctEvidenceDates||[]);
+  const distinctDates=new Set();
+  const normalizedName=await normalizeIdentity(client,canonicalName);
+  const resolved=[];
+
+  for(const row of rows){
+    const sourceKey=String(row?.sourceKey||'').trim();
+    const documentId=String(row?.documentId||'').trim();
+    const documentDate=String(row?.documentDate||'').trim();
+    const sourceUrl=String(row?.sourceUrl||'').trim();
+    const checksum=String(row?.checksum||'').trim().toLowerCase();
+
+    if(!sourceKey || !documentId || !documentDate || !sourceUrl || !/^[0-9a-f]{64}$/.test(checksum)){
+      return {ok:false,error:'association_creation_source_lineage_invalid'};
+    }
+    if(!proposalUrls.has(sourceUrl) || !proposalDocs.has(documentId) || !proposalDates.has(documentDate)){
+      return {ok:false,error:'association_creation_source_lineage_proposal_mismatch'};
+    }
+
+    const source=(await client.query(
+      `SELECT id::text,source_key,source_name,authority,source_class::text,source_url
+         FROM source_registry
+         WHERE source_key=$1
+         LIMIT 1`,
+      [sourceKey]
+    )).rows[0];
+    if(!source){
+      return {ok:false,error:'association_creation_source_registry_missing',sourceKey};
+    }
+
+    distinctDates.add(documentDate);
+    resolved.push({
+      ...row,
+      sourceRegistryId:source.id,
+      sourceKey,
+      documentId,
+      documentDate,
+      sourceUrl,
+      checksum,
+      normalizedAssociationName:normalizedName,
+      externalRecordId:documentId+':association:'+normalizedName
+    });
+  }
+
+  if(distinctDates.size<2){
+    return {ok:false,error:'association_creation_source_lineage_recurrence_required'};
+  }
+
+  return {ok:true,lineage:resolved};
+}
+
+export async function insertAssociationCreationSourceRecords(client,{
+  association,
+  proposalId,
+  lineage
+}){
+  const records=[];
+  for(const row of lineage){
+    const result=await client.query(
+      `INSERT INTO source_record (
+         source_id,entity_type,entity_id,external_record_id,source_payload,
+         source_retrieved_at,source_last_checked_at,checksum
+       ) VALUES (
+         $1::uuid,'taxi_association',$2::uuid,$3,$4::jsonb,now(),now(),$5
+       )
+       ON CONFLICT (source_id,entity_type,external_record_id)
+       DO UPDATE SET
+         entity_id=EXCLUDED.entity_id,
+         source_payload=EXCLUDED.source_payload,
+         source_last_checked_at=now(),
+         checksum=EXCLUDED.checksum
+       RETURNING id::text,source_id::text,entity_id::text,external_record_id,checksum`,
+      [
+        row.sourceRegistryId,
+        association.id,
+        row.externalRecordId,
+        JSON.stringify({
+          gate:'TN7-NATIONAL-16',
+          proposalId,
+          documentId:row.documentId,
+          documentDate:row.documentDate,
+          sourceUrl:row.sourceUrl,
+          authority:row.authority||null,
+          retrievalMirror:row.retrievalMirror||null,
+          associationLabel:association.canonical_name
+        }),
+        row.checksum
+      ]
+    );
+    records.push(result.rows[0]);
+  }
+  return records;
+}
