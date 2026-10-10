@@ -1,4 +1,4 @@
-const state={token:sessionStorage.getItem('tn.operator.token')||'',data:null,proposal:null};
+const state={token:sessionStorage.getItem('tn.operator.token')||'',data:null,proposal:null,recovery:null};
 
 const q=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -26,6 +26,57 @@ function setConnected(ok,message){
 }
 function pill(value){return '<span class="pill '+esc(value)+'">'+esc(value)+'</span>'}
 function empty(text){return '<div class="empty">'+esc(text)+'</div>'}
+
+function renderRecovery(){
+  const r=state.recovery;
+  if(!r) return;
+  const source=r.sourceRecovery||{};
+  const target=r.targetRecovery||{};
+  const unlock=r.unlockPlan||{};
+  const s=source.summary||{};
+  const t=target.summary||{};
+  const u=unlock.summary||{};
+  q('#recoveryRoutes').textContent=s.documentaryRouteIdentitiesRecovered??0;
+  q('#recoveryGeometryReady').textContent=s.routeCandidatesCreationReady??0;
+  q('#recoveryRanks').textContent=s.missingRankSourceCandidates??0;
+  q('#recoveryUnlocks').textContent=Number(t.adj5ReadyAfterRecovery||0)+Number(t.adj6ReadyAfterRecovery||0)+Number(u.rankAdj5Ready||0)+Number(u.routeAdj6Ready||0);
+
+  q('#rankRecoveryList').innerHTML=(source.rankCandidates||[]).map(item=>{
+    const alias=item.aliasReview;
+    const detail=alias
+      ? 'Alias review: '+esc(alias.targetCanonicalName)+' → '+esc(alias.alias)
+      : esc(item.nextAction||'Evidence recovery required');
+    const geo=item.latitude!=null&&item.longitude!=null
+      ? Number(item.latitude).toFixed(5)+', '+Number(item.longitude).toFixed(5)
+      : 'location pending';
+    return `<div class="row">
+      <div><strong>${esc(item.canonicalNameCandidate)}</strong><div class="meta">${esc(item.associationLabel)} • ${geo}</div></div>
+      ${pill(item.state)}
+      <p>${detail} • ${Number(item.supportingEvidenceRows||0)} supporting evidence row(s)</p>
+    </div>`;
+  }).join('') || empty('No rank-source recovery cases.');
+
+  q('#routeRecoveryList').innerHTML=(source.routeRecoveries||[]).map(item=>`
+    <div class="row">
+      <div>
+        <strong>${esc(item.cleanRouteCode||item.observedRouteCode)}</strong>
+        <div class="meta">${esc(item.association?.name||item.associationLabel||'Unscoped')} • observed ${esc(item.observedRouteCode)}</div>
+      </div>
+      ${pill(item.state)}
+      <p>${esc(item.nextAction||'source recovery required')} • geometry ${item.routeCandidateCreationReady?'ready':'missing'}</p>
+    </div>`
+  ).join('') || empty('No documentary route recovery cases.');
+}
+
+async function loadRecovery(){
+  const [sourceRecovery,targetRecovery,unlockPlan]=await Promise.all([
+    fetch('/recovery-api/source-recovery',{cache:'no-store'}).then(async r=>{if(!r.ok) throw new Error('source recovery '+r.status);return r.json()}),
+    fetch('/recovery-api/target-recovery',{cache:'no-store'}).then(async r=>{if(!r.ok) throw new Error('target recovery '+r.status);return r.json()}),
+    fetch('/recovery-api/unlock-plan',{cache:'no-store'}).then(async r=>{if(!r.ok) throw new Error('unlock plan '+r.status);return r.json()})
+  ]);
+  state.recovery={sourceRecovery,targetRecovery,unlockPlan};
+  renderRecovery();
+}
 
 function render(){
   const d=state.data;if(!d) return;
@@ -201,9 +252,11 @@ async function load(){
   setConnected(false,'Connecting…');
   try{
     const d=await api('/api/v1/operator/workbench?limit=120');
-    state.data=d;render();setConnected(true,'Connected');
+    state.data=d;render();
+    try{await loadRecovery()}catch{}
+    setConnected(true,'Connected');
   }catch(e){
-    state.data=null;setConnected(false,e.payload?.error||'Connection failed');
+    state.data=null;state.recovery=null;setConnected(false,e.payload?.error||'Connection failed');
   }
 }
 q('#connect').onclick=()=>{
@@ -212,7 +265,7 @@ q('#connect').onclick=()=>{
   load();
 };
 q('#disconnect').onclick=()=>{
-  state.token='';state.data=null;sessionStorage.removeItem('tn.operator.token');q('#token').value='';setConnected(false,'Disconnected');
+  state.token='';state.data=null;state.recovery=null;sessionStorage.removeItem('tn.operator.token');q('#token').value='';setConnected(false,'Disconnected');
 };
 q('#refresh').onclick=load;
 q('#issueFilter').onchange=render;
