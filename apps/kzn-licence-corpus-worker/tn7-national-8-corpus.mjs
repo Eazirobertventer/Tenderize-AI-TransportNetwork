@@ -181,6 +181,7 @@ try{
             contentType:fetched.contentType||'application/pdf',
             bytes:fetched.bytes,
             authority:document.authority,
+            retrievalMirror:document.retrievalMirror||null,
             sourceAdapter:document.adapterId,
             documentId:document.documentId
           });
