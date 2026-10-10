@@ -73,6 +73,41 @@ export async function resolveAssociationIdentity(pool,{
   if(!requested) return {status:'invalid',reason:'association_label_required'};
 
   const exactKey=basicNormalize(requested);
+  const placeholderLabels=new Set([
+    'not available',
+    'n a',
+    'na',
+    'unknown',
+    'none',
+    'not applicable',
+    'unavailable'
+  ]);
+  if(placeholderLabels.has(exactKey)){
+    return {
+      mode:'national_association_identity_resolution',
+      requestedIdentity:{label:requested,province,region,exactKey,variantKey:null},
+      status:'invalid',
+      reason:'association_identity_placeholder',
+      canonicalAssociation:null,
+      matches:{exact:[],deterministicVariant:[]},
+      supportingEvidence:{
+        authoritativeDocumentCount:0,
+        distinctEvidenceDates:[],
+        documents:[],
+        rankAssociationCandidates:[],
+        linkedRouteCandidates:[]
+      },
+      policy:{
+        fuzzyMatching:false,
+        deterministicVariantExpansionOnly:true,
+        automaticCanonicalCreation:false,
+        automaticAliasPromotion:false,
+        canonicalMutation:false
+      },
+      recommendedAction:'manual_identity_review'
+    };
+  }
+
   const variantKey=deterministicVariantNormalize(requested);
 
   const associations=await pool.query(
