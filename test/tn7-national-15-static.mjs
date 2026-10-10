@@ -17,7 +17,7 @@ const checks=[
  ['proposals only policy explicit',batch.includes('proposalsOnly:true')],
  ['requires two person control',batch.includes('twoPersonControlRequired:true')],
  ['verifies target entity id stays null',batch.includes('row.proposal?.targetEntityId===null')],
- ['verifies pending proposal status',batch.includes("row.proposal?.status==='pending'")],
+ ['verifies proposed proposal status',batch.includes("row.proposal?.status==='proposed'")],
  ['verifies canonical inventory unchanged',batch.includes('canonicalInventoryUnchanged')],
  ['schema apply explicitly gated',schemaApply.includes("NATIONAL15_APPLY_SCHEMA!=='true'")],
  ['schema apply uses reviewed migration 005',schemaApply.includes('005_operator_audit.sql')],
