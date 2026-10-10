@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const batch=fs.readFileSync('apps/kzn-licence-corpus-worker/tn7-national-17-approval-batch.mjs','utf8');
 const proposals=fs.readFileSync('apps/transport-api/src/operator-proposals.mjs','utf8');
 const create=fs.readFileSync('apps/transport-api/src/operator-association-create.mjs','utf8');
+const associationApproval=proposals.slice(proposals.indexOf('if(isTaxiAssociationCreateProposal)'));
 
 const checks=[
  ['targets exactly nine proposals',batch.includes("proposals.length!==9")],
@@ -13,7 +14,7 @@ const checks=[
  ['loads cached evidence checksums',batch.includes('loadCachedEvidenceArtifact')],
  ['requires 64-char sha256',batch.includes('/^[0-9a-f]{64}$/')],
  ['approval evidence includes source lineage',batch.includes('sourceLineage')],
- ['approval path validates source lineage before insert',proposals.indexOf('validateAssociationCreationSourceLineage')<proposals.indexOf('insertCanonicalAssociation')],
+ ['approval path validates source lineage before insert',associationApproval.indexOf('validateAssociationCreationSourceLineage')>=0 && associationApproval.indexOf('validateAssociationCreationSourceLineage')<associationApproval.indexOf('insertCanonicalAssociation')],
  ['approval path writes source records',proposals.includes('insertAssociationCreationSourceRecords')],
  ['source records are returned in mutation result',proposals.includes('sourceRecordIds')],
  ['association source records use taxi_association entity type',create.includes("'taxi_association'")],
