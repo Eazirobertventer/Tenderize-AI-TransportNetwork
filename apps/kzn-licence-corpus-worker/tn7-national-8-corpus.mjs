@@ -17,6 +17,7 @@ import {
   storeEvidenceArtifact
 } from './artifact-cache.mjs';
 import { buildEvidenceBacklog } from './evidence-backlog.mjs';
+import { resolveMultiDateAssociationCases } from './kzn-multi-date-identity-resolution.mjs';
 
 const require=createRequire(import.meta.url);
 const pdf=require('pdf-parse');
@@ -316,6 +317,7 @@ try{
 
   const boundedQueue=queue.slice(0,manifest.maximumQueueItems||1000);
   const backlog=buildEvidenceBacklog(boundedQueue);
+  const identityResolution=await resolveMultiDateAssociationCases(client,backlog);
 
   const inventoryAfter=(await client.query(`
     SELECT
@@ -396,7 +398,8 @@ try{
       limit:manifest.maximumQueueItems||1000,
       items:boundedQueue
     },
-    backlog
+    backlog,
+    identityResolution
   };
 
   console.log(JSON.stringify({
@@ -437,6 +440,9 @@ try{
           limit,
           items:filtered.slice(offset,offset+limit)
         }));
+      }
+      if(url.pathname==='/identity-resolution'){
+        return res.end(JSON.stringify(identityResolution));
       }
       if(url.pathname==='/documents'){
         const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||100),1),250);
