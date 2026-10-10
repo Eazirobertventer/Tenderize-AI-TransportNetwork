@@ -67,6 +67,7 @@ export async function buildNational18UnlockPlan(db,queueItems=[]){
   const rankUnlocks=[];
   const routeUnlocks=[];
   const blocked=[];
+  const notActionable=[];
 
   for(const item of targetedRows){
     const association=item.associationMatches[0];
@@ -207,7 +208,26 @@ export async function buildNational18UnlockPlan(db,queueItems=[]){
           automaticApproval:false
         });
       }
+      continue;
     }
+
+    let reason='no_deterministic_rank_or_route_target';
+    if((item.routeCandidateMatches||[]).length>1) reason='multiple_route_candidate_matches';
+    else if((item.routeIdentifiers||[]).length && !(item.routeCandidateMatches||[]).length) reason='route_identifier_not_in_candidate_corpus';
+    else if((item.rankMatches||[]).length>1) reason='multiple_rank_matches';
+    else if((item.rankMentions||[]).length && !(item.rankMatches||[]).length) reason='rank_mention_not_exactly_mapped';
+
+    notActionable.push({
+      evidenceId:item.evidenceId,
+      association,
+      routeIdentifiers:item.routeIdentifiers||[],
+      rankMentions:item.rankMentions||[],
+      routeCandidateMatchCount:(item.routeCandidateMatches||[]).length,
+      rankMatchCount:(item.rankMatches||[]).length,
+      state:'evidence_target_recovery_required',
+      reason,
+      automaticApproval:false
+    });
   }
 
   const uniqueRankUnlocks=dedupe(rankUnlocks,item=>
@@ -219,8 +239,9 @@ export async function buildNational18UnlockPlan(db,queueItems=[]){
   const uniqueBlocked=dedupe(blocked,item=>
     [item.reason,item.candidateId||item.rank?.id||item.evidenceId,item.association.id].join(':')
   );
+  const uniqueNotActionable=dedupe(notActionable,item=>item.evidenceId);
 
-  const states=[...uniqueRankUnlocks,...uniqueRouteUnlocks,...uniqueBlocked].reduce((acc,item)=>{
+  const states=[...uniqueRankUnlocks,...uniqueRouteUnlocks,...uniqueBlocked,...uniqueNotActionable].reduce((acc,item)=>{
     acc[item.state]=(acc[item.state]||0)+1;
     return acc;
   },{});
@@ -236,6 +257,7 @@ export async function buildNational18UnlockPlan(db,queueItems=[]){
       routeAdj6Ready:uniqueRouteUnlocks.filter(x=>x.state==='adj6_proposal_ready').length,
       routeAdj5PrerequisitesReady:uniqueRouteUnlocks.filter(x=>x.state==='adj5_prerequisites_ready').length,
       blocked:uniqueBlocked.length,
+      evidenceTargetRecoveryRequired:uniqueNotActionable.length,
       states
     },
     policy:{
@@ -248,6 +270,7 @@ export async function buildNational18UnlockPlan(db,queueItems=[]){
     },
     rankUnlocks:uniqueRankUnlocks,
     routeUnlocks:uniqueRouteUnlocks,
-    blocked:uniqueBlocked
+    blocked:uniqueBlocked,
+    notActionable:uniqueNotActionable
   };
 }
