@@ -6,6 +6,22 @@
   "maximumQueueItems": 1000,
   "adapters": [
     {
+      "id": "uthukela-kzn-provincial-gazette-2605",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceClass": "provincial_transport",
+      "adapterType": "static_documents",
+      "maxDocuments": 10,
+      "retrievalMirror": "uThukela District Municipality",
+      "documents": [
+        {
+          "documentId": "KZN-PROVINCIAL-GAZETTE-2605-2023-10-12",
+          "date": "2023-10-12",
+          "url": "https://www.uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf"
+        }
+      ]
+    },
+    {
       "id": "kzn-dot-operating-licence-2025-official",
       "province": "KwaZulu-Natal",
       "authority": "KwaZulu-Natal Department of Transport / Provincial Regulatory Entity",
