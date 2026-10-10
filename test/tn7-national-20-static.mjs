@@ -19,6 +19,8 @@ const checks=[
  ['planner never marks documentary routes candidate-ready',planner.includes('routeCandidateCreationReady:false')],
  ['planner distinguishes geometry recovery requirement',planner.includes("nextAction:'source_geometry_recovery_required'")],
  ['planner distinguishes location-pending rank',planner.includes("state='documented_missing_rank_location_pending'")],
+ ['planner supports controlled rank alias review',planner.includes("state='controlled_rank_alias_review_ready'") && planner.includes('findAliasCollision')],
+ ['rank alias review creates no proposal',planner.includes('proposalCreated:false')],
  ['fuzzy matching disabled',planner.includes('fuzzyMatching:false')],
  ['automatic proposal creation disabled',planner.includes('automaticProposalCreation:false')],
  ['canonical mutation disabled',planner.includes('canonicalMutation:false')],
