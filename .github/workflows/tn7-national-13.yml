@@ -1,0 +1,24 @@
+name: TN7 NATIONAL-13 KZN Multi-Date Recurrence
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/tn7-national-8-sources.json'
+      - 'apps/kzn-licence-corpus-worker/evidence-backlog.mjs'
+      - 'test/tn7-national-13-static.mjs'
+      - '.github/workflows/tn7-national-13.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national13-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: NATIONAL-13 recurrence safety gate
+        run: node test/tn7-national-13-static.mjs
