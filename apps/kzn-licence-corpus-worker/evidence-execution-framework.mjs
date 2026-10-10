@@ -80,6 +80,7 @@ export async function discoverAdapterDocuments(adapter){
         province:adapter.province,
         authority:adapter.authority,
         sourceClass:adapter.sourceClass,
+        retrievalMirror:adapter.retrievalMirror||null,
         adapterId:adapter.id
       }));
     return {
