@@ -62,6 +62,15 @@ try{
   const selectedAdapters=adapterAllowlist.size
     ? manifest.adapters.filter(adapter=>adapterAllowlist.has(adapter.id))
     : manifest.adapters;
+  const inventoryBefore=(await client.query(`
+    SELECT
+      (SELECT count(*)::int FROM taxi_rank) AS ranks,
+      (SELECT count(*)::int FROM taxi_association) AS associations,
+      (SELECT count(*)::int FROM taxi_route) AS routes,
+      (SELECT count(*)::int FROM rank_association_candidate) AS rank_association_candidates,
+      (SELECT count(*)::int FROM route_candidate) AS route_candidates
+  `)).rows[0];
+
   const discoveries=await mapLimit(selectedAdapters,4,discoverAdapterDocuments);
   const documents=dedupeDocuments(discoveries,{maxDocuments:manifest.maximumDocumentsPerRun||500});
 
@@ -305,6 +314,17 @@ try{
   );
 
   const boundedQueue=queue.slice(0,manifest.maximumQueueItems||1000);
+
+  const inventoryAfter=(await client.query(`
+    SELECT
+      (SELECT count(*)::int FROM taxi_rank) AS ranks,
+      (SELECT count(*)::int FROM taxi_association) AS associations,
+      (SELECT count(*)::int FROM taxi_route) AS routes,
+      (SELECT count(*)::int FROM rank_association_candidate) AS rank_association_candidates,
+      (SELECT count(*)::int FROM route_candidate) AS route_candidates
+  `)).rows[0];
+  const canonicalInventoryUnchanged=JSON.stringify(inventoryBefore)===JSON.stringify(inventoryAfter);
+
   await client.query('ROLLBACK');
 
   const result={
@@ -313,6 +333,7 @@ try{
     databaseWrites:false,
     canonicalMutation:false,
     automaticPromotion:false,
+    canonicalInventory:{before:inventoryBefore,after:inventoryAfter,unchanged:canonicalInventoryUnchanged},
     cache:{
       enabled:evidenceCacheEnabled(),
       cacheOnly,
