@@ -18,6 +18,7 @@ import {
 } from './artifact-cache.mjs';
 import { buildEvidenceBacklog } from './evidence-backlog.mjs';
 import { resolveMultiDateAssociationCases } from './kzn-multi-date-identity-resolution.mjs';
+import { buildNational18UnlockPlan } from './kzn-post-canonical-unlock.mjs';
 
 const require=createRequire(import.meta.url);
 const pdf=require('pdf-parse');
@@ -318,6 +319,7 @@ try{
   const boundedQueue=queue.slice(0,manifest.maximumQueueItems||1000);
   const backlog=buildEvidenceBacklog(boundedQueue);
   const identityResolution=await resolveMultiDateAssociationCases(client,backlog);
+  const unlockPlan=await buildNational18UnlockPlan(client,boundedQueue);
 
   const inventoryAfter=(await client.query(`
     SELECT
@@ -399,7 +401,8 @@ try{
       items:boundedQueue
     },
     backlog,
-    identityResolution
+    identityResolution,
+    unlockPlan
   };
 
   console.log(JSON.stringify({
@@ -443,6 +446,9 @@ try{
       }
       if(url.pathname==='/identity-resolution'){
         return res.end(JSON.stringify(identityResolution));
+      }
+      if(url.pathname==='/unlock-plan'){
+        return res.end(JSON.stringify(unlockPlan));
       }
       if(url.pathname==='/documents'){
         const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||100),1),250);
