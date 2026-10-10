@@ -16,6 +16,7 @@ import {
   loadCachedEvidenceArtifact,
   storeEvidenceArtifact
 } from './artifact-cache.mjs';
+import { buildEvidenceBacklog } from './evidence-backlog.mjs';
 
 const require=createRequire(import.meta.url);
 const pdf=require('pdf-parse');
@@ -314,6 +315,7 @@ try{
   );
 
   const boundedQueue=queue.slice(0,manifest.maximumQueueItems||1000);
+  const backlog=buildEvidenceBacklog(boundedQueue);
 
   const inventoryAfter=(await client.query(`
     SELECT
@@ -393,7 +395,8 @@ try{
       returned:boundedQueue.length,
       limit:manifest.maximumQueueItems||1000,
       items:boundedQueue
-    }
+    },
+    backlog
   };
 
   console.log(JSON.stringify({
@@ -415,6 +418,25 @@ try{
         const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||100),1),250);
         const offset=Math.max(Number(url.searchParams.get('offset')||0),0);
         return res.end(JSON.stringify({total:result.queue.total,offset,limit,items:boundedQueue.slice(offset,offset+limit)}));
+      }
+      if(url.pathname==='/backlog'){
+        const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||100),1),250);
+        const offset=Math.max(Number(url.searchParams.get('offset')||0),0);
+        const priority=url.searchParams.get('priority');
+        const state=url.searchParams.get('state');
+        const filtered=backlog.items.filter(item=>
+          (!priority || item.priority.band===priority) &&
+          (!state || item.nextAction.state===state)
+        );
+        return res.end(JSON.stringify({
+          mode:backlog.mode,
+          policy:backlog.policy,
+          summary:backlog.summary,
+          total:filtered.length,
+          offset,
+          limit,
+          items:filtered.slice(offset,offset+limit)
+        }));
       }
       if(url.pathname==='/documents'){
         const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||100),1),250);
