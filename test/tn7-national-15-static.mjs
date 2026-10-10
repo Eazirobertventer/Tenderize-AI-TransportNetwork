@@ -24,6 +24,7 @@ const checks=[
  ['schema apply uses reviewed migration 007',schemaApply.includes('007_two_person_decision_proposals.sql')],
  ['schema apply uses reviewed migration 008',schemaApply.includes('008_transport_entity_aliases.sql')],
  ['schema apply uses reviewed migration 013',schemaApply.includes('013_controlled_association_creation.sql')],
+ ['schema apply includes audit sequence migration 014',schemaApply.includes('014_operator_audit_event_sequence.sql')],
  ['schema apply verifies canonical inventory unchanged',schemaApply.includes('canonicalInventoryUnchanged')]
 ];
 
