@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 
 const batch=fs.readFileSync('apps/kzn-licence-corpus-worker/tn7-national-15-proposal-batch.mjs','utf8');
+const schemaApply=fs.readFileSync('apps/kzn-licence-corpus-worker/tn7-national-15-schema-apply.mjs','utf8');
 
 const checks=[
  ['uses existing controlled creation primitive',batch.includes('createTaxiAssociationCreateProposal')],
@@ -17,7 +18,13 @@ const checks=[
  ['requires two person control',batch.includes('twoPersonControlRequired:true')],
  ['verifies target entity id stays null',batch.includes('row.proposal?.targetEntityId===null')],
  ['verifies pending proposal status',batch.includes("row.proposal?.status==='pending'")],
- ['verifies canonical inventory unchanged',batch.includes('canonicalInventoryUnchanged')]
+ ['verifies canonical inventory unchanged',batch.includes('canonicalInventoryUnchanged')],
+ ['schema apply explicitly gated',schemaApply.includes("NATIONAL15_APPLY_SCHEMA!=='true'")],
+ ['schema apply uses reviewed migration 005',schemaApply.includes('005_operator_audit.sql')],
+ ['schema apply uses reviewed migration 007',schemaApply.includes('007_two_person_decision_proposals.sql')],
+ ['schema apply uses reviewed migration 008',schemaApply.includes('008_transport_entity_aliases.sql')],
+ ['schema apply uses reviewed migration 013',schemaApply.includes('013_controlled_association_creation.sql')],
+ ['schema apply verifies canonical inventory unchanged',schemaApply.includes('canonicalInventoryUnchanged')]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
