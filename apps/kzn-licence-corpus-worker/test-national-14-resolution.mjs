@@ -5,6 +5,9 @@ const queries=[];
 const db={
   async query(sql,args=[]){
     queries.push({sql,args});
+    if(sql.includes("to_regprocedure('normalize_transport_identity_name(text)')")){
+      return {rows:[{available:false}]};
+    }
     if(sql.includes('FROM taxi_association')){
       return {rows:[]};
     }
