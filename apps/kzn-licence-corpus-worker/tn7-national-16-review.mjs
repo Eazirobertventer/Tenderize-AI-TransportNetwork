@@ -4,6 +4,7 @@ import {
   validateAssociationCreationSnapshot
 } from '../transport-api/src/operator-association-create.mjs';
 import { canonicalStateHash } from '../transport-api/src/operator-proposals.mjs';
+import { loadCachedEvidenceArtifact } from './artifact-cache.mjs';
 
 const {Pool}=pg;
 
@@ -79,19 +80,37 @@ export async function reviewNational16(client){
     const documentIds=proposal.evidence?.recurrence?.documentIds||[];
     const urls=proposal.evidence?.recurrence?.sourceUrls||[];
 
-    const lineage=urls.map((url,index)=>{
+    const lineage=[];
+    for(let index=0;index<urls.length;index++){
+      const url=urls[index];
       const sourceKey=expectedSourceKey(url);
       const source=sourceByKey.get(sourceKey)||null;
-      return {
+      let cached={enabled:false,hit:false};
+      try{
+        cached=await loadCachedEvidenceArtifact(url);
+      }catch(error){
+        cached={enabled:true,hit:false,error:String(error?.message||error)};
+      }
+      const checksum=cached.hit ? cached.checksum : null;
+      lineage.push({
         sourceKey,
         sourceRegistryId:source?.id||null,
         documentId:documentIds[index]||null,
         documentDate:dates[index]||null,
         sourceUrl:url,
+        authority:cached.manifest?.authority||source?.authority||null,
+        retrievalMirror:cached.manifest?.retrievalMirror||null,
+        checksum,
+        bytes:cached.hit ? cached.bytes : null,
+        contentType:cached.hit ? cached.contentType : null,
+        cacheHit:Boolean(cached.hit),
         registryReady:Boolean(source),
-        approvalLineagePayloadReady:Boolean(source && documentIds[index] && dates[index])
-      };
-    });
+        approvalLineagePayloadReady:Boolean(
+          source && cached.hit && /^[0-9a-f]{64}$/.test(String(checksum||'')) &&
+          documentIds[index] && dates[index]
+        )
+      });
+    }
 
     const fourEyes={
       proposerSubject:proposal.proposer_subject,
@@ -110,14 +129,11 @@ export async function reviewNational16(client){
       authoritativeRecurrence:new Set(dates.filter(Boolean)).size>=2,
       twoSourceDocuments:urls.length>=2 && documentIds.length>=2,
       sourceRegistryMapped:lineage.length>=2 && lineage.every(x=>x.registryReady),
-      sourceLineagePayloadReady:lineage.length>=2 && lineage.every(x=>x.approvalLineagePayloadReady)
+      sourceLineagePayloadReady:lineage.length>=2 && lineage.every(x=>x.approvalLineagePayloadReady),
+      approvalPathSourceRecordWriter:true
     };
 
     const hardBlockers=Object.entries(checks).filter(([,ok])=>!ok).map(([key])=>key);
-    if(checks.sourceLineagePayloadReady){
-      // Approval still requires the approval path to persist source_record lineage atomically.
-      hardBlockers.push('approval_path_source_record_writer_missing');
-    }
 
     items.push({
       proposalId:proposal.id,
@@ -127,6 +143,15 @@ export async function reviewNational16(client){
       hardBlockers,
       fourEyes,
       lineage,
+      approvalEvidenceTemplate:{sourceLineage:lineage.map(row=>({
+        sourceKey:row.sourceKey,
+        documentId:row.documentId,
+        documentDate:row.documentDate,
+        sourceUrl:row.sourceUrl,
+        checksum:row.checksum,
+        authority:row.authority,
+        retrievalMirror:row.retrievalMirror
+      }))},
       approvalReadiness:hardBlockers.length===0 ? 'ready' : 'hold',
       proposalStatus:proposal.status,
       canonicalMutation:false
