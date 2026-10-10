@@ -109,6 +109,8 @@ try{
     addIndex(candidateIndex,normalizeEvidenceText(row.route_code),row);
   }
 
+  const cacheOnly=process.env.EVIDENCE_CACHE_ONLY==='true';
+
   const parsedDocuments=await mapLimit(documents,4,async document=>{
     let acquisition=null;
     let cacheState={enabled:evidenceCacheEnabled(),hit:false};
@@ -140,6 +142,16 @@ try{
           readError:String(error?.message||error)
         };
       }
+    }
+
+    if(!acquisition && cacheOnly){
+      return {
+        ...document,
+        ok:false,
+        error:'cache_miss_remote_disabled',
+        acquisitionSource:'cache_only',
+        cache:cacheState
+      };
     }
 
     if(!acquisition){
@@ -298,6 +310,7 @@ try{
     automaticPromotion:false,
     cache:{
       enabled:evidenceCacheEnabled(),
+      cacheOnly,
       hits:parsedDocuments.filter(x=>x.cache?.hit===true).length,
       remoteAcquisitions:parsedDocuments.filter(x=>x.acquisitionSource==='remote' && x.ok).length,
       stored:parsedDocuments.filter(x=>x.cache?.stored===true).length,
