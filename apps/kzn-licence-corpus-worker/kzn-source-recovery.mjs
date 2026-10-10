@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { normalizeAlias,findAliasCollision } from '../transport-api/src/operator-aliases.mjs';
 
 const recoveryEvidence=JSON.parse(
   await readFile(new URL('./tn7-national-20-source-recovery.json',import.meta.url),'utf8')
@@ -107,12 +108,45 @@ export async function buildNational20SourceRecoveryPlan(db,targetRecovery){
 
     let state='documented_missing_rank_source_candidate';
     let nextAction='controlled_rank_creation_review_required';
+    let aliasReview=null;
 
     if(candidate.locationStatus==='location_pending'){
       state='documented_missing_rank_location_pending';
       nextAction='rank_location_source_recovery_required';
     }
-    if(!collision.duplicateSafe){
+
+    const nearby=collision.nearbyCollisionReview||[];
+    const closeSingle=nearby.length===1 && Number(nearby[0].distance_m)<=100;
+
+    if(!collision.duplicateSafe && closeSingle && candidate.locationStatus==='documented_source_coordinate'){
+      const normalized=await normalizeAlias(db,candidate.canonicalNameCandidate);
+      if(normalized.ok){
+        const aliasCollision=await findAliasCollision(
+          db,
+          'taxi_rank',
+          nearby[0].id,
+          normalized.normalizedAlias
+        );
+        aliasReview={
+          entityType:'taxi_rank',
+          targetRankId:nearby[0].id,
+          targetCanonicalName:nearby[0].canonical_name,
+          alias:normalized.alias,
+          normalizedAlias:normalized.normalizedAlias,
+          existingAliasCollision:aliasCollision
+        };
+        if(!aliasCollision || aliasCollision.sameTarget){
+          state='controlled_rank_alias_review_ready';
+          nextAction='review_taxi_rank_alias_add_proposal';
+        }else{
+          state='rank_alias_collision_review_required';
+          nextAction='manual_rank_alias_collision_review';
+        }
+      }else{
+        state='rank_candidate_collision_review_required';
+        nextAction='manual_rank_collision_review';
+      }
+    }else if(!collision.duplicateSafe){
       state='rank_candidate_collision_review_required';
       nextAction='manual_rank_collision_review';
     }
@@ -122,10 +156,12 @@ export async function buildNational20SourceRecoveryPlan(db,targetRecovery){
       supportingEvidenceRows:uniqueEvidenceIds.length,
       supportingEvidenceIds:uniqueEvidenceIds,
       collision,
+      aliasReview,
       state,
       nextAction,
       automaticCanonicalCreation:false,
       automaticAliasCreation:false,
+      proposalCreated:false,
       canonicalMutation:false
     });
   }
@@ -151,7 +187,8 @@ export async function buildNational20SourceRecoveryPlan(db,targetRecovery){
       missingRankSourceCandidates:rankCandidates.length,
       rankCandidatesWithDocumentedCoordinates:rankCandidates.filter(x=>x.locationStatus==='documented_source_coordinate').length,
       rankCandidatesLocationPending:rankCandidates.filter(x=>x.locationStatus==='location_pending').length,
-      rankCandidatesCollisionReview:rankCandidates.filter(x=>!x.collision.duplicateSafe).length
+      rankCandidatesCollisionReview:rankCandidates.filter(x=>!x.collision.duplicateSafe).length,
+      rankAliasReviewReady:rankCandidates.filter(x=>x.state==='controlled_rank_alias_review_ready').length
     },
     sourceDiagnostics:{
       officialRouteGisFeatureCount:2024,
@@ -170,6 +207,7 @@ export async function buildNational20SourceRecoveryPlan(db,targetRecovery){
       automaticRouteCandidateCreation:false,
       automaticRankCreation:false,
       automaticProposalCreation:false,
+      controlledRankAliasReviewOnly:true,
       automaticApproval:false,
       canonicalMutation:false
     },
