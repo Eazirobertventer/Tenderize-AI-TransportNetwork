@@ -13,7 +13,8 @@ const checks=[
  ['self approval remains forbidden',review.includes('selfApprovalForbidden:true')],
  ['checks source registry mapping',review.includes('sourceRegistryMapped')],
  ['requires source lineage payload',review.includes('sourceLineagePayloadReady')],
- ['blocks missing approval source writer',review.includes('approval_path_source_record_writer_missing')],
+ ['requires cached checksum verification',review.includes('loadCachedEvidenceArtifact') && review.includes('checksum')],
+ ['requires approval path source writer',review.includes('approvalPathSourceRecordWriter:true')],
  ['does not approve',review.includes('noApproval:true')],
  ['does not mutate canonical state',review.includes('noCanonicalMutation:true')],
  ['verifies inventory unchanged',review.includes('canonicalInventory')]
