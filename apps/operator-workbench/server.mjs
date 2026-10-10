@@ -5,6 +5,7 @@ import { extname, join, normalize, resolve } from 'node:path';
 const port=Number(process.env.PORT||3000);
 const root=resolve(new URL('.',import.meta.url).pathname);
 const apiBase=(process.env.TRANSPORT_API_URL||'').replace(/\/$/,'');
+const recoveryBase=(process.env.RECOVERY_API_URL||'').replace(/\/$/,'');
 const enabled=process.env.OPERATOR_WORKBENCH_ENABLED==='true';
 
 const allowed=[
@@ -57,6 +58,24 @@ async function proxy(req,res,url){
   res.end(Buffer.from(await upstream.arrayBuffer()));
 }
 
+async function proxyRecovery(req,res,url){
+  if(!enabled) return json(res,503,{error:'operator_workbench_disabled'});
+  if(!recoveryBase) return json(res,503,{error:'recovery_api_not_configured'});
+  if(req.method!=='GET') return json(res,405,{error:'method_not_allowed'});
+  const path=url.pathname.replace(/^\/recovery-api/,'');
+  const allowedRecovery=new Set(['/unlock-plan','/target-recovery','/source-recovery']);
+  if(!allowedRecovery.has(path)) return json(res,404,{error:'not_found'});
+  const upstream=await fetch(recoveryBase+path,{
+    headers:{'user-agent':'TenderizeOperatorWorkbench/0.2'},
+    signal:AbortSignal.timeout(20000)
+  });
+  res.writeHead(upstream.status,{
+    'content-type':upstream.headers.get('content-type')||'application/json; charset=utf-8',
+    'cache-control':'no-store'
+  });
+  res.end(Buffer.from(await upstream.arrayBuffer()));
+}
+
 async function serveFile(path,res){
   const info=await stat(path);
   if(!info.isFile()) throw new Error('not_file');
@@ -67,8 +86,9 @@ async function serveFile(path,res){
 createServer(async(req,res)=>{
   try{
     const url=new URL(req.url||'/','http://localhost');
-    if(url.pathname==='/health') return json(res,200,{ok:true,service:'operator-workbench',enabled,apiConfigured:Boolean(apiBase)});
+    if(url.pathname==='/health') return json(res,200,{ok:true,service:'operator-workbench',enabled,apiConfigured:Boolean(apiBase),recoveryConfigured:Boolean(recoveryBase)});
     if(url.pathname.startsWith('/operator-api/')) return proxy(req,res,url);
+    if(url.pathname.startsWith('/recovery-api/')) return proxyRecovery(req,res,url);
     if(!enabled) return json(res,404,{error:'not_found'});
     let rel=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname);
     rel=normalize(rel).replace(/^([.][.][\/\\])+/,'');
