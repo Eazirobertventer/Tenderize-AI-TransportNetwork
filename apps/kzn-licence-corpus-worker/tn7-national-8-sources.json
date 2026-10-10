@@ -6,6 +6,22 @@
   "maximumQueueItems": 1000,
   "adapters": [
     {
+      "id": "lawlibrary-kzn-provincial-gazette-2780",
+      "province": "KwaZulu-Natal",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceClass": "provincial_transport",
+      "adapterType": "static_documents",
+      "maxDocuments": 10,
+      "retrievalMirror": "LawLibrary / Laws.Africa",
+      "documents": [
+        {
+          "documentId": "KZN-PROVINCIAL-GAZETTE-2780-2025-02-13",
+          "date": "2025-02-13",
+          "url": "https://media.lawlibrary.org.za/media/legislation/300650/source_file/de0df686f3f262c4/business-licensing-by-law-2024.pdf"
+        }
+      ]
+    },
+    {
       "id": "uthukela-kzn-provincial-gazette-2605",
       "province": "KwaZulu-Natal",
       "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
