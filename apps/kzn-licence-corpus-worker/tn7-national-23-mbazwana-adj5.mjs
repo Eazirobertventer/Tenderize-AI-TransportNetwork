@@ -4,6 +4,7 @@ import {
   validateRankAssociationSnapshot
 } from '../transport-api/src/operator-association-links.mjs';
 import { createRankAssociationAssignmentProposal } from '../transport-api/src/operator-proposals.mjs';
+import { appendOperatorAuditEvent } from '../transport-api/src/operator-audit.mjs';
 
 const {Pool}=pg;
 
@@ -93,23 +94,70 @@ export async function executeNational23({
   )).rows[0]||null;
 
   if(materialize && !candidate){
-    candidate=(await pool.query(
-      `INSERT INTO rank_association_candidate (
-         source_id,source_rank_external_id,taxi_rank_id,association_label,
-         normalized_label,verification_status,first_seen_at,last_seen_at
-       ) VALUES ($1::uuid,$2,$3::uuid,$4,$5,'documented',$6::timestamptz,$7::timestamptz)
-       ON CONFLICT (source_id,source_rank_external_id,normalized_label)
-       DO UPDATE SET
-         taxi_rank_id=EXCLUDED.taxi_rank_id,
-         association_label=EXCLUDED.association_label,
-         verification_status='documented',
-         first_seen_at=LEAST(rank_association_candidate.first_seen_at,EXCLUDED.first_seen_at),
-         last_seen_at=GREATEST(rank_association_candidate.last_seen_at,EXCLUDED.last_seen_at)
-       RETURNING id::text,source_id::text,source_rank_external_id,taxi_rank_id::text,
-                 association_label,normalized_label,verification_status::text,
-                 first_seen_at,last_seen_at`,
-      [state.source.id,SOURCE_RANK_EXTERNAL_ID,RANK_ID,ASSOCIATION_LABEL,normalized,FIRST_SEEN,LAST_SEEN]
-    )).rows[0];
+    const client=await pool.connect();
+    try{
+      await client.query('BEGIN');
+      const replay=(await client.query(
+        `SELECT id::text,source_id::text,source_rank_external_id,taxi_rank_id::text,
+                association_label,normalized_label,verification_status::text,
+                first_seen_at,last_seen_at
+           FROM rank_association_candidate
+           WHERE source_id=$1::uuid
+             AND source_rank_external_id=$2
+             AND normalized_label=$3
+           FOR UPDATE`,
+        [state.source.id,SOURCE_RANK_EXTERNAL_ID,normalized]
+      )).rows[0]||null;
+
+      if(replay){
+        candidate=replay;
+      }else{
+        candidate=(await client.query(
+          `INSERT INTO rank_association_candidate (
+             source_id,source_rank_external_id,taxi_rank_id,association_label,
+             normalized_label,verification_status,first_seen_at,last_seen_at
+           ) VALUES ($1::uuid,$2,$3::uuid,$4,$5,'documented',$6::timestamptz,$7::timestamptz)
+           RETURNING id::text,source_id::text,source_rank_external_id,taxi_rank_id::text,
+                     association_label,normalized_label,verification_status::text,
+                     first_seen_at,last_seen_at`,
+          [state.source.id,SOURCE_RANK_EXTERNAL_ID,RANK_ID,ASSOCIATION_LABEL,normalized,FIRST_SEEN,LAST_SEEN]
+        )).rows[0];
+
+        await appendOperatorAuditEvent(client,{
+          actor,
+          action:'rank_association_candidate.materialize',
+          entityType:'rank_association_candidate',
+          entityId:candidate.id,
+          requestId:'tn7-national23-mbazwana-candidate',
+          idempotencyKey:'tn7-national23-mbazwana-candidate',
+          beforeState:null,
+          afterState:candidate,
+          evidence:{
+            gate:'TN7-NATIONAL-23',
+            sourceGates:['TN7-NATIONAL-20','TN7-NATIONAL-21','TN7-NATIONAL-22'],
+            sourceDocuments:[
+              {documentId:'KZN-PROVINCIAL-GAZETTE-2605-2023-10-12',sourceKey:'kzn-gazette-uthukela-mirror'},
+              {documentId:'KZN-PROVINCIAL-GAZETTE-2780-2025-02-13',sourceKey:'kzn-gazette-lawlibrary-mirror'}
+            ],
+            rankAlias:{
+              targetRankId:RANK_ID,
+              alias:'Mbazwana Taxi Rank',
+              aliasProposalId:'057d2830-760d-4bb1-a02b-4f39190e2db6',
+              aliasAuditEventId:'b311f3a5-a22f-4564-bf52-66922e4884ab',
+              aliasRecordId:'1999ca79-6f12-4fdc-a9d5-5a690b29cdf9'
+            },
+            associationId:ASSOCIATION_ID
+          },
+          rationale:'TN7-NATIONAL-23: materialise one documented rank-association candidate after deterministic Mbazwana rank alias approval and independent Gazette recurrence.'
+        });
+      }
+      await client.query('COMMIT');
+    }catch(error){
+      try{await client.query('ROLLBACK')}catch{}
+      throw error;
+    }finally{
+      client.release();
+    }
   }
 
   let validation=null;
