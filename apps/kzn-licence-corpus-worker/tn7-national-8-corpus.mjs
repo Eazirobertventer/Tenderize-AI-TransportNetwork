@@ -22,6 +22,7 @@ import { buildNational18UnlockPlan } from './kzn-post-canonical-unlock.mjs';
 import { buildNational19RecoveryPlan } from './kzn-target-recovery.mjs';
 import { buildNational20SourceRecoveryPlan } from './kzn-source-recovery.mjs';
 import { buildNational25SourceAcquisitionPlan } from './kzn-national-25-source-acquisition.mjs';
+import { buildNational26AcquisitionPlan } from './kzn-national-26-control-point-road-acquisition.mjs';
 
 const require=createRequire(import.meta.url);
 const pdf=require('pdf-parse');
@@ -326,6 +327,7 @@ try{
   const targetRecovery=await buildNational19RecoveryPlan(client,unlockPlan);
   const sourceRecovery=await buildNational20SourceRecoveryPlan(client,targetRecovery);
   const national25SourceAcquisition=await buildNational25SourceAcquisitionPlan(client);
+  const national26AcquisitionPlan=await buildNational26AcquisitionPlan(client);
 
   const inventoryAfter=(await client.query(`
     SELECT
@@ -411,7 +413,8 @@ try{
     unlockPlan,
     targetRecovery,
     sourceRecovery,
-    national25SourceAcquisition
+    national25SourceAcquisition,
+    national26AcquisitionPlan
   };
 
   console.log(JSON.stringify({
@@ -467,6 +470,9 @@ try{
       }
       if(url.pathname==='/national25-source-acquisition'){
         return res.end(JSON.stringify(national25SourceAcquisition));
+      }
+      if(url.pathname==='/national26-acquisition-plan'){
+        return res.end(JSON.stringify(national26AcquisitionPlan));
       }
       if(url.pathname==='/documents'){
         const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||100),1),250);
