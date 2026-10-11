@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { authenticateOperatorRequest, operatorAuthCapabilities } from './operator-auth.mjs';
+import { handleMobileDiscoveryPublication } from './mobile-discovery-route.mjs';
 import { appendOperatorAuditEvent } from './operator-audit.mjs';
 import { loadOperatorWorkbench, operatorWorkbenchSchemaAvailable } from './operator-workbench.mjs';
 import { loadNationalCoverageModel, loadCoverageGapFeatures } from './national-coverage.mjs';
@@ -2043,6 +2044,10 @@ const server=createServer(async(req,res)=>{
   const method=req.method || 'GET';
 
   try{
+    if(url.pathname==='/api/v1/publication/mobility/find-taxi'){
+      return handleMobileDiscoveryPublication({req,res,url,pool});
+    }
+
     if(url.pathname==='/api/v1/operator/proposals/association-merges'){
       if(method!=='POST'){
         res.setHeader('allow','POST');

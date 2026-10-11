@@ -1,0 +1,57 @@
+name: TN7 PUBLISH-1 Mobile Discovery
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  publication-boundary:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: transport_network
+          POSTGRES_USER: transport
+          POSTGRES_PASSWORD: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U transport -d transport_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: transport
+      DATABASE_URL: postgresql://transport:transport@127.0.0.1:5432/transport_network
+      DISCOVERY_JWT_SECRET: ci-discovery-secret-000000000000000000000000000000
+      DISCOVERY_JWT_ISSUER: tenderize-iam
+      DISCOVERY_JWT_AUDIENCE: transport-network-discovery
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install transport API
+        working-directory: apps/transport-api
+        run: npm install --no-audit --no-fund
+      - name: Apply schema
+        run: |
+          for migration in db/*.sql; do
+            psql -h 127.0.0.1 -U transport -d transport_network -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - name: Publication static contract and auth
+        run: |
+          node test/tn7-publish-1-static.mjs
+          node test/tn7-publish-1-contract.mjs
+          node test/tn7-publish-1-auth.mjs
+      - name: Existing TN7 safety checks
+        run: |
+          node test/tn7-auth.mjs
+          node test/tn7-foundation.mjs
+          node test/tn7-operational-r2.mjs
+          node test/tn7-association-create-static.mjs
+      - name: Disposable PostGIS publication proof
+        run: node apps/transport-api/test/tn7-publish-1-publication.mjs
+      - name: Repository data validation
+        run: node scripts/validate-data.mjs
