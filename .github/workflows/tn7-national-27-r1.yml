@@ -1,0 +1,63 @@
+name: TN7 NATIONAL-27-R1 Source Recovery and Harness Repair
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-authoritative-feature-execution.mjs'
+      - 'test/tn7-national-27-r1-static.mjs'
+      - '.github/workflows/tn7-national-27-r1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national27-r1-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check apps/kzn-licence-corpus-worker/tn7-national-27-authoritative-feature-execution.mjs
+      - name: NATIONAL-27-R1 static safety gate
+        run: node test/tn7-national-27-r1-static.mjs
+
+  national27-r1-runtime:
+    runs-on: ubuntu-latest
+    needs: national27-r1-static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Execute strict-TLS primary and deterministic fallback
+        id: execute
+        shell: bash
+        run: |
+          set +e
+          node apps/kzn-licence-corpus-worker/tn7-national-27-authoritative-feature-execution.mjs 2>&1 | tee national27-r1-result.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Classify runtime outcome
+        shell: bash
+        run: |
+          if grep -q 'TN7_NATIONAL_27_AUTHORITATIVE_FEATURE_EXECUTION_PASS' national27-r1-result.log; then
+            echo "TN7_NATIONAL_27_R1_RUNTIME_PASS"
+            exit 0
+          fi
+          if grep -q 'TN7_NATIONAL_27_SOURCE_EXECUTION_BLOCKED' national27-r1-result.log; then
+            echo "TN7_NATIONAL_27_R1_RUNTIME_BLOCKED_BY_SOURCE"
+            exit 0
+          fi
+          echo "TN7_NATIONAL_27_R1_RUNTIME_UNCLASSIFIED"
+          exit 1
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tn7-national-27-r1-source-diagnostics
+          path: national27-r1-result.log
+          if-no-files-found: error
