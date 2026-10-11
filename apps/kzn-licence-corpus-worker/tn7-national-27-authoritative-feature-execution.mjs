@@ -1,5 +1,9 @@
-import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { readFile, unlink } from 'node:fs/promises';
+import { promisify } from 'node:util';
+
+const execFileAsync=promisify(execFile);
 
 const cfg=JSON.parse(await readFile(new URL('./tn7-national-26-control-point-road-acquisition.json',import.meta.url),'utf8'));
 const OFFICIAL_HOST='gis.kznpidh.gov.za';
@@ -15,8 +19,45 @@ function checksum(buffer){
   return createHash('sha256').update(buffer).digest('hex');
 }
 
+function errorChain(error){
+  const items=[];
+  let current=error;
+  for(let depth=0;current && depth<6;depth++){
+    items.push({
+      name:current.name||null,
+      code:current.code||current.errno||null,
+      message:String(current.message||current)
+    });
+    current=current.cause;
+  }
+  return items;
+}
+
+async function curlFallback(url){
+  assertOfficial(url);
+  const path='/tmp/tn7-national-27-'+createHash('sha256').update(url).digest('hex').slice(0,16)+'.bin';
+  try{
+    await execFileAsync('curl',[
+      '--fail','--silent','--show-error',
+      '--proto','=https',
+      '--max-time','45',
+      '--max-filesize',String(MAX_BYTES),
+      '--output',path,
+      url
+    ],{timeout:50000,maxBuffer:1024*1024});
+    const buffer=await readFile(path);
+    if(buffer.length>MAX_BYTES) throw new Error('feature_response_too_large');
+    return {ok:true,transport:'curl_strict_tls',bytes:buffer.length,checksum:checksum(buffer),contentType:null,buffer};
+  }catch(error){
+    return {ok:false,transport:'curl_strict_tls',error:String(error?.message||error),errorChain:errorChain(error)};
+  }finally{
+    await unlink(path).catch(()=>{});
+  }
+}
+
 async function boundedFetch(url){
   assertOfficial(url);
+  let primaryError=null;
   try{
     const response=await fetch(url,{
       headers:{'user-agent':'TenderizeTransportNetwork/2.0 TN7-NATIONAL-27 authoritative-feature-readonly'},
@@ -28,10 +69,19 @@ async function boundedFetch(url){
     if(declared>MAX_BYTES) throw new Error('feature_response_too_large');
     const buffer=Buffer.from(await response.arrayBuffer());
     if(buffer.length>MAX_BYTES) throw new Error('feature_response_too_large');
-    return {ok:true,bytes:buffer.length,checksum:checksum(buffer),contentType:response.headers.get('content-type')||null,buffer};
+    return {ok:true,transport:'node_fetch_strict_tls',bytes:buffer.length,checksum:checksum(buffer),contentType:response.headers.get('content-type')||null,buffer};
   }catch(error){
-    return {ok:false,error:String(error?.message||error)};
+    primaryError={error:String(error?.message||error),errorChain:errorChain(error)};
   }
+  const fallback=await curlFallback(url);
+  if(fallback.ok) return {...fallback,primaryError};
+  return {
+    ok:false,
+    error:'all_strict_tls_transports_failed',
+    primary:primaryError,
+    fallback:{error:fallback.error,errorChain:fallback.errorChain},
+    transportAttempts:['node_fetch_strict_tls','curl_strict_tls']
+  };
 }
 
 function queryUrl(layer,{where,outFields}){
@@ -135,7 +185,7 @@ async function main(){
     sourceHost:OFFICIAL_HOST,
     executedAt:new Date().toISOString(),
     gluckstadt:{
-      query:{ok:rank.ok,error:rank.error||null,checksum:rank.checksum||null,bytes:rank.bytes||null},
+      query:{ok:rank.ok,error:rank.error||null,checksum:rank.checksum||null,bytes:rank.bytes||null,transport:rank.transport||null,diagnostic:rank.primary||rank.fallback||null},
       authoritativePointCandidates:pointCandidates.map(f=>({
         properties:f.properties||{},
         longitude:f.geometry.coordinates[0],
@@ -148,7 +198,7 @@ async function main(){
     },
     mbazwana:{
       roadAcquisition:Object.fromEntries(Object.entries(roads).map(([road,x])=>[road,{
-        ok:x.ok,error:x.error||null,checksum:x.checksum||null,bytes:x.bytes||null,
+        ok:x.ok,error:x.error||null,checksum:x.checksum||null,bytes:x.bytes||null,transport:x.transport||null,diagnostic:x.primary||x.fallback||null,
         featureCount:x.features.length,
         geometryFeatureCount:x.features.filter(f=>coordsFromGeometry(f.geometry).length>1).length
       }])),
@@ -162,6 +212,7 @@ async function main(){
     },
     policy:{
       fixedOfficialHostOnly:true,
+      deterministicTransportFallback:true,
       tlsVerificationBypassed:false,
       redirectFollowed:false,
       sourceResponsesChecksummed:true,
