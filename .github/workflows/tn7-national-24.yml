@@ -1,0 +1,25 @@
+name: TN7 NATIONAL-24 KZN Mbazwana ADJ5 Approval
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/tn7-national-24-adj5-approval.mjs'
+      - 'test/tn7-national-24-static.mjs'
+      - '.github/workflows/tn7-national-24.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national24-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check apps/kzn-licence-corpus-worker/tn7-national-24-adj5-approval.mjs
+      - name: NATIONAL-24 static safety gate
+        run: node test/tn7-national-24-static.mjs
