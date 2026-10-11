@@ -22,7 +22,8 @@ const checks=[
   ['artifact always uploaded',wf.includes('if: always()')],
   ['canonical mutation remains disabled',src.includes('canonicalMutation:false')],
   ['automatic rank creation remains disabled',src.includes('automaticRankCreation:false')],
-  ['automatic route creation remains disabled',src.includes('automaticRouteCandidateCreation:false')]
+  ['automatic route creation remains disabled',src.includes('automaticRouteCandidateCreation:false')],
+  ['official source host remains provenance anchor',src.includes("sourceHost:OFFICIAL_HOST")]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
