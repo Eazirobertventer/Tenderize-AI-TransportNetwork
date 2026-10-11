@@ -21,6 +21,7 @@ import { resolveMultiDateAssociationCases } from './kzn-multi-date-identity-reso
 import { buildNational18UnlockPlan } from './kzn-post-canonical-unlock.mjs';
 import { buildNational19RecoveryPlan } from './kzn-target-recovery.mjs';
 import { buildNational20SourceRecoveryPlan } from './kzn-source-recovery.mjs';
+import { buildNational25SourceAcquisitionPlan } from './kzn-national-25-source-acquisition.mjs';
 
 const require=createRequire(import.meta.url);
 const pdf=require('pdf-parse');
@@ -324,6 +325,7 @@ try{
   const unlockPlan=await buildNational18UnlockPlan(client,boundedQueue);
   const targetRecovery=await buildNational19RecoveryPlan(client,unlockPlan);
   const sourceRecovery=await buildNational20SourceRecoveryPlan(client,targetRecovery);
+  const national25SourceAcquisition=await buildNational25SourceAcquisitionPlan(client);
 
   const inventoryAfter=(await client.query(`
     SELECT
@@ -408,7 +410,8 @@ try{
     identityResolution,
     unlockPlan,
     targetRecovery,
-    sourceRecovery
+    sourceRecovery,
+    national25SourceAcquisition
   };
 
   console.log(JSON.stringify({
@@ -461,6 +464,9 @@ try{
       }
       if(url.pathname==='/source-recovery'){
         return res.end(JSON.stringify(sourceRecovery));
+      }
+      if(url.pathname==='/national25-source-acquisition'){
+        return res.end(JSON.stringify(national25SourceAcquisition));
       }
       if(url.pathname==='/documents'){
         const limit=Math.min(Math.max(Number(url.searchParams.get('limit')||100),1),250);
