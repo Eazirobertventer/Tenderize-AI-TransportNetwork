@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'apps/kzn-licence-corpus-worker/tn7-national-24-adj5-approval.mjs'
+      - 'apps/kzn-licence-corpus-worker/kzn-target-recovery.mjs'
       - 'test/tn7-national-24-static.mjs'
       - '.github/workflows/tn7-national-24.yml'
   workflow_dispatch:
