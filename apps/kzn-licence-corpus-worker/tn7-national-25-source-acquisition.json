@@ -1,0 +1,108 @@
+{
+  "gate": "TN7-NATIONAL-25",
+  "province": "KwaZulu-Natal",
+  "mbazwana": {
+    "canonicalRankId": "acadacb7-ae3b-4581-a28b-ba445af280ba",
+    "canonicalRankName": "KRPUMD002",
+    "rankAlias": "Mbazwana Taxi Rank",
+    "associationId": "1561a588-e225-4af3-b5ca-12ba5e754f4a",
+    "associationName": "MBAZWANA TAXI ASSOCIATION",
+    "relationshipId": "af101b53-5e01-4e34-b8fa-4b7d1dd6da79",
+    "documentaryRoutes": [
+      {
+        "observedRouteCode": "222079A2100DX10053141",
+        "cleanRouteCode": "22079A2100DX10053141",
+        "documentaryLabel": "MBAZWANA TO MKHUZE",
+        "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/115.pdf",
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "narrative": "FROM MBAZWANA TAXI RANK TO MKHUZE TAXI RANK: turn right and turn left to D234 along to Mkhuze.",
+        "roadSequence": [
+          "D234"
+        ],
+        "authoritativeRouteGeometryRecovered": false
+      },
+      {
+        "observedRouteCode": "22KZPRERC2851126",
+        "cleanRouteCode": "KZPRERC2851126",
+        "documentaryLabel": "MBAZWANA TO MANZIMBOVU",
+        "sourceUrl": "https://www.uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf",
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "narrative": "FROM APPROVED TAXI RANK MBAZWANA INTO LEFT P748 THEN RIGHT TURN R22 ROAD THROUGH CIRCLE; TURN LEFT L2887 TO MANZIMBOVU STORE CIRCLE.",
+        "roadSequence": [
+          "P748",
+          "R22",
+          "L2887"
+        ],
+        "authoritativeRouteGeometryRecovered": false
+      }
+    ],
+    "officialRoadNetwork": {
+      "sourceUrl": "https://gis.kznpidh.gov.za/hosting/rest/services/Department_of_Transport__ff_MIL1/MapServer/5",
+      "parentServiceUrl": "https://gis.kznpidh.gov.za/hosting/rest/services/Department_of_Transport__ff_MIL1/MapServer",
+      "authority": "KwaZulu-Natal Office of the Premier / Department of Transport",
+      "layerName": "RoadNetwork2022",
+      "geometryType": "esriGeometryPolyline",
+      "fields": [
+        "ROADKEY",
+        "ROADNUM",
+        "CLASS",
+        "START_KM",
+        "END_KM",
+        "KM_LENGTH"
+      ],
+      "reconstructionRoads": [
+        "D234",
+        "P748",
+        "R22",
+        "L2887"
+      ],
+      "tlsStatusFromRailway": "certificate_expired",
+      "verifiedTlsAcquisitionAvailable": false
+    },
+    "reconstructionState": "road_centerline_inputs_identified_source_delivery_blocked",
+    "routeCandidateCreationReady": false
+  },
+  "gluckstadt": {
+    "canonicalNameCandidate": "Gluckstadt Taxi Rank",
+    "associationName": "GLUCKSTADT TAXI OWNERS ASSOCIATION",
+    "locationStatus": "location_pending",
+    "evidence": [
+      {
+        "sourceUrl": "https://www.zululand.gov.za/wp-content/uploads/media/Municipal-Affairs/Integrated-Development-Plan/2023-2024-Final/ZDM-IDP-2023-202420_05_2023-Final.pdf",
+        "authority": "Zululand District Municipality",
+        "evidenceType": "municipal_idp_rank_distribution_map",
+        "detail": "Official district taxi-rank distribution map labels GLUCKSTADT RANK."
+      },
+      {
+        "sourceUrl": "https://media.lawlibrary.org.za/media/legislation/300650/source_file/de0df686f3f262c4/business-licensing-by-law-2024.pdf",
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "evidenceType": "provincial_transport_gazette",
+        "detail": "KZPRERC2995480 starts at GLUCKSTADT TAXI RANK and proceeds via P219 to R34."
+      },
+      {
+        "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2021/55.pdf",
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "evidenceType": "provincial_transport_gazette",
+        "detail": "Repeated Gluckstadt route corpus references GLUCKSTADT START POINT / GLUCKSTADT RANK with P219 and R34."
+      }
+    ],
+    "roadContext": [
+      "P219",
+      "R34"
+    ],
+    "rankCoordinateRecovered": false,
+    "rankCreationReady": false,
+    "nearestCanonicalRankDistanceMetres": 3093.8
+  },
+  "policy": {
+    "sourceAcquisitionOnly": true,
+    "proseToGeometrySynthesis": false,
+    "geometryInvented": false,
+    "coordinatesInvented": false,
+    "automaticRankCreation": false,
+    "automaticRouteCandidateCreation": false,
+    "automaticProposalCreation": false,
+    "automaticApproval": false,
+    "canonicalMutation": false
+  }
+}
