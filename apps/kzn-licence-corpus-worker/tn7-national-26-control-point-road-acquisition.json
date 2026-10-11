@@ -1,0 +1,89 @@
+{
+  "gate": "TN7-NATIONAL-26",
+  "province": "KwaZulu-Natal",
+  "gluckstadt": {
+    "canonicalNameCandidate": "Gluckstadt Taxi Rank",
+    "associationName": "GLUCKSTADT TAXI OWNERS ASSOCIATION",
+    "recoveryState": "authoritative_feature_query_ready",
+    "controlPointRecovered": false,
+    "controlAreaRecovered": true,
+    "controlAreaBasis": [
+      {
+        "authority": "Zululand District Municipality",
+        "sourceUrl": "https://www.zululand.gov.za/wp-content/uploads/media/Municipal-Affairs/Integrated-Development-Plan/2024-2025-Draft/Draft-ZDM-IDP-2024-2025-02_04_2024.pdf",
+        "evidenceType": "official_rank_distribution_map",
+        "detail": "District IDP maps GLUCKSTADT RANK inside AbaQulusi."
+      },
+      {
+        "authority": "AbaQulusi Local Municipality",
+        "sourceUrl": "https://lg.treasury.gov.za/supportingdocs/KZN263/KZN263_IDP%20Final_2021_Y_20220530T122921Z_ltupper.pdf",
+        "evidenceType": "municipal_spatial_development_framework",
+        "detail": "Municipal corridor map places GLUCKSTADT on the P219/R34 corridor."
+      },
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceUrl": "https://www1.saflii.org/za/gaz/ZAKZPrGaz/2016/156.pdf",
+        "evidenceType": "operating_licence_route_description",
+        "detail": "Repeated route evidence states Gluckstadt start point/rank proceeds via P219 and joins R34."
+      }
+    ],
+    "officialFeatureService": {
+      "serviceItemId": "a37ef88630814197a044cff9898c7585",
+      "authority": "KwaZulu-Natal Office of the Premier / Department of Transport",
+      "serviceUrl": "https://gis.kznpidh.gov.za/hosting/rest/services/Department_of_Transport__ff_MIL1/MapServer",
+      "layerId": 2,
+      "layerName": "Taxi_Ranks",
+      "geometryType": "esriGeometryPoint",
+      "supportedQueryFormats": ["JSON", "geoJSON", "PBF"],
+      "rankCodeField": "RANK_CODE",
+      "queryStrategy": "bounded_attribute_then_spatial_reconciliation",
+      "targetOutSpatialReference": 4326
+    },
+    "rankCreationReady": false,
+    "canonicalMutation": false
+  },
+  "mbazwana": {
+    "canonicalRankId": "acadacb7-ae3b-4581-a28b-ba445af280ba",
+    "associationId": "1561a588-e225-4af3-b5ca-12ba5e754f4a",
+    "relationshipId": "af101b53-5e01-4e34-b8fa-4b7d1dd6da79",
+    "requiredRoads": ["D234", "P748", "R22", "L2887"],
+    "alternateAcquisition": {
+      "authority": "KwaZulu-Natal Office of the Premier / Department of Transport",
+      "serviceItemId": "a37ef88630814197a044cff9898c7585",
+      "serviceUrl": "https://gis.kznpidh.gov.za/hosting/rest/services/Department_of_Transport__ff_MIL1/MapServer",
+      "layerId": 5,
+      "layerName": "RoadNetwork2022",
+      "geometryType": "esriGeometryPolyline",
+      "supportedQueryFormats": ["JSON", "geoJSON", "PBF"],
+      "roadNumberField": "ROADNUM",
+      "fields": ["ROADKEY", "ROADNUM", "CLASS", "START_KM", "END_KM", "KM_LENGTH"],
+      "targetOutSpatialReference": 4326,
+      "strategy": "feature_level_query_by_road_number",
+      "browserIndexedMetadataAvailable": true,
+      "railwayDirectTlsStatus": "certificate_expired"
+    },
+    "routeGeometryRecovered": false,
+    "routeCandidateCreationReady": false,
+    "canonicalMutation": false
+  },
+  "acceptance": {
+    "gluckstadtControlAreaEvidenceBanked": true,
+    "gluckstadtAuthoritativePointLayerIdentified": true,
+    "gluckstadtExactControlPointStillPending": true,
+    "mbazwanaAuthoritativePolylineLayerIdentified": true,
+    "mbazwanaAlternateFeatureQueryContractReady": true,
+    "mbazwanaExactRoadFeaturesStillPending": true
+  },
+  "policy": {
+    "sourceAcquisitionOnly": true,
+    "mapImageCoordinateExtraction": false,
+    "proseToGeometrySynthesis": false,
+    "geometryInvented": false,
+    "coordinatesInvented": false,
+    "automaticRankCreation": false,
+    "automaticRouteCandidateCreation": false,
+    "automaticProposalCreation": false,
+    "automaticApproval": false,
+    "canonicalMutation": false
+  }
+}
