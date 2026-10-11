@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 
 const runner=fs.readFileSync('apps/kzn-licence-corpus-worker/tn7-national-24-adj5-approval.mjs','utf8');
+const recovery=fs.readFileSync('apps/kzn-licence-corpus-worker/kzn-target-recovery.mjs','utf8');
 
 const checks=[
  ['targets exact ADJ5 proposal',runner.includes("PROPOSAL_ID='1c77e981-5de9-412a-a149-26e23289cae2'")],
@@ -16,7 +17,9 @@ const checks=[
  ['requires proposal approved',runner.includes("result.result.proposal?.status==='approved'")],
  ['replay creates no second relationship',runner.includes('result.result.replay?0:1')],
  ['relationship mutation is explicit',runner.includes('canonicalRelationshipMutationOnApproval:true')],
- ['candidate promotion is required',runner.includes('candidatePromotionRequired:true')]
+ ['candidate promotion is required',runner.includes('candidatePromotionRequired:true')],
+ ['post-approval recovery recognises established relationship',recovery.includes("state:'rank_association_relationship_established'")],
+ ['post-approval summary counts established relationships',recovery.includes('rankRelationshipsEstablished:establishedRankRelationships.length')]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
