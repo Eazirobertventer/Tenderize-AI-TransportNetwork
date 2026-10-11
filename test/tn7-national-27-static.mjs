@@ -25,7 +25,8 @@ const checks=[
   ['coordinate invention remains disabled',src.includes('coordinatesInvented:false')],
   ['geometry invention remains disabled',src.includes('geometryInvented:false')],
   ['blocked source execution fails closed',src.includes('TN7_NATIONAL_27_SOURCE_EXECUTION_BLOCKED')],
-  ['success marker present',src.includes('TN7_NATIONAL_27_AUTHORITATIVE_FEATURE_EXECUTION_PASS')]
+  ['success marker present',src.includes('TN7_NATIONAL_27_AUTHORITATIVE_FEATURE_EXECUTION_PASS')],
+  ['source authority retained',src.includes('KwaZulu-Natal Office of the Premier / Department of Transport')]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
