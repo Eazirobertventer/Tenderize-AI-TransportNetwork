@@ -88,6 +88,7 @@ export async function buildNational19RecoveryPlan(db,unlockPlan){
   const recoveredRankTargets=[];
   const routeUnlocks=[];
   const rankUnlocks=[];
+  const establishedRankRelationships=[];
   const blocks=[];
 
   for(const item of routeRecovery.items||[]){
@@ -198,6 +199,27 @@ export async function buildNational19RecoveryPlan(db,unlockPlan){
       recoveryBucket:recovered.recoveryBucket
     });
 
+    const existingRelationship=(await db.query(
+      `SELECT relationship_id::text,taxi_rank_id::text,association_id::text,
+              verification_status::text,first_seen_at,last_seen_at
+         FROM taxi_rank_association
+         WHERE taxi_rank_id=$1::uuid AND association_id=$2::uuid
+         LIMIT 1`,
+      [rank.id,association.id]
+    )).rows[0]||null;
+
+    if(existingRelationship){
+      establishedRankRelationships.push({
+        evidenceId,
+        association,
+        rank:{id:rank.id,name:rank.canonical_name},
+        relationship:existingRelationship,
+        state:'rank_association_relationship_established',
+        automaticApproval:false
+      });
+      continue;
+    }
+
     const candidateEvidence=await viableRankCandidates(db,rank.id,association.id);
     if(candidateEvidence.viable.length===1){
       rankUnlocks.push({
@@ -252,6 +274,7 @@ export async function buildNational19RecoveryPlan(db,unlockPlan){
       recoveredRankTargets:recoveredRankTargets.length,
       adj6ReadyAfterRecovery:routeUnlocks.length,
       adj5ReadyAfterRecovery:rankUnlocks.length,
+      rankRelationshipsEstablished:establishedRankRelationships.length,
       blockedAfterRecovery:blocks.length,
       routeRecoveryBuckets:routeBuckets,
       rankRecoveryBuckets:rankBuckets,
@@ -278,6 +301,7 @@ export async function buildNational19RecoveryPlan(db,unlockPlan){
     recoveredRankTargets,
     routeUnlocks,
     rankUnlocks,
+    establishedRankRelationships,
     blocks
   };
 }
