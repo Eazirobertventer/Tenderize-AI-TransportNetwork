@@ -52,12 +52,41 @@ function esc(value){
   return String(value).replaceAll("'","''");
 }
 
-function roadWhere(fields,road){
+function roadWhere(source,road){
   const value=esc(road);
-  return fields.flatMap(field=>[
-    `${field}='${value}'`,
-    `${field} LIKE '%${value}%'`
-  ]).join(' OR ');
+  const clauses=[];
+  for(const field of source.candidateFields||[]){
+    clauses.push(`${field}='${value}'`);
+    clauses.push(`${field} LIKE '%${value}%'`);
+  }
+  const numeric=Number(String(road).replace(/^[A-Za-z]+/,'')); 
+  if(Number.isFinite(numeric)){
+    for(const field of source.numericCandidateFields||[]) clauses.push(`${field}=${numeric}`);
+  }
+  return clauses.join(' OR ');
+}
+
+async function acquireStage({logicalId,url,host,filePath,metadata}){
+  console.log(JSON.stringify({event:'tn7_national_27_r2_stage_start',logicalId,url}));
+  try{
+    const acquired=await fetchOfficial(url,host);
+    await writeFile(filePath,acquired.buffer);
+    const entry={
+      logicalId,
+      ...metadata,
+      sourceUrl:url,
+      file:path.basename(filePath),
+      sha256:acquired.checksum,
+      bytes:acquired.bytes,
+      featureCount:acquired.json.features.length,
+      acquiredAt:new Date().toISOString()
+    };
+    console.log(JSON.stringify({event:'tn7_national_27_r2_stage_pass',logicalId,featureCount:entry.featureCount,sha256:entry.sha256,bytes:entry.bytes}));
+    return entry;
+  }catch(error){
+    console.error(JSON.stringify({event:'tn7_national_27_r2_stage_fail',logicalId,url,error:String(error?.message||error)}));
+    throw error;
+  }
 }
 
 async function main(){
@@ -67,45 +96,39 @@ async function main(){
 
   const rankSource=manifest.sources.gluckstadt;
   const rankUrl=layerQueryUrl(rankSource,rankSource.query.where,rankSource.query.outFields);
-  const rank=await fetchOfficial(rankUrl,rankSource.host);
   const rankFile=path.join(outDir,manifest.cache.gluckstadtFile);
-  await writeFile(rankFile,rank.buffer);
-  entries.push({
+  entries.push(await acquireStage({
     logicalId:'gluckstadt_bus_taxi_rank_zoning',
-    authority:rankSource.authority,
-    serviceItemId:rankSource.serviceItemId,
-    layerId:rankSource.layerId,
-    layerName:rankSource.layerName,
-    sourceUrl:rankUrl,
-    file:path.basename(rankFile),
-    sha256:rank.checksum,
-    bytes:rank.bytes,
-    featureCount:rank.json.features.length,
-    acquiredAt:new Date().toISOString()
-  });
+    url:rankUrl,
+    host:rankSource.host,
+    filePath:rankFile,
+    metadata:{
+      authority:rankSource.authority,
+      serviceItemId:rankSource.serviceItemId,
+      layerId:rankSource.layerId,
+      layerName:rankSource.layerName
+    }
+  }));
 
   const roadSource=manifest.sources.roads;
   for(const road of roadSource.requiredRoads){
-    const where=roadWhere(roadSource.candidateFields,road);
+    const where=roadWhere(roadSource,road);
     const url=layerQueryUrl(roadSource,where,roadSource.outFields);
-    const acquired=await fetchOfficial(url,roadSource.host);
     const fileName=manifest.cache.roadFiles[road];
     const filePath=path.join(outDir,fileName);
-    await writeFile(filePath,acquired.buffer);
-    entries.push({
+    entries.push(await acquireStage({
       logicalId:'road_'+road,
-      road,
-      authority:roadSource.authority,
-      serviceItemId:roadSource.serviceItemId,
-      layerId:roadSource.layerId,
-      layerName:roadSource.layerName,
-      sourceUrl:url,
-      file:fileName,
-      sha256:acquired.checksum,
-      bytes:acquired.bytes,
-      featureCount:acquired.json.features.length,
-      acquiredAt:new Date().toISOString()
-    });
+      url,
+      host:roadSource.host,
+      filePath,
+      metadata:{
+        road,
+        authority:roadSource.authority,
+        serviceItemId:roadSource.serviceItemId,
+        layerId:roadSource.layerId,
+        layerName:roadSource.layerName
+      }
+    }));
   }
 
   const cacheManifest={
