@@ -29,7 +29,8 @@ const checks=[
   ['workflow captures cache artifact',wf.includes('tn7-national-27-r2-official-cache')],
   ['workflow captures reconciliation result',wf.includes('tn7-national-27-r2-reconciliation')],
   ['workflow classifies ready state',wf.includes('TN7_NATIONAL_27_R2_RUNTIME_READY')],
-  ['workflow classifies partial state',wf.includes('TN7_NATIONAL_27_R2_RUNTIME_PARTIAL')]
+  ['workflow classifies partial state',wf.includes('TN7_NATIONAL_27_R2_RUNTIME_PARTIAL')],
+  ['offline mode retained',offline.includes("mode:'checksummed_feature_cache_offline_reconciliation'")]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
