@@ -30,7 +30,12 @@ const checks=[
   ['workflow captures reconciliation result',wf.includes('tn7-national-27-r2-reconciliation')],
   ['workflow classifies ready state',wf.includes('TN7_NATIONAL_27_R2_RUNTIME_READY')],
   ['workflow classifies partial state',wf.includes('TN7_NATIONAL_27_R2_RUNTIME_PARTIAL')],
-  ['offline mode retained',offline.includes("mode:'checksummed_feature_cache_offline_reconciliation'")]
+  ['offline mode retained',offline.includes("mode:'checksummed_feature_cache_offline_reconciliation'")],
+  ['road LIKE restricted to string candidate fields',acquire.includes('source.candidateFields||[]')],
+  ['numeric candidate fields use equality only',acquire.includes('source.numericCandidateFields||[]') && acquire.includes('clauses.push(`${field}=${numeric}`)')],
+  ['acquisition emits stage-specific failures',acquire.includes('tn7_national_27_r2_stage_fail')],
+  ['offline reconcile gated on acquisition success',wf.includes("if: steps.acquire.outputs.exit_code == '0'")],
+  ['AbaQulusi service item corrected',manifest.sources.gluckstadt.serviceItemId==='9fdff365d46e4cc48962cb6662add1bb']
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
