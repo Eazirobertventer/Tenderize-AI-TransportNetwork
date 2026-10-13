@@ -18,7 +18,7 @@
       "serviceUrl": "https://giswebmaps1.kzncogta.gov.za/server/rest/services/Land_use_scheme_pillar_2026/FeatureServer",
       "layerId": 0,
       "layerName": "Abaqulusi land use scheme 2019",
-      "serviceItemId": "bdda74b361b14036a8e2310ff2d87687",
+      "serviceItemId": "9fdff365d46e4cc48962cb6662add1bb",
       "geometryType": "esriGeometryPolygon",
       "query": {
         "where": "LUS_ZONING='Bus and Taxi Rank'",
@@ -35,11 +35,26 @@
       "layerName": "KZN road network (2021)",
       "serviceItemId": "68a3832ce387473da4f56bbc20da10d9",
       "geometryType": "esriGeometryPolyline",
-      "requiredRoads": ["D234", "P748", "R22", "L2887"],
-      "candidateFields": ["STR_NAME","STR_NAME_L","STREET","AG_R_NAME","ROAD_ID","MRRTE","OLD_STR"],
+      "requiredRoads": [
+        "D234",
+        "P748",
+        "R22",
+        "L2887"
+      ],
+      "candidateFields": [
+        "STR_NAME",
+        "STREET",
+        "AG_R_NAME",
+        "ROAD_ID",
+        "OLD_STR"
+      ],
       "outFields": "OBJECTID,STR_NAME,STR_NAME_L,STREET,AG_R_NAME,ROAD_ID,MRRTE,OLD_STR,CATEGORY",
       "outSR": 4326,
-      "format": "geojson"
+      "format": "geojson",
+      "numericCandidateFields": [
+        "MRRTE"
+      ],
+      "queryStrategy": "string_fields_exact_then_contains_numeric_fields_exact_only"
     }
   },
   "cache": {
