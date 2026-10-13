@@ -38,11 +38,18 @@ jobs:
           node-version: '22'
 
       - name: Acquire official datasets
+        id: acquire
+        shell: bash
         run: |
           rm -rf artifacts/tn7-national-27-r2
+          set +e
           node apps/kzn-licence-corpus-worker/tn7-national-27-r2-acquire-cache.mjs 2>&1 | tee national27-r2-acquire.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Offline reconciliation
+        if: steps.acquire.outputs.exit_code == '0'
         run: |
           node apps/kzn-licence-corpus-worker/tn7-national-27-r2-offline-reconcile.mjs 2>&1 | tee national27-r2-reconcile.log
 
@@ -50,6 +57,7 @@ jobs:
         run: |
           if ! grep -q 'TN7_NATIONAL_27_R2_OFFICIAL_EXPORT_CACHE_PASS' national27-r2-acquire.log; then
             echo "TN7_NATIONAL_27_R2_RUNTIME_ACQUISITION_FAIL"
+            grep 'tn7_national_27_r2_stage_fail' national27-r2-acquire.log || true
             exit 1
           fi
           if ! grep -q 'TN7_NATIONAL_27_R2_OFFLINE_RECONCILIATION_PASS' national27-r2-reconcile.log; then
