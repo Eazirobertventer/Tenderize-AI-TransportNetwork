@@ -31,7 +31,8 @@ const checks=[
   ['canonical mutation disabled',src.includes('canonicalMutation:false')],
   ['workflow uploads R2-R2 evidence',wf.includes('tn7-national-27-r2-r2-evidence')],
   ['workflow distinguishes road identity pending',wf.includes('TN7_NATIONAL_27_R2_R2_RUNTIME_PARTIAL')],
-  ['workflow distinguishes readiness',wf.includes('TN7_NATIONAL_27_R2_R2_RUNTIME_READY')]
+  ['workflow distinguishes readiness',wf.includes('TN7_NATIONAL_27_R2_R2_RUNTIME_READY')],
+  ['R22 remains required control road',src.includes("['D234','P748','R22','L2887']")]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
