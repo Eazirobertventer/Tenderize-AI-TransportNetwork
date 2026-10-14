@@ -1,0 +1,77 @@
+{
+  "gate": "TN7-NATIONAL-27-R2-R2",
+  "province": "KwaZulu-Natal",
+  "gluckstadt": {
+    "officialAnchor": {
+      "name": "Gluckstadt Clinic",
+      "authority": "National Department of Health",
+      "sourceUrl": "https://www.health.gov.za/wp-content/uploads/2023/07/NDoH-10_2023-2024-Updated.pdf",
+      "latitude": -27.97413,
+      "longitude": 31.039209
+    },
+    "corridorEvidence": {
+      "authority": "KwaZulu-Natal Provincial Government / COGTA",
+      "sourceUrl": "https://www.kznonline.gov.za/images/kznjobs/DOACS_List-20230816.pdf",
+      "detail": "Gluckstadt/Bethel Mission on P219 Road opposite Gluckstadt Clinic"
+    },
+    "candidateRejectionThresholdMetres": 10000,
+    "candidateCentroids": [
+      {"id":"cogta_bus_taxi_rank_0","longitude":31.281198400200047,"latitude":-27.581417399999953},
+      {"id":"cogta_bus_taxi_rank_1","longitude":30.808327153571472,"latitude":-27.766763437142806}
+    ]
+  },
+  "mbazwana": {
+    "officialAnchor": {
+      "name": "Mbazwana Clinic",
+      "authority": "National Department of Health",
+      "sourceUrl": "https://www.health.gov.za/wp-content/uploads/2026/06/Lenacapavir-Rollout-Phase-One-360-Facilities-June.pdf",
+      "latitude": -27.485445,
+      "longitude": 32.585998
+    },
+    "roadEvidence": {
+      "P748": {
+        "authority": "uMhlabuyalingana Local Municipality / KwaZulu-Natal Department of Transport",
+        "state": "documented_official",
+        "detail": "Key provincial gravel route linking settlements to Mbazwana; KZN DOT contract records approximately 10.49 km."
+      },
+      "L2887": {
+        "authority": "uMhlabuyalingana Local Municipality",
+        "state": "documented_official",
+        "detail": "Internal gravel road off R22 connecting settlements around Manzibomvu/Mntanenkosi/eNgwenyeni."
+      },
+      "D234": {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "state": "documented_route_evidence",
+        "detail": "Mbazwana to Mkuze route turns onto D234."
+      }
+    },
+    "spatialRecovery": {
+      "authority": "KwaZulu-Natal Department of Cooperative Governance and Traditional Affairs",
+      "host": "giswebmaps1.kzncogta.gov.za",
+      "serviceUrl": "https://giswebmaps1.kzncogta.gov.za/server/rest/services/Base_map_18032022/FeatureServer",
+      "layerId": 10,
+      "layerName": "KZN road network (2021)",
+      "serviceItemId": "68a3832ce387473da4f56bbc20da10d9",
+      "geometryType": "esriGeometryPolyline",
+      "bbox4326": {
+        "xmin": 32.28,
+        "ymin": -27.75,
+        "xmax": 32.82,
+        "ymax": -27.22
+      },
+      "outFields": "OBJECTID,STR_NAME,STR_NAME_L,STREET,AG_R_NAME,ROAD_ID,MRRTE,OLD_STR,CATEGORY",
+      "outSR": 4326
+    }
+  },
+  "policy": {
+    "officialSourcesOnly": true,
+    "candidateRejectionAllowed": true,
+    "candidateSelectionByNearestOnly": false,
+    "anonymousGeometryPromotion": false,
+    "coordinatesInvented": false,
+    "geometryInvented": false,
+    "automaticRankCreation": false,
+    "automaticRouteCandidateCreation": false,
+    "canonicalMutation": false
+  }
+}
