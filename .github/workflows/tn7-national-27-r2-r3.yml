@@ -1,0 +1,59 @@
+name: TN7 NATIONAL-27-R2-R3 Road Identity and Topology
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-r2-r3-manifest.json'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-r2-r3-resolver.mjs'
+      - 'test/tn7-national-27-r2-r3-static.mjs'
+      - '.github/workflows/tn7-national-27-r2-r3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national27-r2-r3-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check apps/kzn-licence-corpus-worker/tn7-national-27-r2-r3-resolver.mjs
+      - name: NATIONAL-27-R2-R3 static gate
+        run: node test/tn7-national-27-r2-r3-static.mjs
+
+  national27-r2-r3-runtime:
+    runs-on: ubuntu-latest
+    needs: national27-r2-r3-static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Execute identity resolver
+        run: |
+          rm -rf artifacts/tn7-national-27-r2-r3
+          node apps/kzn-licence-corpus-worker/tn7-national-27-r2-r3-resolver.mjs 2>&1 | tee national27-r2-r3.log
+      - name: Classify R3 outcome
+        run: |
+          if ! grep -q 'TN7_NATIONAL_27_R2_R3_RUNTIME_PASS' national27-r2-r3.log; then
+            echo "TN7_NATIONAL_27_R2_R3_RUNTIME_FAIL"
+            exit 1
+          fi
+          if grep -q 'TN7_NATIONAL_27_R2_R3_ROAD_IDENTITY_READY' national27-r2-r3.log; then
+            echo "TN7_NATIONAL_27_R2_R3_RUNTIME_READY"
+          else
+            echo "TN7_NATIONAL_27_R2_R3_RUNTIME_PARTIAL"
+          fi
+      - name: Upload R3 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tn7-national-27-r2-r3-evidence
+          path: |
+            artifacts/tn7-national-27-r2-r3
+            national27-r2-r3.log
+          if-no-files-found: error

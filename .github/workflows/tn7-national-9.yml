@@ -1,0 +1,36 @@
+name: TN7 NATIONAL-9 KZN Runtime Source Fallback
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/evidence-execution-framework.mjs'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-8-sources.json'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-8-corpus.mjs'
+      - 'apps/kzn-licence-corpus-worker/test-national-8-framework.mjs'
+      - 'test/tn7-national-8-static.mjs'
+      - 'test/tn7-national-9-static.mjs'
+      - '.github/workflows/tn7-national-9.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national9-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check apps/kzn-licence-corpus-worker/evidence-execution-framework.mjs
+          node --check apps/kzn-licence-corpus-worker/tn7-national-8-corpus.mjs
+          node --check apps/kzn-licence-corpus-worker/test-national-8-framework.mjs
+      - name: Framework regression
+        run: node apps/kzn-licence-corpus-worker/test-national-8-framework.mjs
+      - name: NATIONAL-8 safety regression
+        run: node test/tn7-national-8-static.mjs
+      - name: NATIONAL-9 source fallback safety
+        run: node test/tn7-national-9-static.mjs

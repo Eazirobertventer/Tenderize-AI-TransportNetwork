@@ -1,0 +1,41 @@
+name: TN7 NATIONAL-10 Durable Evidence Cache
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/artifact-cache.mjs'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-8-corpus.mjs'
+      - 'apps/kzn-licence-corpus-worker/test-national-10-cache.mjs'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-10-cache-runtime.mjs'
+      - 'apps/kzn-licence-corpus-worker/package.json'
+      - 'test/tn7-national-10-static.mjs'
+      - '.github/workflows/tn7-national-10.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national10-static:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install worker dependencies
+        working-directory: apps/kzn-licence-corpus-worker
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Syntax check
+        run: |
+          node --check apps/kzn-licence-corpus-worker/artifact-cache.mjs
+          node --check apps/kzn-licence-corpus-worker/tn7-national-8-corpus.mjs
+          node --check apps/kzn-licence-corpus-worker/test-national-10-cache.mjs
+          node --check apps/kzn-licence-corpus-worker/tn7-national-10-cache-runtime.mjs
+      - name: Cache key unit proof
+        run: node apps/kzn-licence-corpus-worker/test-national-10-cache.mjs
+      - name: NATIONAL-10 static safety gate
+        run: node test/tn7-national-10-static.mjs

@@ -1,0 +1,79 @@
+[
+  {
+    "routeCode": "KZNBRCLDY1085",
+    "association": "Amangwe-Bhekuzulu Taxi Association",
+    "rankNarrative": "Loskop Taxi Rank / Amangwe Tribal Court to Ladysmith",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/10.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY1054",
+    "association": "Amangwe-Bhekuzulu Taxi Association",
+    "rankNarrative": "Loskop Taxi Rank / Amangwe Tribal Court to Bergville",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/35.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY1220",
+    "association": "Amangwe-Bhekuzulu Taxi Association",
+    "rankNarrative": "Amangwe Tribal Court to Estcourt",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/122.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY000651",
+    "association": "Weenen & District Taxi Association",
+    "rankNarrative": "Weenen Taxi Rank to Estcourt Taxi Rank",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2010/154.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY006020",
+    "association": "Estcourt District Taxi Association",
+    "rankNarrative": "Estcourt Taxi Rank to Weenen",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/119.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY0857",
+    "association": "Klipriver Taxi Association",
+    "rankNarrative": "Lyell Street Taxi Rank, Ladysmith to Winterton Taxi Rank",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2008/174.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY0951",
+    "association": "Klipriver Taxi Association",
+    "rankNarrative": "Lyell Street Taxi Rank, Ladysmith to Newcastle Taxi Rank",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/122.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY259",
+    "association": "Bergville Taxi Association",
+    "rankNarrative": "Bergville Taxi Rank to Newcastle Taxi Rank",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2012/101.pdf"
+  },
+  {
+    "routeCode": "KZNBRCPMB00680",
+    "association": "PMBURG Long Distance Taxi Association",
+    "rankNarrative": "Church Street Rank No 1, Pietermaritzburg to Ladysmith",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/87.pdf"
+  },
+  {
+    "routeCode": "KZNBRCPMB00681",
+    "association": "PMBURG Long Distance Taxi Association",
+    "rankNarrative": "Church Street Rank No 1, Pietermaritzburg to Estcourt",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/87.pdf"
+  },
+  {
+    "routeCode": "KZNBRCLDY0055",
+    "association": "Dundee Transport Association",
+    "rankNarrative": "Dundee Taxi Rank route set; Dundee-Dannhauser",
+    "source": "KwaZulu-Natal Provincial Gazette",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/35.pdf"
+  }
+]

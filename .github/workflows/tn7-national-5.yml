@@ -1,0 +1,30 @@
+name: TN7 NATIONAL-5 KZN Route Gap Recovery
+
+on:
+  pull_request:
+    paths:
+      - 'apps/transport-api/src/route-evidence-gap-recovery.mjs'
+      - 'apps/transport-api/src/kzn-route-gap-recovery.mjs'
+      - 'apps/transport-api/src/server.mjs'
+      - 'test/tn7-national-5-static.mjs'
+      - '.github/workflows/tn7-national-5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national5-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check apps/transport-api/src/route-evidence-gap-recovery.mjs
+          node --check apps/transport-api/src/kzn-route-gap-recovery.mjs
+          node --check apps/transport-api/src/server.mjs
+      - name: NATIONAL-5 static safety gate
+        run: node test/tn7-national-5-static.mjs

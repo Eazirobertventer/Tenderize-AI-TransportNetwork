@@ -1,0 +1,52 @@
+name: TN7 Controlled Association Creation
+
+on:
+  pull_request:
+    paths:
+      - 'db/013_controlled_association_creation.sql'
+      - 'apps/transport-api/src/operator-association-create.mjs'
+      - 'apps/transport-api/src/operator-proposals.mjs'
+      - 'apps/transport-api/src/server.mjs'
+      - 'test/tn7-association-create-static.mjs'
+      - '.github/workflows/tn7-association-create.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  association-create-static:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: transport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d transport"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check apps/transport-api/src/operator-association-create.mjs
+          node --check apps/transport-api/src/operator-proposals.mjs
+          node --check apps/transport-api/src/server.mjs
+      - name: Apply migrations 001-013
+        run: |
+          for f in db/0*.sql; do
+            psql -h 127.0.0.1 -U postgres -d transport -v ON_ERROR_STOP=1 -f "$f"
+          done
+      - name: Static safety gate
+        run: node test/tn7-association-create-static.mjs

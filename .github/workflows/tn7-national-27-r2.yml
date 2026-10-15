@@ -1,0 +1,89 @@
+name: TN7 NATIONAL-27-R2 Official Export Cache and Offline Reconciliation
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-r2-source-manifest.json'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-r2-acquire-cache.mjs'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-r2-offline-reconcile.mjs'
+      - 'test/tn7-national-27-r2-static.mjs'
+      - '.github/workflows/tn7-national-27-r2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national27-r2-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check apps/kzn-licence-corpus-worker/tn7-national-27-r2-acquire-cache.mjs
+          node --check apps/kzn-licence-corpus-worker/tn7-national-27-r2-offline-reconcile.mjs
+      - name: NATIONAL-27-R2 static safety gate
+        run: node test/tn7-national-27-r2-static.mjs
+
+  national27-r2-runtime:
+    runs-on: ubuntu-latest
+    needs: national27-r2-static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Acquire official datasets
+        id: acquire
+        shell: bash
+        run: |
+          rm -rf artifacts/tn7-national-27-r2
+          set +e
+          node apps/kzn-licence-corpus-worker/tn7-national-27-r2-acquire-cache.mjs 2>&1 | tee national27-r2-acquire.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Offline reconciliation
+        if: steps.acquire.outputs.exit_code == '0'
+        run: |
+          node apps/kzn-licence-corpus-worker/tn7-national-27-r2-offline-reconcile.mjs 2>&1 | tee national27-r2-reconcile.log
+
+      - name: Classify R2 outcome
+        run: |
+          if ! grep -q 'TN7_NATIONAL_27_R2_OFFICIAL_EXPORT_CACHE_PASS' national27-r2-acquire.log; then
+            echo "TN7_NATIONAL_27_R2_RUNTIME_ACQUISITION_FAIL"
+            grep 'tn7_national_27_r2_stage_fail' national27-r2-acquire.log || true
+            exit 1
+          fi
+          if ! grep -q 'TN7_NATIONAL_27_R2_OFFLINE_RECONCILIATION_PASS' national27-r2-reconcile.log; then
+            echo "TN7_NATIONAL_27_R2_RUNTIME_RECONCILIATION_FAIL"
+            exit 1
+          fi
+          if grep -q 'TN7_NATIONAL_27_R2_FEATURE_RECOVERY_READY' national27-r2-reconcile.log; then
+            echo "TN7_NATIONAL_27_R2_RUNTIME_READY"
+          else
+            echo "TN7_NATIONAL_27_R2_RUNTIME_PARTIAL"
+          fi
+
+      - name: Upload official cache
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tn7-national-27-r2-official-cache
+          path: artifacts/tn7-national-27-r2
+          if-no-files-found: error
+
+      - name: Upload reconciliation result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tn7-national-27-r2-reconciliation
+          path: |
+            national27-r2-acquire.log
+            national27-r2-reconcile.log
+          if-no-files-found: error
