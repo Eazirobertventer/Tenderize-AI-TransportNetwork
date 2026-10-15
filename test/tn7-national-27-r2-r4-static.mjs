@@ -26,7 +26,8 @@ const checks=[
   ['canonical mutation disabled',src.includes('canonicalMutation:false')],
   ['workflow emits READY state',wf.includes('TN7_NATIONAL_27_R2_R4_RUNTIME_READY')],
   ['workflow emits HOLD state',wf.includes('TN7_NATIONAL_27_R2_R4_RUNTIME_HOLD')],
-  ['workflow uploads R4 evidence',wf.includes('tn7-national-27-r2-r4-evidence')]
+  ['workflow uploads R4 evidence',wf.includes('tn7-national-27-r2-r4-evidence')],
+  ['R4 retains D234 documentary hold',src.includes("gazette_identity_confirmed_spatial_crosswalk_source_required")]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
