@@ -1,0 +1,33 @@
+{
+  "kind": "fairpay-transport-discovery",
+  "provenance": "canonical-fairpay-transport",
+  "freshness": "live",
+  "timestamps": {
+    "publishedAt": "2026-10-11T12:00:00.000Z",
+    "sourceDataThrough": "2026-10-11T11:59:00.000Z",
+    "lastSuccessfulSyncAt": "2026-10-11T12:00:00.000Z"
+  },
+  "routes": [
+    {
+      "routeId": "route-1",
+      "originRank": {
+        "rankId": "rank-origin",
+        "name": "Origin Rank",
+        "localityLabel": "Durban",
+        "coordinate": {"latitude": -29.8587, "longitude": 31.0218},
+        "publication": "published"
+      },
+      "destinationRank": {
+        "rankId": "rank-destination",
+        "name": "Destination Rank",
+        "publication": "published"
+      },
+      "associations": [
+        {"associationId": "association-1", "displayName": "Example Taxi Association"}
+      ],
+      "routeCode": "NAT-1",
+      "routeName": "Origin to Destination",
+      "publication": "published"
+    }
+  ]
+}
