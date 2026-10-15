@@ -1,0 +1,61 @@
+{
+  "gate": "TN7-NATIONAL-27-R2-R3",
+  "province": "KwaZulu-Natal",
+  "sourceSnapshot": {
+    "r2r2Head": "df5a7f0bea29ee6400618cfe1e494242edf7425f",
+    "roadWindowSha256": "45f52271cd3b07a59c476885d2f9dfc3c7290bd66693a0ccb2ecf702f06c0380",
+    "roadFeatureCount": 615,
+    "sourceAuthority": "KwaZulu-Natal Department of Cooperative Governance and Traditional Affairs",
+    "serviceItemId": "68a3832ce387473da4f56bbc20da10d9",
+    "layerId": 10
+  },
+  "anchors": {
+    "mbazwana": {
+      "name": "Mbazwana Clinic",
+      "authority": "National Department of Health",
+      "latitude": -27.485445,
+      "longitude": 32.585998
+    }
+  },
+  "documentaryConstraints": {
+    "P748": {
+      "authority": "uMhlabuyalingana Local Municipality / KwaZulu-Natal Department of Transport",
+      "relationship": "Mbazwana access road; operating routes use P748 immediately before or after R22",
+      "requiredTopology": ["near_mbazanwa_anchor", "connects_or_approaches_R22"]
+    },
+    "L2887": {
+      "authority": "uMhlabuyalingana Local Municipality",
+      "relationship": "internal gravel road off R22 serving Manzibomvu/Mntanenkosi/eNgwenyeni",
+      "requiredTopology": ["connects_or_approaches_R22", "local_secondary_or_arterial"]
+    },
+    "D234": {
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "relationship": "Mbazwana to Mkuze route leaves Mbazwana and turns onto D234",
+      "requiredTopology": ["mbazwana_to_mkuze_corridor"],
+      "currentWindowExpectedToBeInsufficient": true
+    }
+  },
+  "thresholds": {
+    "touchingRoadMetres": 120,
+    "nearMbazwanaAnchorMetres": 5000,
+    "uniqueWinnerMarginMetres": 250,
+    "minimumIdentityConfidence": 0.9
+  },
+  "expandedD234Window": {
+    "xmin": 31.90,
+    "ymin": -27.82,
+    "xmax": 32.66,
+    "ymax": -27.30
+  },
+  "policy": {
+    "exactSourceSnapshotRequired": true,
+    "topologyNarrowsCandidatesOnly": true,
+    "closestGeometryIsNotIdentity": true,
+    "documentaryEvidenceRequired": true,
+    "automaticRoadIdentityPromotion": false,
+    "automaticRouteCandidateCreation": false,
+    "geometryInvented": false,
+    "coordinatesInvented": false,
+    "canonicalMutation": false
+  }
+}
