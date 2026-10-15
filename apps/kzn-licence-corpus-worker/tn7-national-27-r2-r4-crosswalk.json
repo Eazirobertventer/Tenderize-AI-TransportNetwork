@@ -1,0 +1,81 @@
+{
+  "gate": "TN7-NATIONAL-27-R2-R4",
+  "province": "KwaZulu-Natal",
+  "sourceGate": {
+    "gate": "TN7-NATIONAL-27-R2-R3",
+    "head": "5419c25c62235c6337823751ab211095a293230f",
+    "baseRoadWindowSha256": "45f52271cd3b07a59c476885d2f9dfc3c7290bd66693a0ccb2ecf702f06c0380"
+  },
+  "documentaryCrosswalk": {
+    "P748": {
+      "identityState": "authoritative_road_register_confirmed",
+      "roadClass": "provincial",
+      "surface": "gravel",
+      "lengthKm": 10.49,
+      "jurisdiction": "uMhlabuyalingana Local Municipality",
+      "authority": "KwaZulu-Natal Department of Transport",
+      "sourceUrl": "https://www.etenders.gov.za/home/Download/?blobName=045f2f71-917f-4032-9304-586401e0a16e.pdf&downloadedFileName=CONTRACT+SECTION-ZNB01919-000000-00-HLU-INF-23-T.pdf",
+      "topology": ["Mbazwana_access", "connects_to_R22"],
+      "candidateRules": {
+        "allowedSourceClasses": ["ARTERIAL", "SECONDARY"],
+        "rejectKnownDifferentProvincialCodes": true,
+        "rejectKnownDifferentDistrictCodes": true,
+        "rejectKnownDifferentLocalCodes": true
+      }
+    },
+    "L2887": {
+      "identityState": "authoritative_municipal_and_transport_recurrence",
+      "roadClass": "local",
+      "surface": "gravel",
+      "jurisdiction": "uMhlabuyalingana Local Municipality",
+      "authority": "uMhlabuyalingana Local Municipality / KwaZulu-Natal Department of Transport",
+      "sourceUrls": [
+        "https://lg.treasury.gov.za/supportingdocs/KZN271/KZN271_IDP%20Final_2025_Y_20240612T133205Z_xolilek.pdf",
+        "https://archive.opengazettes.org.za/archive/ZA/2016/tender-bulletin-ZA-vol-611-no-2916-dated-2016-05-13.pdf"
+      ],
+      "topology": ["off_R22", "Manzibomvu", "Mntanenkosi", "eNgwenyeni"],
+      "candidateRules": {
+        "rejectKnownProvincialCodes": true,
+        "rejectKnownDistrictCodes": true,
+        "localIdentityMustRemainDocumentary": true
+      }
+    },
+    "D234": {
+      "identityState": "gazette_route_identity_confirmed_spatial_crosswalk_pending",
+      "roadClass": "district",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrls": [
+        "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/115.pdf",
+        "https://archive.opengazettes.org.za/archive/ZA-NL/2021/provincial-gazette-ZA-NL-vol-15-no-2320-dated-2021-09-02.pdf"
+      ],
+      "topology": ["Mbazwana_to_Mkuze_corridor"],
+      "candidateRules": {
+        "literalOrOfficialCrosswalkRequired": true,
+        "noProximitySubstitution": true
+      }
+    }
+  },
+  "candidateElimination": {
+    "P748": {
+      "r3ObjectIds": [15149,15152,15143,15153,15156,15155,15171,15134,15144,15122,15107,15174,15102,15043],
+      "knownDifferentCodePrefixesToReject": ["A","D","L"],
+      "knownDifferentProvincialCodesToReject": ["P466-2","P447"]
+    },
+    "L2887": {
+      "r3ObjectIds": [15149,15152,15143,15153,15156,15155,15171,15134,15144,15122,15107,15174,15102,15043,15118,15227,15208,12551,14841,14845,15210,15218,14608,14736,14767],
+      "knownDifferentCodePrefixesToReject": ["P","D"],
+      "knownDifferentLocalCodesToReject": ["L394"]
+    }
+  },
+  "policy": {
+    "documentaryCrosswalkRequired": true,
+    "knownDifferentRoadCodeIsHardExclusion": true,
+    "topologyAloneCannotRenameRoad": true,
+    "unknownAliasMayRemainCandidate": true,
+    "automaticRoadIdentityPromotion": false,
+    "automaticRouteCandidateCreation": false,
+    "geometryInvented": false,
+    "coordinatesInvented": false,
+    "canonicalMutation": false
+  }
+}
