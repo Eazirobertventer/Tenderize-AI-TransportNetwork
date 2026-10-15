@@ -30,7 +30,8 @@ const checks=[
   ['canonical mutation disabled',src.includes('canonicalMutation:false')],
   ['workflow emits READY',wf.includes('TN7_NATIONAL_27_R2_R6_RUNTIME_READY')],
   ['workflow emits HOLD',wf.includes('TN7_NATIONAL_27_R2_R6_RUNTIME_HOLD')],
-  ['workflow uploads evidence',wf.includes('tn7-national-27-r2-r6-evidence')]
+  ['workflow uploads evidence',wf.includes('tn7-national-27-r2-r6-evidence')],
+  ['R6 keeps legacy register extraction as next action',src.includes('obtain_public_or_authorized_kzn_dot_legacy_register_or_georeferenced_plan_extract')]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
