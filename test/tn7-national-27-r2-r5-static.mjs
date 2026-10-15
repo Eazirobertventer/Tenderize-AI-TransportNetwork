@@ -28,7 +28,8 @@ const checks=[
   ['canonical mutation disabled',src.includes('canonicalMutation:false')],
   ['workflow emits READY',wf.includes('TN7_NATIONAL_27_R2_R5_RUNTIME_READY')],
   ['workflow emits HOLD',wf.includes('TN7_NATIONAL_27_R2_R5_RUNTIME_HOLD')],
-  ['workflow uploads evidence',wf.includes('tn7-national-27-r2-r5-evidence')]
+  ['workflow uploads evidence',wf.includes('tn7-national-27-r2-r5-evidence')],
+  ['R5 keeps P748 unresolved without explicit alias',src.includes("historical_alias_register_still_required")]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
