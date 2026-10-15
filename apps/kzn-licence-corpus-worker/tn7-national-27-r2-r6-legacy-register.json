@@ -1,0 +1,83 @@
+{
+  "gate": "TN7-NATIONAL-27-R2-R6",
+  "province": "KwaZulu-Natal",
+  "sourceGate": {
+    "gate": "TN7-NATIONAL-27-R2-R5",
+    "head": "002903592246f6e15659335202da5195f695cb90"
+  },
+  "legacyEvidence": {
+    "P748": [
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceUrl": "https://www.uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf",
+        "detail": "Mbazwana route leaves approved taxi rank on P748, crosses R22 and continues on P447."
+      },
+      {
+        "authority": "KwaZulu-Natal Department of Transport",
+        "sourceUrl": "https://www.etenders.gov.za/home/Download/?blobName=045f2f71-917f-4032-9304-586401e0a16e.pdf&downloadedFileName=CONTRACT+SECTION-ZNB01919-000000-00-HLU-INF-23-T.pdf",
+        "detail": "P748 is a 10.49 km provincial gravel road in uMhlabuyalingana; P447 is separately listed at 13.954 km."
+      }
+    ],
+    "L2887": [
+      {
+        "authority": "uMhlabuyalingana Local Municipality",
+        "sourceUrl": "https://lg.treasury.gov.za/supportingdocs/KZN271/KZN271_IDP%20Final_2025_Y_20240612T133205Z_xolilek.pdf",
+        "detail": "L2887 and L3012 are internal gravel roads off R22 connecting settlements around Manzibomvu, Mntanenkosi and eNgwenyeni Schools."
+      },
+      {
+        "authority": "Government Tender Bulletin / KwaZulu-Natal Department of Transport",
+        "sourceUrl": "https://archive.opengazettes.org.za/archive/ZA/2016/tender-bulletin-ZA-vol-611-no-2916-dated-2016-05-13.pdf",
+        "detail": "Betterment and re-gravelling of L2887 awarded under Hluhluwe Cost Centre."
+      }
+    ],
+    "D234": [
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/115.pdf",
+        "detail": "Mbazwana to Mkuze route turns onto D234."
+      },
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceUrl": "https://www.uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf",
+        "detail": "2023 recurrence of Mbazwana to UMkuze via D234."
+      }
+    ],
+    "legacyGisRepository": {
+      "authority": "KwaZulu-Natal Department of Transport",
+      "operator": "GeoAfrika Technologies",
+      "sourceUrl": "https://www.geoafrika.co.za/wp-content/uploads/2020/02/DoT-2017-2020-GIS-Maintenance-Support.pdf",
+      "detail": "2017-2020 KZN DOT GIS maintenance included road-network capture/classification and georeferencing of more than 33,000 engineering plans into the spatial repository.",
+      "publicFeatureExportLocated": false
+    }
+  },
+  "r5State": {
+    "P748": "historical_alias_register_still_required",
+    "L2887": {
+      "state": "historical_alias_register_still_required",
+      "remainingObjectIds": [14841,14845,15043,15102,15107,15118,15122,15134,15174],
+      "remainingCodes": ["A1129","A1125","A1111","A1111","A1110","A1128","A1107","A1096","A1106"]
+    },
+    "D234": "current_gis_has_no_umkhanyakude_d234_historical_source_required"
+  },
+  "currentGis": {
+    "authority": "KwaZulu-Natal Department of Cooperative Governance and Traditional Affairs",
+    "host": "giswebmaps1.kzncogta.gov.za",
+    "serviceUrl": "https://giswebmaps1.kzncogta.gov.za/server/rest/services/Base_map_18032022/FeatureServer",
+    "layerId": 10,
+    "outFields": "OBJECTID,STR_NAME,STR_NAME_L,STREET,AG_R_NAME,ROAD_ID,MRRTE,OLD_STR,CATEGORY",
+    "referenceCodes": ["R22","P447"],
+    "candidateSearchRadiusMetres": 350
+  },
+  "policy": {
+    "legacyAliasMustBeExplicit": true,
+    "geometricContinuationCanOnlyNarrowCandidates": true,
+    "legacyRepositoryWithoutPublicExportIsEvidenceOfSourceNotGeometry": true,
+    "noMapTracing": true,
+    "noProximityRename": true,
+    "automaticRoadIdentityPromotion": false,
+    "automaticRouteCandidateCreation": false,
+    "geometryInvented": false,
+    "coordinatesInvented": false,
+    "canonicalMutation": false
+  }
+}
