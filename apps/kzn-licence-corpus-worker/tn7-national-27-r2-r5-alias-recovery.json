@@ -1,0 +1,100 @@
+{
+  "gate": "TN7-NATIONAL-27-R2-R5",
+  "province": "KwaZulu-Natal",
+  "sourceGate": {
+    "gate": "TN7-NATIONAL-27-R2-R4",
+    "head": "b8d193a17b2f1f966209e76100e4510e775c9ea8"
+  },
+  "historicalCrosswalkEvidence": {
+    "P748": [
+      {
+        "authority": "KwaZulu-Natal Department of Transport",
+        "sourceUrl": "https://www.etenders.gov.za/home/Download/?blobName=045f2f71-917f-4032-9304-586401e0a16e.pdf&downloadedFileName=CONTRACT+SECTION-ZNB01919-000000-00-HLU-INF-23-T.pdf",
+        "detail": "P748 is a 10.49 km provincial gravel road in uMhlabuyalingana."
+      },
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2024/42.pdf",
+        "detail": "Mbazwana operating routes leave the approved taxi rank into P748, cross R22 and continue into P447."
+      }
+    ],
+    "A1108": [
+      {
+        "authority": "KwaZulu-Natal Department of Public Works / eTenders",
+        "sourceUrl": "https://www.etenders.gov.za/home/Download/?blobName=ea3f8eeb-a799-4ecf-bb44-ddb85562995d.pdf&downloadedFileName=NEW+BID+DOCUMENT+FOR+CONDITIONAL+ASSESSMENTS+2023+to+2024.pdf",
+        "detail": "Mbazwana Education Resource Centre is recorded on A1108 Road."
+      },
+      {
+        "authority": "Municipal Demarcation Board",
+        "sourceUrl": "https://www.demarcation.org.za/wp-content/uploads/2021/07/Ward_2_Umhlabuyalingana_Local_Municipality.pdf",
+        "detail": "Ward 2 map labels A1108 separately in the Mbazwana/Sodwana-area network."
+      }
+    ],
+    "L2887": [
+      {
+        "authority": "uMhlabuyalingana Local Municipality",
+        "sourceUrl": "https://lg.treasury.gov.za/supportingdocs/KZN271/KZN271_IDP%20Final_2025_Y_20240612T133205Z_xolilek.pdf",
+        "detail": "L2887 and L3012 are internal gravel roads off R22 connecting settlements around Manzibomvu, Mntanenkosi and eNgwenyeni Schools."
+      },
+      {
+        "authority": "Expanded Public Works Programme / KwaZulu-Natal Transport",
+        "sourceUrl": "https://www.epwp.gov.za/documents/Reports/Year13-16-17/Q2-2016-17/Q2_2016_17_Annexure_F.pdf",
+        "detail": "Betterment and re-gravelling of L2887 recorded in uMhlabuyalingana."
+      }
+    ],
+    "D234": [
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/115.pdf",
+        "detail": "Mbazwana to Mkuze operating route turns onto D234."
+      },
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceUrl": "https://uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf",
+        "detail": "2023 recurrence of the Mbazwana to UMkuze route via D234."
+      }
+    ]
+  },
+  "r4State": {
+    "P748": {
+      "state": "r3_candidate_set_exhausted_crosswalk_source_required",
+      "remainingCandidateObjectIds": []
+    },
+    "L2887": {
+      "state": "multiple_unresolved_alias_candidates",
+      "remainingCandidateObjectIds": [15149,15152,15134,15122,15107,15174,15102,15043,15118,14841,14845],
+      "remainingCodes": ["A1108","A1108","A1096","A1107","A1110","A1106","A1111","A1111","A1128","A1129","A1125"]
+    },
+    "D234": {
+      "state": "gazette_identity_confirmed_spatial_crosswalk_source_required"
+    }
+  },
+  "documentaryElimination": {
+    "P748": {
+      "excludeAliases": ["A1108"],
+      "reason": "A1108 is independently documented as a distinct named road; no official source equates A1108 with P748."
+    },
+    "L2887": {
+      "excludeAliases": ["A1108"],
+      "reason": "A1108 is separately documented in the Mbazwana/Sodwana-area network and is not evidence of the internal L2887 road serving Manzibomvu/Mntanenkosi/eNgwenyeni."
+    }
+  },
+  "d234Expansion": {
+    "strategy": "official_documentary_corridor_expansion_only",
+    "routeEndpoints": ["Mbazwana", "Mkuze"],
+    "requireIndependentSpatialSource": true,
+    "rejectUnrelatedD234OutsideUmkhanyakude": true
+  },
+  "policy": {
+    "historicalAliasMustBeExplicit": true,
+    "absenceFromCurrentGISDoesNotCreateAlias": true,
+    "sameLocalityDoesNotCreateAlias": true,
+    "sameTopologyDoesNotCreateAlias": true,
+    "unrelatedDuplicateRoadCodeRejected": true,
+    "automaticRoadIdentityPromotion": false,
+    "automaticRouteCandidateCreation": false,
+    "geometryInvented": false,
+    "coordinatesInvented": false,
+    "canonicalMutation": false
+  }
+}
