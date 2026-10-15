@@ -29,7 +29,8 @@ const checks=[
   ['canonical mutation disabled',src.includes('canonicalMutation:false')],
   ['workflow emits READY state',wf.includes('TN7_NATIONAL_27_R2_R3_RUNTIME_READY')],
   ['workflow emits PARTIAL state',wf.includes('TN7_NATIONAL_27_R2_R3_RUNTIME_PARTIAL')],
-  ['workflow uploads evidence',wf.includes('tn7-national-27-r2-r3-evidence')]
+  ['workflow uploads evidence',wf.includes('tn7-national-27-r2-r3-evidence')],
+  ['R22 control remains documentary bridge',src.includes('r22FeatureCount')]
 ];
 
 const failed=checks.filter(([,ok])=>!ok);
