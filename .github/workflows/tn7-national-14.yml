@@ -1,0 +1,32 @@
+name: TN7 NATIONAL-14 KZN Identity Resolution
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/kzn-multi-date-identity-resolution.mjs'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-8-corpus.mjs'
+      - 'apps/kzn-licence-corpus-worker/test-national-14-resolution.mjs'
+      - 'test/tn7-national-14-static.mjs'
+      - '.github/workflows/tn7-national-14.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national14-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check apps/kzn-licence-corpus-worker/kzn-multi-date-identity-resolution.mjs
+          node --check apps/kzn-licence-corpus-worker/tn7-national-8-corpus.mjs
+          node --check apps/kzn-licence-corpus-worker/test-national-14-resolution.mjs
+      - name: Resolution unit proof
+        run: node apps/kzn-licence-corpus-worker/test-national-14-resolution.mjs
+      - name: NATIONAL-14 static safety gate
+        run: node test/tn7-national-14-static.mjs

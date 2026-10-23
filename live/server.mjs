@@ -14,13 +14,21 @@ const publicApiPaths = [
   '/api/v1/routes',
   '/api/v1/nltis/endpoint-evidence',
   '/api/v1/source-route-geometries',
-  '/api/v1/route-candidates'
+  '/api/v1/route-candidates',
+  '/api/v1/coverage',
+  '/api/v1/coverage/national',
+  '/api/v1/coverage/gaps',
+  '/api/v1/coverage/kzn/execution',
+  '/api/v1/coverage/kzn/gazette-queue',
+  '/api/v1/associations/map',
+  '/api/v1/data-quality/summary'
 ];
 
 function isPublicApiPath(rawUrl=''){
   const url=new URL(rawUrl,'http://localhost');
   if(publicApiPaths.includes(url.pathname)) return true;
-  return /^\/api\/v1\/ranks\/[^/]+$/.test(url.pathname);
+  if(/^\/api\/v1\/ranks\/[^/]+$/.test(url.pathname)) return true;
+  return /^\/api\/v1\/associations\/[^/]+$/.test(url.pathname);
 }
 
 const mime = {

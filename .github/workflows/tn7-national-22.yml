@@ -1,0 +1,31 @@
+name: TN7 NATIONAL-22 KZN Alias Approval and Recovery Workbench
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/tn7-national-22-alias-approval.mjs'
+      - 'apps/operator-workbench/server.mjs'
+      - 'apps/operator-workbench/app.js'
+      - 'apps/operator-workbench/index.html'
+      - 'test/tn7-national-22-static.mjs'
+      - '.github/workflows/tn7-national-22.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national22-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: |
+          node --check apps/kzn-licence-corpus-worker/tn7-national-22-alias-approval.mjs
+          node --check apps/operator-workbench/server.mjs
+          node --check apps/operator-workbench/app.js
+      - name: NATIONAL-22 static safety gate
+        run: node test/tn7-national-22-static.mjs

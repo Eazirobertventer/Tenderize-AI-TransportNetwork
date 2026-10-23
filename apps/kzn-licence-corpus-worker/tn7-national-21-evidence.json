@@ -1,0 +1,105 @@
+{
+  "gate": "TN7-NATIONAL-21",
+  "province": "KwaZulu-Natal",
+  "mbazwana": {
+    "targetRankId": "acadacb7-ae3b-4581-a28b-ba445af280ba",
+    "targetCanonicalName": "KRPUMD002",
+    "proposedAlias": "Mbazwana Taxi Rank",
+    "normalizedAlias": "mbazwana taxi rank",
+    "officialRankSource": {
+      "sourceKey": "kzn-taxi-ranks-degraded-tls",
+      "authority": "KwaZulu-Natal Department of Transport",
+      "externalRecordId": "252",
+      "rankCode": "KRPUMD002",
+      "latitude": -27.481700000000274,
+      "longitude": 32.581969999999274,
+      "snapped": "YES",
+      "snapDistance": 0
+    },
+    "municipalEvidence": {
+      "authority": "uMhlabuyalingana Local Municipality",
+      "sourceClass": "municipal_valuation_roll",
+      "sourceUrl": "https://umhlabuyalingana.gov.za/wp-content/uploads/2019/04/01_UMHLABUYALINGANA-GV-2018-FINAL-ROLL-.pdf",
+      "label": "MARKET STALLS & TAXI RANK MBAZWANE",
+      "latitude": -27.4821,
+      "longitude": 32.5816
+    },
+    "separationMetres": 57.5,
+    "existingAliasCollision": null,
+    "proposalOnly": true,
+    "automaticApproval": false
+  },
+  "gluckstadt": {
+    "canonicalNameCandidate": "Gluckstadt Taxi Rank",
+    "status": "location_pending",
+    "existenceEvidence": [
+      {
+        "authority": "Zululand District Municipality",
+        "sourceClass": "municipal_idp",
+        "sourceUrl": "https://www.zululand.gov.za/wp-content/uploads/media/Municipal-Affairs/Integrated-Development-Plan/2025-2026-Final/ZDM-IDP-2025-2026_JUNE-2025_FINAL.pdf",
+        "evidence": "Figure 40 maps GLUCKSTADT RANK"
+      },
+      {
+        "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+        "sourceClass": "provincial_transport",
+        "sourceUrl": "https://archive.opengazettes.org.za/archive/ZA-NL/2009/provincial-gazette-ZA-NL-vol-3-no-354-dated-2009-11-25.pdf",
+        "evidence": "Gluckstadt route corpus repeatedly references Gluckstadt Rank / Gluckstadt start point"
+      }
+    ],
+    "geospatialContext": [
+      {
+        "source": "GeoNames/Mapcarta locality",
+        "latitude": -27.97838,
+        "longitude": 31.03907,
+        "rankCoordinate": false
+      },
+      {
+        "source": "SAPS Gluckstadt station",
+        "latitude": -27.97561,
+        "longitude": 31.0321,
+        "rankCoordinate": false
+      },
+      {
+        "source": "KZN Department of Education Gluckstadt P",
+        "latitude": -27.97387,
+        "longitude": 31.05506,
+        "rankCoordinate": false
+      }
+    ],
+    "nearestCanonicalRank": {
+      "id": "34a36619-31b1-4755-91da-efb92648c711",
+      "canonicalName": "KRPZDM001",
+      "distanceFromLocalityReferenceMetres": 3093.8
+    },
+    "rankCoordinateRecovered": false,
+    "automaticRankCreation": false
+  },
+  "routeGeometrySourceExpansion": {
+    "unresolvedDocumentaryIdentities": 18,
+    "officialKznRouteGis": {
+      "sourceUrl": "https://gis.kznpidh.gov.za/hosting/rest/services/Department_of_Transport__ff_MIL1/MapServer/3",
+      "featureCount": 2024,
+      "exactIdentifierMatches": 0,
+      "boundedPrefixIdentifierMatches": 0
+    },
+    "sourceClassesSearched": [
+      "KwaZulu-Natal Department of Transport ArcGIS Taxi_Routes",
+      "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "SAFLII KZN Provincial Gazette archive",
+      "OpenGazettes KZN archive",
+      "Zululand District Municipality IDP public transport corridor maps"
+    ],
+    "documentaryNarrativesExpanded": true,
+    "authoritativeGeometryRecovered": false,
+    "geometryInvented": false,
+    "routeCandidateCreationReady": false
+  },
+  "policy": {
+    "automaticAliasPromotion": false,
+    "automaticRankCreation": false,
+    "automaticRouteCandidateCreation": false,
+    "automaticProposalApproval": false,
+    "geometryInvented": false,
+    "coordinatesInvented": false
+  }
+}

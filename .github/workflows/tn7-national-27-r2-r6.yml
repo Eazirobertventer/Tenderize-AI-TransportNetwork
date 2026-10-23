@@ -1,0 +1,59 @@
+name: TN7 NATIONAL-27-R2-R6 Legacy Road Register Recovery
+
+on:
+  pull_request:
+    paths:
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-r2-r6-legacy-register.json'
+      - 'apps/kzn-licence-corpus-worker/tn7-national-27-r2-r6-legacy-recovery.mjs'
+      - 'test/tn7-national-27-r2-r6-static.mjs'
+      - '.github/workflows/tn7-national-27-r2-r6.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  national27-r2-r6-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check apps/kzn-licence-corpus-worker/tn7-national-27-r2-r6-legacy-recovery.mjs
+      - name: NATIONAL-27-R2-R6 static gate
+        run: node test/tn7-national-27-r2-r6-static.mjs
+
+  national27-r2-r6-runtime:
+    runs-on: ubuntu-latest
+    needs: national27-r2-r6-static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Execute legacy recovery
+        run: |
+          rm -rf artifacts/tn7-national-27-r2-r6
+          node apps/kzn-licence-corpus-worker/tn7-national-27-r2-r6-legacy-recovery.mjs 2>&1 | tee national27-r2-r6.log
+      - name: Classify R6 outcome
+        run: |
+          if ! grep -q 'TN7_NATIONAL_27_R2_R6_RUNTIME_PASS' national27-r2-r6.log; then
+            echo "TN7_NATIONAL_27_R2_R6_RUNTIME_FAIL"
+            exit 1
+          fi
+          if grep -q 'TN7_NATIONAL_27_R2_R6_LEGACY_READY' national27-r2-r6.log; then
+            echo "TN7_NATIONAL_27_R2_R6_RUNTIME_READY"
+          else
+            echo "TN7_NATIONAL_27_R2_R6_RUNTIME_HOLD"
+          fi
+      - name: Upload R6 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tn7-national-27-r2-r6-evidence
+          path: |
+            artifacts/tn7-national-27-r2-r6
+            national27-r2-r6.log
+          if-no-files-found: error

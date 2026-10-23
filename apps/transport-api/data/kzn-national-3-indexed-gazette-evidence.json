@@ -1,0 +1,66 @@
+[
+  {
+    "routeCode": "KZNBRCLDY0052",
+    "association": "Dundee Transport Association",
+    "rankNarrative": "Dundee Taxi Rank to Dannhauser / Pomeroy corridor",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/90.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  },
+  {
+    "routeCode": "KZNBRC0059",
+    "association": "Dundee Transport Association",
+    "rankNarrative": "Dundee Taxi Rank to Ladysmith",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/90.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  },
+  {
+    "routeCode": "KZNBRCLDY0059",
+    "association": "Dundee Transport Association",
+    "rankNarrative": "Dundee Taxi Rank to Sithembile Township / Glencoe",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/90.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  },
+  {
+    "routeCode": "KZNBRCLDY0200",
+    "association": "Dundee Transport Association",
+    "rankNarrative": "Dundee Taxi Rank to Nkandla",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/90.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  },
+  {
+    "routeCode": "KZNBRCLDY0201",
+    "association": "Dundee Transport Association",
+    "rankNarrative": "Dundee Taxi Rank to Nquthu",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/90.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  },
+  {
+    "routeCode": "KZNBRCPMB100",
+    "association": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+    "rankNarrative": "Bhamshela to Pietermaritzburg via Wartburg",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2008/105.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  },
+  {
+    "routeCode": "KZNBRCPMB102",
+    "association": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+    "rankNarrative": "Bhamshela to Pietermaritzburg",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2008/105.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  },
+  {
+    "routeCode": "KZNBRCPMB103",
+    "association": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+    "rankNarrative": "Bhamshela to Wartburg",
+    "source": "KwaZulu-Natal Provincial Gazette indexed text",
+    "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2008/105.pdf",
+    "evidenceOrigin": "indexed_gazette_text"
+  }
+]

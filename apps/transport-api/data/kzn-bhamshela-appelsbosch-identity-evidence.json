@@ -1,0 +1,72 @@
+{
+  "label": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+  "province": "KwaZulu-Natal",
+  "region": "UMGUNGUNDLOVU",
+  "locality": [
+    "Bhamshela",
+    "Appelsbosch",
+    "Ozwathini",
+    "Wartburg",
+    "Pietermaritzburg"
+  ],
+  "evidence": [
+    {
+      "evidenceType": "provincial_association_register",
+      "documentDate": "2001",
+      "associationLabel": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+      "establishedDate": "1991-12-04",
+      "authority": "KwaZulu-Natal provincial record",
+      "sourceUrl": "https://www.yumpu.com/en/document/view/6910418/cdata-filesweb-siteslegislaturehandsard2001-kwazulu-natal-/15"
+    },
+    {
+      "evidenceType": "provincial_operating_licence_gazette",
+      "documentDate": "2018-06-14",
+      "associationLabel": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+      "region": "UMGUNGUNDLOVU",
+      "routeNarrative": "Bhamshela (KPX0074) to Wartburg Rank No.2 (KPX0053)",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2018/51.pdf"
+    },
+    {
+      "evidenceType": "provincial_operating_licence_gazette",
+      "documentDate": "2023-10-12",
+      "associationLabel": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+      "authority": "KwaZulu-Natal Department of Transport",
+      "sourceUrl": "https://www.uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf"
+    },
+    {
+      "evidenceType": "provincial_operating_licence_gazette",
+      "documentDate": "2024-06-13",
+      "associationLabel": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+      "region": "UMGUNGUNDLOVU",
+      "routeNarrative": "Bhamshela (KPX0074) to Pietermaritz Street Rank No.2 (KPC0047)",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2024/20.pdf"
+    },
+    {
+      "evidenceType": "provincial_operating_licence_gazette",
+      "documentDate": "2025-02-06",
+      "associationLabel": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+      "region": "UMGUNGUNDLOVU",
+      "authority": "KwaZulu-Natal Department of Transport",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2025/10.pdf"
+    },
+    {
+      "evidenceType": "provincial_operating_licence_gazette",
+      "documentDate": "2025-07",
+      "associationLabel": "BHAMSHELA-APPELSBOSCH TAXI OWNERS ASS.",
+      "region": "UMGUNGUNDLOVU",
+      "authority": "KwaZulu-Natal Department of Transport",
+      "sourceUrl": "https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG13-2025-JUL.pdf"
+    }
+  ],
+  "linkedGazetteRouteCodes": [
+    "KZNBRCPMB100",
+    "KZNBRCPMB102",
+    "KZNBRCPMB103"
+  ],
+  "policy": {
+    "evidenceOnly": true,
+    "automaticCanonicalCreation": false,
+    "automaticAliasPromotion": false,
+    "fuzzyMatching": false
+  }
+}

@@ -1,0 +1,252 @@
+{
+  "gate": "TN7-NATIONAL-20",
+  "province": "KwaZulu-Natal",
+  "policy": {
+    "documentaryIdentityRecoveryOnly": true,
+    "geometryInvented": false,
+    "coordinatesInvented": false,
+    "automaticRouteCandidateCreation": false,
+    "automaticRankCreation": false,
+    "automaticProposalCreation": false,
+    "canonicalMutation": false
+  },
+  "routeIdentityRecoveries": [
+    {
+      "observedRouteCode": "222026D22026D00052011",
+      "cleanRouteCode": "22026D22026D00052011",
+      "associationLabel": "THUTHUKANI TAXI ASSOCIATION (HARDING)",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2012/101.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22202DQ2202DR00051937",
+      "cleanRouteCode": "2202DQ2202DR00051937",
+      "associationLabel": "MIDLANDS TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22202DR22068T10051939",
+      "cleanRouteCode": "2202DR22068T10051939",
+      "associationLabel": "MIDLANDS TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.uthukela.gov.za/media/content/documents/2023/9/o_1hdeaq8c4f6sl31pj88v81n0o8.pdf?download=2605_12-10_KZN.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "222064X21004R00050287",
+      "cleanRouteCode": "22064X21004R00050287",
+      "associationLabel": "CHATSWORTH MINIBUS ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://archive.opengazettes.org.za/archive/ZA-NL/2013/provincial-gazette-ZA-NL-vol-7-no-1010-dated-2013-08-19.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "222064X22064X00050284",
+      "cleanRouteCode": "22064X22064X00050284",
+      "associationLabel": "CHATSWORTH MINIBUS ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://archive.opengazettes.org.za/archive/ZA-NL/2015/provincial-gazette-ZA-NL-vol-9-no-1321-dated-2015-03-02.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "222064X22064X00051643",
+      "cleanRouteCode": "22064X22064X00051643",
+      "associationLabel": "CHATSWORTH MINIBUS ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.kzntransport.gov.za/public_transport_operating_licence_applications/2025/LGKZNG06-2025-MAY.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "222068A22068300051236",
+      "cleanRouteCode": "22068A22068300051236",
+      "associationLabel": "MIDLANDS TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://archive.opengazettes.org.za/archive/ZA-NL/2013/provincial-gazette-ZA-NL-vol-7-no-911-dated-2013-03-08.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22206EO2206EZ00055165",
+      "cleanRouteCode": "2206EO2206EZ00055165",
+      "associationLabel": "BAMBANANI TAXI ASSOCIATION(KZN)",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2025/7.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22206FG220BGG00194260",
+      "cleanRouteCode": "2206FG220BGG00194260",
+      "associationLabel": "BAMBANANI TAXI ASSOCIATION(KZN)",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www1.saflii.org/za/gaz/ZAKZPrGaz/2024/61.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22206MK21004R00049185",
+      "cleanRouteCode": "2206MK21004R00049185",
+      "associationLabel": "LINDELANI TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/133.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22206MK2206U800049193",
+      "cleanRouteCode": "2206MK2206U800049193",
+      "associationLabel": "LINDELANI TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2009/14.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22206RK2206RK00050298",
+      "cleanRouteCode": "2206RK2206RK00050298",
+      "associationLabel": "MLABA & MKHIZWANE TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2014/42.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "222079A2100DX10053141",
+      "cleanRouteCode": "22079A2100DX10053141",
+      "associationLabel": "MBAZWANA TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2013/115.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22207XF2207XE00057777",
+      "cleanRouteCode": "2207XF2207XE00057777",
+      "associationLabel": "NGWELEZANE TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www1.saflii.org/za/gaz/ZAKZPrGaz/2025/11.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22209R32209R300048081",
+      "cleanRouteCode": "2209R32209R300048081",
+      "associationLabel": "GLUCKSTADT TAXI OWNERS ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://archive.opengazettes.org.za/archive/ZA-NL/2009/provincial-gazette-ZA-NL-vol-3-no-354-dated-2009-11-25.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "2222026D22026D00052024",
+      "cleanRouteCode": "22026D22026D00052024",
+      "associationLabel": "THUTHUKANI TAXI ASSOCIATION (HARDING)",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2024/16.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22KZPRERC2807418",
+      "cleanRouteCode": "KZPRERC2807418",
+      "associationLabel": "BAMBANANI TAXI ASSOCIATION(KZN)",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.saflii.org/za/gaz/ZAKZPrGaz/2020/25.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    },
+    {
+      "observedRouteCode": "22KZPRERC2851126",
+      "cleanRouteCode": "KZPRERC2851126",
+      "associationLabel": "MBAZWANA TAXI ASSOCIATION",
+      "recoveryMethod": "bounded_leading_section_prefix_removal_with_authoritative_documentary_confirmation",
+      "authority": "KwaZulu-Natal Provincial Gazette / Government Printing Works",
+      "sourceUrl": "https://www.harrygwaladm.gov.za/images/downloads/water/gazzeted_by_laws.pdf",
+      "geometryAvailable": false,
+      "routeCandidateCreationReady": false,
+      "canonicalMutation": false
+    }
+  ],
+  "unresolvedRouteIdentities": [
+    {
+      "observedRouteCode": "22100HE61002P10150056",
+      "status": "no_authoritative_documentary_match_found",
+      "canonicalMutation": false
+    }
+  ],
+  "missingRankSourceCandidates": [
+    {
+      "canonicalNameCandidate": "Mbazwana Taxi Rank",
+      "associationLabel": "MBAZWANA TAXI ASSOCIATION",
+      "evidenceRows": 4,
+      "authority": "uMhlabuyalingana Local Municipality",
+      "sourceClass": "municipal_valuation_roll",
+      "sourceUrl": "https://umhlabuyalingana.gov.za/wp-content/uploads/2019/04/01_UMHLABUYALINGANA-GV-2018-FINAL-ROLL-.pdf",
+      "sourceLabel": "MARKET STALLS & TAXI RANK MBAZWANE",
+      "latitude": -27.4821,
+      "longitude": 32.5816,
+      "locationStatus": "documented_source_coordinate",
+      "verificationStatus": "documented",
+      "automaticCanonicalCreation": false,
+      "coordinatesInvented": false
+    },
+    {
+      "canonicalNameCandidate": "Gluckstadt Taxi Rank",
+      "associationLabel": "GLUCKSTADT TAXI OWNERS ASSOCIATION",
+      "evidenceRows": 2,
+      "authority": "Zululand District Municipality",
+      "sourceClass": "municipal_idp",
+      "sourceUrl": "https://www.zululand.gov.za/wp-content/uploads/media/Municipal-Affairs/Integrated-Development-Plan/2023-2024-Final/ZDM-IDP-2023-202420_05_2023-Final.pdf",
+      "sourceLabel": "GLUCKSTADT RANK",
+      "latitude": null,
+      "longitude": null,
+      "locationStatus": "location_pending",
+      "verificationStatus": "documented",
+      "automaticCanonicalCreation": false,
+      "coordinatesInvented": false
+    }
+  ]
+}
